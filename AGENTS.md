@@ -17,6 +17,16 @@
 
 ---
 
+## 🛠️ Stack Tecnológico (MVP)
+
+- **Frontend:** React 18 + Vite + TypeScript + TailwindCSS + TanStack Query
+- **Backend:** Node 20 + Express + TypeScript + Prisma
+- **Base de Datos:** SQLite
+- **Testing:** Vitest (unit) + Playwright (E2E)
+- **Arquitectura:** Monorepo (`/apps/web` y `/apps/api`)
+
+---
+
 ## 🏗️ Arquitectura General (MVP)
 
 ```
