@@ -7,6 +7,7 @@ import { authMiddleware } from './middleware/auth';
 import { registerController, loginController, meController } from './controllers/authController';
 import { getGenresController, saveGenrePreferencesController, getProfileController } from './controllers/genreController';
 import { searchPeopleController, savePersonPreferencesController, getPersonPreferencesController } from './controllers/personController';
+import { searchMoviesController, rateMovieController, getWatchedMoviesController, removeWatchedMovieController } from './controllers/movieController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,12 @@ app.get('/api/v1/profile', authMiddleware, getProfileController);
 app.get('/api/v1/search/people', searchPeopleController);
 app.post('/api/v1/profile/people', authMiddleware, savePersonPreferencesController);
 app.get('/api/v1/profile/people', authMiddleware, getPersonPreferencesController);
+
+// Movie routes
+app.get('/api/v1/search/movies', searchMoviesController);
+app.post('/api/v1/profile/watched-movies', authMiddleware, rateMovieController);
+app.get('/api/v1/profile/watched-movies', authMiddleware, getWatchedMoviesController);
+app.delete('/api/v1/profile/watched-movies/:movieId', authMiddleware, removeWatchedMovieController);
 
 // 404 handler
 app.use(notFoundHandler);

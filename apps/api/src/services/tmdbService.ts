@@ -223,6 +223,89 @@ class TMDBService {
       return null;
     }
   }
+
+  /**
+   * Search for movies or TV series
+   */
+  async searchMovies(
+    query: string,
+    type: 'movie' | 'tv' | undefined = undefined
+  ): Promise<
+    Array<{
+      id: number;
+      title: string;
+      year: number;
+      poster_path: string | null;
+      overview: string;
+      media_type: 'movie' | 'tv';
+    }>
+  > {
+    try {
+      if (!query || query.trim().length < 2) {
+        return [];
+      }
+
+      // Determine endpoint
+      const endpoint = type ? `search/${type}` : 'search/multi';
+
+      const response = await axios.get(`${this.baseURL}/${endpoint}`, {
+        params: {
+          api_key: this.apiKey,
+          query: query.trim(),
+          page: 1,
+        },
+        timeout: this.timeout,
+      });
+
+      const results: MovieSearchResult[] = response.data.results || [];
+
+      // Filter and map results
+      const mapped = results
+        .filter((item) => {
+          // Filter out results without ID or title
+          const hasId = item.id;
+          const hasTitle = item.title || (item as any).name;
+          return hasId && hasTitle;
+        })
+        .slice(0, 15) // Limit to 15 results
+        .map((item) => ({
+          id: item.id,
+          title: item.title || (item as any).name || 'Unknown',
+          year: new Date(
+            (item as any).release_date || (item as any).first_air_date || ''
+          ).getFullYear() || new Date().getFullYear(),
+          poster_path: item.poster_path || null,
+          overview: item.overview || '',
+          media_type: (item as any).media_type || type || 'movie',
+        }));
+
+      logger.debug('TMDB movies search', {
+        query,
+        type: type || 'all',
+        resultsCount: mapped.length,
+      });
+
+      return mapped;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      logger.error('TMDB movies search error', {
+        query,
+        status: axiosError.response?.status,
+        message: axiosError.message,
+      });
+
+      if (axiosError.code === 'ECONNABORTED') {
+        throw new AppError('TMDB_TIMEOUT', 504, 'TMDB API timeout', true);
+      }
+
+      throw new AppError(
+        'TMDB_SEARCH_ERROR',
+        502,
+        'Failed to search TMDB',
+        true
+      );
+    }
+  }
 }
 
 export const tmdbService = new TMDBService();

@@ -1,6 +1,7 @@
 import { FC, useState } from 'react';
 import { GenreSelector } from './GenreSelector';
 import { PersonSelector } from './PersonSelector';
+import { MovieRater } from './MovieRater';
 import { useGenreSelector, useOnboarding } from '../../hooks/useOnboarding';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +25,7 @@ export const OnboardingFlow: FC = () => {
   // Person preferences
   const [selectedDirectorIds, setSelectedDirectorIds] = useState<number[]>([]);
   const [selectedActorIds, setSelectedActorIds] = useState<number[]>([]);
+  const [ratedMovieCount, setRatedMovieCount] = useState(0);
 
   const { selectedGenres: tempGenres, genres, contentType, setContentType, toggleGenre, isValid } =
     useGenreSelector();
@@ -92,6 +94,9 @@ export const OnboardingFlow: FC = () => {
         }
       }
       nextStep();
+    } else if (step === 4) {
+      // Step 4: Movies - no validation needed (optional)
+      nextStep();
     } else {
       nextStep();
     }
@@ -104,13 +109,13 @@ export const OnboardingFlow: FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">🎬 RecomiendaFilms</h1>
           <p className="text-indigo-100">
-            Cuéntanos tus gustos (Paso {step}/4)
+            Cuéntanos tus gustos (Paso {step}/5)
           </p>
         </div>
 
         {/* Progress Bar */}
         <div className="mb-8 flex gap-2">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
               className={`flex-1 h-2 rounded-full transition ${
@@ -151,6 +156,10 @@ export const OnboardingFlow: FC = () => {
           )}
 
           {step === 4 && (
+            <MovieRater />
+          )}
+
+          {step === 5 && (
             <div className="text-center py-12">
               <p className="text-2xl font-bold text-gray-800 mb-4">
                 ¡Tu perfil está listo! 🎉
@@ -168,9 +177,12 @@ export const OnboardingFlow: FC = () => {
                 <p className="text-gray-700">
                   <span className="font-semibold">{selectedActorIds.length}</span> actores favoritos
                 </p>
+                <p className="text-gray-700 border-t pt-2 mt-2">
+                  <span className="font-semibold">{ratedMovieCount}</span> películas valoradas
+                </p>
               </div>
               <p className="text-gray-500 mt-6">
-                Ahora puedes empezar a recibir recomendaciones personalizadas
+                Ahora puedes empezar a recibir recomendaciones personalizadas basadas en tus gustos
               </p>
             </div>
           )}
@@ -186,22 +198,22 @@ export const OnboardingFlow: FC = () => {
             ← Atrás
           </button>
 
-          {step < 4 && (
+          {step < 5 && (
             <button
               onClick={handleNext}
-              disabled={isLoading}
+              disabled={isLoading || (step === 1 && !isValid)}
               className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100 disabled:opacity-50"
             >
               {isLoading ? 'Guardando...' : 'Siguiente →'}
             </button>
           )}
 
-          {step === 4 && (
+          {step === 5 && (
             <button
               onClick={() => navigate('/home')}
               className="flex-1 bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600"
             >
-              Completar ✓
+              Comenzar ✓
             </button>
           )}
         </div>
