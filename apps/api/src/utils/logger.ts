@@ -1,0 +1,67 @@
+/**
+ * Structured logger utility
+ */
+
+const LOG_LEVELS = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+};
+
+type LogLevel = keyof typeof LOG_LEVELS;
+
+class Logger {
+  private minLevel: LogLevel;
+
+  constructor(minLevel: LogLevel = 'info') {
+    this.minLevel = minLevel;
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    return LOG_LEVELS[level] >= LOG_LEVELS[this.minLevel];
+  }
+
+  private formatMessage(level: LogLevel, message: string, context?: Record<string, unknown>) {
+    const timestamp = new Date().toISOString();
+    const contextStr = context ? ` | ${JSON.stringify(context)}` : '';
+    return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`;
+  }
+
+  debug(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('debug')) {
+      console.debug(this.formatMessage('debug', message, context));
+    }
+  }
+
+  info(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('info')) {
+      console.log(this.formatMessage('info', message, context));
+    }
+  }
+
+  warn(message: string, context?: Record<string, unknown>): void {
+    if (this.shouldLog('warn')) {
+      console.warn(this.formatMessage('warn', message, context));
+    }
+  }
+
+  error(message: string, error?: Error | Record<string, unknown>, context?: Record<string, unknown>): void {
+    if (this.shouldLog('error')) {
+      let errorContext = context || {};
+      if (error instanceof Error) {
+        errorContext = {
+          ...errorContext,
+          errorMessage: error.message,
+          errorStack: error.stack,
+        };
+      } else if (error) {
+        errorContext = { ...errorContext, error };
+      }
+      console.error(this.formatMessage('error', message, errorContext));
+    }
+  }
+}
+
+const logLevel = (process.env.LOG_LEVEL as LogLevel) || 'info';
+export const logger = new Logger(logLevel);

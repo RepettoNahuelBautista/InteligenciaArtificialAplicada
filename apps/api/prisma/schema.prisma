@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  profile       UserProfile?
+  recommendations Recommendation[]
+  watchedMovies WatchedMovie[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Preferences
+  favoriteGenres  String   // JSON array of genre IDs
+  favoriteDirectors String // JSON array of director IDs
+  favoriteActors  String   // JSON array of actor IDs
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+model WatchedMovie {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tmdbId    String
+  title     String
+  rating    Int      // 1 (dislike) or 5 (like)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tmdbId])
+  @@map("watched_movies")
+}
+
+model Recommendation {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tmdbId          String
+  title           String
+  explanation     String
+  genre           String
+  year            Int
+  
+  // Context used for this recommendation
+  contextMood     String?  // e.g., "mystery", "escape"
+  contextType     String?  // "movie" or "series"
+  contextDuration Int?     // max duration in minutes
+  contextYear     Int?     // min year
+  
+  createdAt       DateTime @default(now())
+
+  @@map("recommendations")
+}

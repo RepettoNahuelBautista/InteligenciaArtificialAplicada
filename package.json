@@ -1,0 +1,19 @@
+{
+  "name": "movie-recommender",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Intelligent movie recommendation engine powered by AI",
+  "scripts": {
+    "dev": "concurrently \"npm --prefix apps/api run dev\" \"npm --prefix apps/web run dev\"",
+    "build": "npm --prefix apps/api run build && npm --prefix apps/web run build",
+    "install-all": "npm install && npm --prefix apps/api install && npm --prefix apps/web install",
+    "test": "npm --prefix apps/api run test && npm --prefix apps/web run test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ]
+}
