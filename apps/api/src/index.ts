@@ -9,6 +9,7 @@ import { getGenresController, saveGenrePreferencesController } from './controlle
 import { getProfileController } from './controllers/profileController';
 import { searchPeopleController, savePersonPreferencesController, getPersonPreferencesController } from './controllers/personController';
 import { searchMoviesController, rateMovieController, getWatchedMoviesController, removeWatchedMovieController } from './controllers/movieController';
+import { getMoodsController } from './controllers/moodController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,6 +37,9 @@ app.get('/api/v1/auth/me', authMiddleware, meController);
 // Genre routes
 app.get('/api/v1/genres', getGenresController);
 app.post('/api/v1/profile/genres', authMiddleware, saveGenrePreferencesController);
+
+// Mood routes
+app.get('/api/v1/moods', getMoodsController);
 
 // Profile route (complete profile with stats)
 app.get('/api/v1/profile', authMiddleware, getProfileController);

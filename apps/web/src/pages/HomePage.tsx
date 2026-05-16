@@ -72,14 +72,14 @@ export function HomePage() {
           </div>
 
           {/* Recommendations Card (Coming Soon) */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 opacity-50 cursor-not-allowed">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/recommendation')}>
             <div className="text-5xl mb-4">✨</div>
             <h3 className="text-2xl font-bold text-white mb-3">Obtener Recomendación</h3>
             <p className="text-indigo-100 mb-6">
               Recibe una recomendación personalizada basada en tu perfil y estado de ánimo actual.
             </p>
-            <button disabled className="bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold w-full cursor-not-allowed">
-              Próximamente
+            <button className="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 transition font-semibold w-full">
+              Solicitar Recomendación
             </button>
           </div>
 

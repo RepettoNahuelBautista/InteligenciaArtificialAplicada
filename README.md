@@ -40,6 +40,9 @@ cd apps/api && npm run dev
 cd apps/web && npm run dev
 ```
 
+**🌐 Frontend:** http://localhost:3001  
+**🔌 Backend API:** http://localhost:3000
+
 ## 📁 Estructura del Proyecto
 
 ```
@@ -85,6 +88,7 @@ InteligenciaArtificialAplicada/
 - **Auth:** JWT + bcryptjs
 - **Validation:** Zod
 - **Testing:** Vitest + Playwright
+- **External APIs:** OpenAI, TMDB, JustWatch
 
 ### Frontend
 - **Framework:** React 18
@@ -95,47 +99,78 @@ InteligenciaArtificialAplicada/
 - **State Management:** Context API + React Hooks
 - **Routing:** React Router
 
-## 📊 ETAPA 1: MVP Mínimo (En Construcción)
+## 📊 ETAPA 1: MVP Mínimo (26/65 SP - 40% completado)
 
-**Status:** Inicialización completada ✅
+### ✅ US Completadas (5/15 = 33%):
 
-### US Completadas (1/15):
-- ✅ **US-001:** Autenticación básica (Backend + Frontend)
+| ID | Título | SP | Estado |
+|----|---------|----|--------|
+| **US-001** | Autenticación básica | 5 | ✅ Completada |
+| **US-002** | Onboarding - Géneros | 3 | ✅ Completada |
+| **US-003** | Onboarding - Directores/Actores | 5 | ✅ Completada |
+| **US-004** | Onboarding - Películas vistas | 5 | ✅ Completada |
+| **US-005** | Finalizar onboarding | 3 | ✅ Completada |
 
-### US En Desarrollo:
-- 🔄 **US-002:** Onboarding - Géneros
-- ⏳ **US-003:** Onboarding - Directores/Actores
-- ⏳ **US-004:** Onboarding - Películas vistas
-- ⏳ **US-005:** Finalizar onboarding
-- ⏳ **US-006:** Estado de ánimo
-- ⏳ **US-007:** Filtros tradicionales
-- ⏳ **US-008:** Resumen contexto
-- ⏳ **US-009:** Integración OpenAI API
-- ⏳ **US-010:** Prompt engineering
-- ⏳ **US-011:** Explicación justificada
-- ⏳ **US-012:** Descartar inválidas
-- ⏳ **US-017:** Validación Zod
-- ⏳ **US-018:** Orquestación flujo completo
-- ⏳ **US-022:** Integration test E2E
+**Total completado:** 21 SP de 65
 
-**Story Points:** 15/65 completados
+### 🔄 US En Desarrollo (1 en progreso):
+
+| ID | Título | SP | Estado | Progreso |
+|----|---------|----|--------|----------|
+| **US-006** | Captura de estado de ánimo | 3 | 🔄 EN DESARROLLO | Backend ✅ + Frontend ✅ |
+
+### ⏳ US Próximas (9 pendientes):
+
+- **US-007:** Filtros tradicionales (5 SP) - Duración, tipo, año
+- **US-008:** Vista previa contexto (2 SP) - Resumen antes de recomendar
+- **US-009:** Integración OpenAI (8 SP) - LLM para recomendaciones
+- **US-010:** Prompt engineering (5 SP) - Personalización de prompts
+- **US-011:** Explicación justificada (3 SP) - "Por qué esta recomendación"
+- **US-012:** Validación de alucinaciones (5 SP) - Descartar películas falsas
+- **US-017:** Validación Zod (3 SP) - Input/output validation
+- **US-018:** Orquestación completa (8 SP) - Flujo end-to-end
+- **US-022:** Testing E2E (5 SP) - Latencia <7 segundos
+
+**Sprint Actual:** 2-3 semanas en (US-001 a US-006 = 24 SP)  
+**Próximo hito:** US-009 (Motor LLM)
 
 ## 🔐 Variables de Entorno
 
-### Backend (`apps/api/.env`)
+### Backend (`apps/api/.env.local`)
 ```env
 NODE_ENV=development
 PORT=3000
+CORS_ORIGIN=http://localhost:3001
 DATABASE_URL=file:./dev.db
-JWT_SECRET=your-secret-key
-OPENAI_API_KEY=sk-...
-TMDB_API_KEY=...
+JWT_SECRET=your-secret-key-min-32-chars
+JWT_EXPIRY=604800000
+OPENAI_API_KEY=sk-... (requerido para US-009+)
+TMDB_API_KEY=... (requerido actualmente)
 ```
 
-### Frontend (`apps/web/.env`)
+### Frontend (`apps/web/.env.local`)
 ```env
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
+
+## 🌍 Rutas Principales de la Aplicación
+
+### Públicas (sin autenticación)
+- `GET /` - Página de Login/Register
+- `GET /health` - Health check del backend
+
+### Privadas (requieren autenticación JWT)
+- `GET /home` - Dashboard principal
+- `GET /onboarding` - Flujo de onboarding (5 pasos)
+- `GET /profile` - Perfil del usuario con estadísticas
+- `GET /recommendation` - Selector de estado de ánimo (US-006)
+
+## 📚 Documentación
+
+- [AGENTS.md](./AGENTS.md) - Guía arquitectura y convenciones para agentes IA
+- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) - 24 US del MVP con criterios de aceptación
+- [Backend README](./apps/api/README.md) - Endpoints y servicios
+- [Frontend README](./apps/web/README.md) - Componentes y hooks
 
 ## 🧪 Testing
 
@@ -148,20 +183,28 @@ cd apps/api && npm run test:integration
 
 # Frontend tests
 cd apps/web && npm run test
+
+# All tests
+npm run test:all
 ```
 
-## 📚 Documentación
+## 🚨 Riesgos Críticos (Mitigaciones en Progreso)
 
-- [AGENTS.md](./AGENTS.md) - Guía arquitectura y convenciones para agentes IA
-- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) - 24 US del MVP con criterios de aceptación
-- [Backend API](./apps/api/README.md) - Documentación de endpoints (coming soon)
-- [Frontend Components](./apps/web/README.md) - Guía de componentes React (coming soon)
+| Riesgo | Impacto | Mitigación | Estado |
+|--------|---------|-----------|--------|
+| Alucinaciones del LLM | 🔴 Crítico | Validación en TMDB (US-012) | Planificado |
+| Rate limits APIs | 🟠 Alto | Caché + Backoff exponencial | Planificado E2 |
+| Latencia >7 segundos | 🟠 Alto | Paralelización + Caché | En validación |
 
-## 🚨 Riesgos Críticos (ETAPA 1)
+## 🎯 Criterios de Éxito (MVP)
 
-1. **Alucinaciones del LLM** → Mitigado en US-012, US-017, US-020
-2. **Rate limits de APIs** → Será mitigado en E2 con caché (US-016)
-3. **Latencia >7 segundos** → Validado en E2 (US-022, US-023)
+- ✅ Auth/perfilado funcionando
+- ✅ Onboarding 5 pasos completado
+- 🔄 Mood selector implementado (US-006)
+- ⏳ LLM generando recomendaciones (US-009+)
+- ⏳ Validación TMDB (anti-alucinación)
+- ⏳ Integración JustWatch (dónde ver)
+- ⏳ Latencia <7 segundos (95% requests)
 
 ## 🤝 Contribuir
 
@@ -172,13 +215,14 @@ cd apps/web && npm run test
 5. PR y code review
 6. Mergear a `main`
 
-## 📞 Contacto
+## 📞 Team
 
-- **PM:** [Tu nombre]
-- **Tech Lead:** [Tu nombre]
+- **PM/Architect:** Nahuel (nahue@...)
+- **Tech Lead:** Colaborativo
+- **Status:** MVP en desarrollo activo
 
 ---
 
-**Última actualización:** 15 de mayo, 2026  
-**Versión:** MVP 1.0 (Sprint 1)  
-**Estado:** En desarrollo
+**Última actualización:** 16 de mayo, 2026  
+**Versión:** MVP 1.0 (Sprint 1-2)  
+**Estado:** En desarrollo - US-006 en progress
