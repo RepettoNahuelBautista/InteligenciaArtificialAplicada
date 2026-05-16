@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { MOVIE_GENRES, TV_GENRES, SelectGenresSchema } from '../schemas/genres';
-import { saveUserGenrePreferences, getUserProfile } from '../services/genreService';
+import { saveUserGenrePreferences } from '../services/genreService';
 import { logger } from '../utils/logger';
 
 export function getGenresController(req: Request, res: Response): void {
@@ -49,31 +49,6 @@ export async function saveGenrePreferencesController(req: Request, res: Response
         ...profile,
         favoriteGenres: JSON.parse(profile.favoriteGenres),
       },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function getProfileController(req: Request, res: Response): Promise<void> {
-  try {
-    if (!req.userId) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
-        },
-      });
-      return;
-    }
-
-    const profile = await getUserProfile(req.userId);
-
-    res.status(200).json({
-      success: true,
-      data: profile,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

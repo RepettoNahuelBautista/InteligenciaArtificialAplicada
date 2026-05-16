@@ -11,15 +11,22 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900">
+      {/* Navigation */}
+      <nav className="bg-black/20 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-primary">🎬 RecomiendaFilms</h1>
+          <h1 className="text-3xl font-bold text-white">🎬 RecomiendaFilms</h1>
           <div className="flex items-center gap-4">
-            <span className="text-gray-700">Bienvenido, {user?.email}</span>
+            <span className="text-indigo-100">Hola, {user?.email}</span>
+            <button
+              onClick={() => navigate('/profile')}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium"
+            >
+              Mi Perfil
+            </button>
             <button
               onClick={handleLogout}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-medium"
             >
               Cerrar sesión
             </button>
@@ -27,20 +34,66 @@ export function HomePage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Bienvenido al motor de recomendación
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-16">
+          <h2 className="text-5xl font-bold text-white mb-4">
+            Bienvenido a RecomiendaFilms
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Pronto podrás completar tu perfil y recibir recomendaciones personalizadas.
+          <p className="text-2xl text-indigo-100">
+            Tu motor de recomendación inteligente de películas y series
           </p>
-          <button
-            onClick={() => navigate('/onboarding')}
-            className="bg-primary text-white px-8 py-3 rounded-lg font-medium hover:bg-primary/90"
-          >
-            Comenzar Onboarding
-          </button>
+        </div>
+
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {/* Onboarding Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding')}>
+            <div className="text-5xl mb-4">🎯</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Completar Perfil</h3>
+            <p className="text-indigo-100 mb-6">
+              Selecciona tus géneros, directores y actores favoritos para que podamos darte recomendaciones más personalizadas.
+            </p>
+            <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-semibold w-full">
+              Ir al Onboarding
+            </button>
+          </div>
+
+          {/* Profile Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/profile')}>
+            <div className="text-5xl mb-4">👤</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Ver Mi Perfil</h3>
+            <p className="text-indigo-100 mb-6">
+              Revisa tus preferencias, películas vistas y estadísticas personales.
+            </p>
+            <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition font-semibold w-full">
+              Ver Perfil
+            </button>
+          </div>
+
+          {/* Recommendations Card (Coming Soon) */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 opacity-50 cursor-not-allowed">
+            <div className="text-5xl mb-4">✨</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Obtener Recomendación</h3>
+            <p className="text-indigo-100 mb-6">
+              Recibe una recomendación personalizada basada en tu perfil y estado de ánimo actual.
+            </p>
+            <button disabled className="bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold w-full cursor-not-allowed">
+              Próximamente
+            </button>
+          </div>
+
+          {/* History Card (Coming Soon) */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 opacity-50 cursor-not-allowed">
+            <div className="text-5xl mb-4">📜</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Historial</h3>
+            <p className="text-indigo-100 mb-6">
+              Ve todas tus recomendaciones previas y vuelve a visitarlas cuando quieras.
+            </p>
+            <button disabled className="bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold w-full cursor-not-allowed">
+              Próximamente
+            </button>
+          </div>
         </div>
       </main>
     </div>

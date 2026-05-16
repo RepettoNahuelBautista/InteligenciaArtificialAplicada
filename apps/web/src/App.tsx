@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
+import { ProfilePage } from './pages/ProfilePage';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<AuthPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/onboarding" element={<OnboardingFlow />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

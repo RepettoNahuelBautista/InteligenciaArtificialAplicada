@@ -5,7 +5,8 @@ import { logger } from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 import { registerController, loginController, meController } from './controllers/authController';
-import { getGenresController, saveGenrePreferencesController, getProfileController } from './controllers/genreController';
+import { getGenresController, saveGenrePreferencesController } from './controllers/genreController';
+import { getProfileController } from './controllers/profileController';
 import { searchPeopleController, savePersonPreferencesController, getPersonPreferencesController } from './controllers/personController';
 import { searchMoviesController, rateMovieController, getWatchedMoviesController, removeWatchedMovieController } from './controllers/movieController';
 
@@ -35,6 +36,8 @@ app.get('/api/v1/auth/me', authMiddleware, meController);
 // Genre routes
 app.get('/api/v1/genres', getGenresController);
 app.post('/api/v1/profile/genres', authMiddleware, saveGenrePreferencesController);
+
+// Profile route (complete profile with stats)
 app.get('/api/v1/profile', authMiddleware, getProfileController);
 
 // Person (directors/actors) routes
