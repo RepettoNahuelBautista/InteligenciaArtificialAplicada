@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useAuthForm } from '../hooks/useAuthForm';
+import { useAuthForm } from '../../hooks/useAuthForm';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;

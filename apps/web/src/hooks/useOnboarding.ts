@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MOVIE_GENRES, TV_GENRES } from '../../schemas/genres';
+import { MOVIE_GENRES, TV_GENRES } from '../schemas/genres';
 
 export interface Genre {
   id: number;

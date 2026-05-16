@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { MOVIE_GENRES, TV_GENRES } from '../schemas/genres';
+import { MOVIE_GENRES, TV_GENRES } from '../../schemas/genres';
 
 interface GenreSelectorProps {
   selectedGenres: number[];
@@ -55,7 +55,7 @@ export const GenreSelector: FC<GenreSelectorProps> = ({
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {genres.map((genre) => (
+          {genres.map((genre: { id: number; name: string }) => (
             <button
               key={genre.id}
               onClick={() => onToggleGenre(genre.id)}

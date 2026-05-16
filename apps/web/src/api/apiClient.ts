@@ -39,4 +39,5 @@ export const authApi = {
   me: () => apiClient.get('/auth/me'),
 };
 
+export { apiClient };
 export default apiClient;
