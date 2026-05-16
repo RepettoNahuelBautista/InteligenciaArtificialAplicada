@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { apiClient } from '../api/apiClient';
 import { logger } from '../utils/logger';
 
+export interface PersonInfo {
+  id: number;
+  name: string;
+}
+
 export interface UserProfileComplete {
   userId: string;
   email: string;
   createdAt: string;
   preferences: {
     genres: number[];
-    directors: number[];
-    actors: number[];
+    directors: PersonInfo[];
+    actors: PersonInfo[];
   };
   stats: {
     genreCount: number;

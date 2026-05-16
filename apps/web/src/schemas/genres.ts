@@ -30,11 +30,18 @@ export const TV_GENRES = [
   { id: 10751, name: 'Familia' },
   { id: 10762, name: 'Kids' },
   { id: 9648, name: 'Misterio' },
-  { id: 10763, name: 'News' },
+  { id: 10763, name: 'Noticias' },
   { id: 10764, name: 'Reality' },
   { id: 10765, name: 'Ciencia Ficción & Fantasía' },
   { id: 10766, name: 'Soap' },
-  { id: 10767, name: 'Talk' },
-  { id: 10768, name: 'War & Politics' },
+  { id: 10767, name: 'Talk Show' },
+  { id: 10768, name: 'Guerra & Política' },
   { id: 37, name: 'Western' },
 ];
+
+// Mapa unificado id → nombre (película + serie, sin duplicados)
+export const GENRE_MAP: Record<number, string> = Object.fromEntries(
+  [...MOVIE_GENRES, ...TV_GENRES].map((g) => [g.id, g.name])
+);
+
+export const getGenreName = (id: number): string => GENRE_MAP[id] ?? `Género ${id}`;

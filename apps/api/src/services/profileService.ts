@@ -1,6 +1,12 @@
 import { prisma } from '../db/client';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/errors';
+import { tmdbService } from './tmdbService';
+
+export interface PersonInfo {
+  id: number;
+  name: string;
+}
 
 export interface UserProfileComplete {
   userId: string;
@@ -8,8 +14,8 @@ export interface UserProfileComplete {
   createdAt: string;
   preferences: {
     genres: number[];
-    directors: number[];
-    actors: number[];
+    directors: PersonInfo[];
+    actors: PersonInfo[];
   };
   stats: {
     genreCount: number;
@@ -72,6 +78,22 @@ class ProfileService {
         logger.warn('Failed to parse preferences', { userId });
       }
 
+      // Resolve person names from TMDB in parallel
+      const [directorDetails, actorDetails] = await Promise.all([
+        Promise.all(directors.map((id) => tmdbService.getPersonDetails(id))),
+        Promise.all(actors.map((id) => tmdbService.getPersonDetails(id))),
+      ]);
+
+      const directorObjects: PersonInfo[] = directors.map((id, i) => ({
+        id,
+        name: directorDetails[i]?.name ?? `Director #${id}`,
+      }));
+
+      const actorObjects: PersonInfo[] = actors.map((id, i) => ({
+        id,
+        name: actorDetails[i]?.name ?? `Actor #${id}`,
+      }));
+
       // Get watched movies stats
       const watchedMovies = await prisma.watchedMovie.findMany({
         where: { userId },
@@ -103,8 +125,8 @@ class ProfileService {
         createdAt: user.createdAt.toISOString(),
         preferences: {
           genres,
-          directors,
-          actors,
+          directors: directorObjects,
+          actors: actorObjects,
         },
         stats: {
           genreCount: genres.length,

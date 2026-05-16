@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
+import { getGenreName } from '../schemas/genres';
 
 /**
  * ProfilePage - Displays user's complete profile with statistics and recent movies
@@ -146,7 +146,7 @@ export const ProfilePage = () => {
                       key={genreId}
                       className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium"
                     >
-                      #{genreId}
+                      {getGenreName(genreId)}
                     </span>
                   ))}
                 </div>
@@ -162,12 +162,12 @@ export const ProfilePage = () => {
               </h3>
               {profile.preferences.directors.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {profile.preferences.directors.map((directorId) => (
+                  {profile.preferences.directors.map((director) => (
                     <span
-                      key={directorId}
+                      key={director.id}
                       className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium"
                     >
-                      #{directorId}
+                      {director.name}
                     </span>
                   ))}
                 </div>
@@ -183,12 +183,12 @@ export const ProfilePage = () => {
               </h3>
               {profile.preferences.actors.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {profile.preferences.actors.map((actorId) => (
+                  {profile.preferences.actors.map((actor) => (
                     <span
-                      key={actorId}
+                      key={actor.id}
                       className="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium"
                     >
-                      #{actorId}
+                      {actor.name}
                     </span>
                   ))}
                 </div>
