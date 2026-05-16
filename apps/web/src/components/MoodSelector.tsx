@@ -1,14 +1,12 @@
-import { useMoodSelector } from '../hooks/useMoodSelector';
+import { useMoodSelector, Mood } from '../hooks/useMoodSelector';
 
 interface MoodSelectorProps {
-  onMoodSelected?: (moodId: string) => void;
+  selectedMoodId: string | null;
+  onMoodSelected: (mood: Mood) => void;
 }
 
-/**
- * MoodSelector - Displays mood options for the user to select their current mood
- */
-export const MoodSelector = ({ onMoodSelected }: MoodSelectorProps) => {
-  const { moods, selectedMood, loading, error, selectMood } = useMoodSelector();
+export const MoodSelector = ({ selectedMoodId, onMoodSelected }: MoodSelectorProps) => {
+  const { moods, loading, error } = useMoodSelector();
 
   if (loading) {
     return (
@@ -27,33 +25,28 @@ export const MoodSelector = ({ onMoodSelected }: MoodSelectorProps) => {
     );
   }
 
+  const selectedMood = moods.find((m) => m.id === selectedMoodId) ?? null;
+
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold text-white mb-4">
-        ¿Cuál es tu estado de ánimo hoy?
-      </h2>
-      <p className="text-indigo-100 mb-8">
-        Selecciona cómo te sientes para recibir recomendaciones más personalizadas
+      <h2 className="text-2xl font-bold text-white mb-2">¿Cómo te sentís hoy?</h2>
+      <p className="text-indigo-200 mb-6 text-sm">
+        Seleccioná tu estado de ánimo para recibir recomendaciones personalizadas
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {moods.map((mood) => (
           <button
             key={mood.id}
-            onClick={() => {
-              selectMood(mood);
-              onMoodSelected?.(mood.id);
-            }}
+            onClick={() => onMoodSelected(mood)}
             className={`flex flex-col items-center justify-center p-4 rounded-lg transition-all duration-200 border-2 ${
-              selectedMood?.id === mood.id
+              selectedMoodId === mood.id
                 ? 'border-purple-400 bg-purple-500/30 scale-105'
                 : 'border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40'
             }`}
           >
             <span className="text-4xl mb-2">{mood.emoji}</span>
-            <span className="text-sm font-semibold text-white text-center">
-              {mood.label}
-            </span>
+            <span className="text-sm font-semibold text-white text-center">{mood.label}</span>
             <span className="text-xs text-indigo-200 mt-1 text-center hidden sm:block">
               {mood.description}
             </span>
@@ -62,9 +55,9 @@ export const MoodSelector = ({ onMoodSelected }: MoodSelectorProps) => {
       </div>
 
       {selectedMood && (
-        <div className="mt-6 p-4 bg-green-500/20 border border-green-400 rounded-lg">
-          <p className="text-green-100">
-            ✓ Seleccionaste: <strong>{selectedMood.label}</strong> - {selectedMood.description}
+        <div className="mt-4 p-3 bg-purple-500/20 border border-purple-400/50 rounded-lg">
+          <p className="text-purple-100 text-sm">
+            ✓ <strong>{selectedMood.emoji} {selectedMood.label}</strong> — {selectedMood.description}
           </p>
         </div>
       )}

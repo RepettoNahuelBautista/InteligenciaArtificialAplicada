@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationPage } from './pages/RecommendationPage';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -13,10 +14,10 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<AuthPage />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/onboarding" element={<OnboardingFlow />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/recommendation" element={<RecommendationPage />} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/onboarding" element={<ProtectedRoute><OnboardingFlow /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/recommendation" element={<ProtectedRoute><RecommendationPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

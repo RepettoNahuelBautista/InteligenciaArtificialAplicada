@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { apiClient } from '../api/apiClient';
-import { logger } from '../utils/logger';
 
 export interface Mood {
   id: string;
@@ -9,73 +8,23 @@ export interface Mood {
   description: string;
 }
 
-interface UseMoodSelectorState {
-  moods: Mood[];
-  selectedMood: Mood | null;
-  loading: boolean;
-  error: string | null;
-}
-
-/**
- * Hook to manage mood selection for recommendations
- */
 export const useMoodSelector = () => {
-  const [state, setState] = useState<UseMoodSelectorState>({
-    moods: [],
-    selectedMood: null,
-    loading: true,
-    error: null,
-  });
-
-  const fetchMoods = async () => {
-    try {
-      setState((prev) => ({ ...prev, loading: true, error: null }));
-
-      const response = await apiClient.get('/moods');
-      const { data } = response.data;
-
-      logger.info('Moods loaded successfully', { count: data.length });
-      setState({
-        moods: data,
-        selectedMood: null,
-        loading: false,
-        error: null,
-      });
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to load moods';
-      logger.error('Failed to load moods', { error: errorMessage });
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: errorMessage,
-      }));
-    }
-  };
-
-  const selectMood = (mood: Mood) => {
-    setState((prev) => ({
-      ...prev,
-      selectedMood: prev.selectedMood?.id === mood.id ? null : mood,
-    }));
-    logger.info('Mood selected', { moodId: mood.id, label: mood.label });
-  };
-
-  const clearMood = () => {
-    setState((prev) => ({
-      ...prev,
-      selectedMood: null,
-    }));
-    logger.info('Mood cleared');
-  };
+  const [moods, setMoods] = useState<Mood[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMoods();
+    apiClient
+      .get('/moods')
+      .then((res) => {
+        setMoods(res.data.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Error cargando estados de ánimo');
+        setLoading(false);
+      });
   }, []);
 
-  return {
-    ...state,
-    selectMood,
-    clearMood,
-  };
+  return { moods, loading, error };
 };
