@@ -50,12 +50,12 @@ export function HomePage() {
           {/* Onboarding Card */}
           <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding')}>
             <div className="text-5xl mb-4">🎯</div>
-            <h3 className="text-2xl font-bold text-white mb-3">Completar Perfil</h3>
+            <h3 className="text-2xl font-bold text-white mb-3">Mis Preferencias</h3>
             <p className="text-indigo-100 mb-6">
               Selecciona tus géneros, directores y actores favoritos para que podamos darte recomendaciones más personalizadas.
             </p>
             <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition font-semibold w-full">
-              Ir al Onboarding
+              Actualizar
             </button>
           </div>
 

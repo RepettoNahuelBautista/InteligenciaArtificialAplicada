@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { GenreSelector } from './GenreSelector';
 import { PersonSelector } from './PersonSelector';
 import { MovieRater } from './MovieRater';
@@ -27,8 +27,24 @@ export const OnboardingFlow: FC = () => {
   const [selectedActorIds, setSelectedActorIds] = useState<number[]>([]);
   const [ratedMovieCount, setRatedMovieCount] = useState(0);
 
-  const { selectedGenres: tempGenres, genres, contentType, setContentType, toggleGenre, isValid } =
+  const { selectedGenres: tempGenres, setSelectedGenres: setTempGenres, genres, contentType, setContentType, toggleGenre, isValid } =
     useGenreSelector();
+
+  // Pre-cargar géneros existentes del perfil
+  useEffect(() => {
+    const loadExistingGenres = async () => {
+      try {
+        const response = await apiClient.get('/profile');
+        const existingGenres: number[] = response.data?.data?.preferences?.genres ?? [];
+        if (existingGenres.length > 0) {
+          setTempGenres(existingGenres);
+        }
+      } catch {
+        // Perfil no encontrado, comenzar desde cero
+      }
+    };
+    loadExistingGenres();
+  }, []);
 
   const handleNext = async () => {
     if (step === 1) {

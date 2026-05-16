@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { authApi } from '../api/apiClient';
+import { authApi, apiClient } from '../api/apiClient';
 import { useAuth } from './useAuth';
 import { useNavigate } from 'react-router-dom';
 
@@ -48,7 +48,14 @@ export function useAuthForm() {
 
       setUser(userData);
       setToken(userToken);
-      navigate('/onboarding');
+
+      try {
+        const profileResponse = await apiClient.get('/profile');
+        const genres: number[] = profileResponse.data?.data?.preferences?.genres ?? [];
+        navigate(genres.length >= 3 ? '/home' : '/onboarding');
+      } catch {
+        navigate('/onboarding');
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: { message?: string } } } };
       setError(error.response?.data?.error?.message || 'Login failed');
