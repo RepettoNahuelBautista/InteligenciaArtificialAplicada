@@ -632,5 +632,5 @@ Validar en `US-023`:
 ---
 
 **Última actualización:** 17 de mayo, 2026  
-**Versión:** MVP 1.0  
-**Estado:** En producción — deploy completo en Render + Vercel. Pendiente: tests, JustWatch, historial UI.
+**Versión:** MVP 1.0 — 91% completado  
+**Estado:** En producción con flujo completo (auth, onboarding, IA, TMDB, plataformas, historial). Pendiente: tests E2E y validación con usuarios.

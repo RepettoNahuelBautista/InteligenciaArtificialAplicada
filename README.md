@@ -104,7 +104,7 @@ InteligenciaArtificialAplicada/
 
 > El backend corre en Render free tier — puede tardar ~30s en despertar si estuvo inactivo.
 
-## 📊 Estado del MVP — 65% completado (~78/133 SP)
+## 📊 Estado del MVP — 91% completado (~91/100 SP estimados)
 
 ### ✅ Completado
 
@@ -123,28 +123,22 @@ InteligenciaArtificialAplicada/
 | US-011 | Explicación justificada personalizada | 3 |
 | US-012 | Validación TMDB + hasta 3 reintentos anti-alucinación | 5 |
 | US-013 | Enriquecimiento TMDB: póster, sinopsis, título real | 5 |
+| US-014 | Disponibilidad en plataformas (JustWatch vía TMDB) | 5 |
+| US-015 | Tarjeta de recomendación completa | 3 |
 | US-017 | Validación y limpieza de respuestas JSON del LLM | 3 |
 | US-018 | Orquestación: Perfil → LLM → TMDB → persistencia | 8 |
+| US-019 | Historial de recomendaciones (backend + UI) | 3 |
 | US-024 | Deployment a producción (Render + Vercel) | 5 |
 
-**Total completado: ~78 SP**
-
-### ⚠️ Parcialmente implementado
-
-| ID | Descripción | Falta |
-|----|-----------|-------|
-| US-015 | Tarjeta de recomendación | Sección de plataformas (JustWatch) |
-| US-019 | Persistencia de recomendaciones | Pantalla de historial |
+**Total completado: ~91 SP**
 
 ### ⏳ Pendiente para cerrar el MVP
 
 | ID | Descripción | SP | Prioridad |
 |----|-----------|----|-----------|
-| US-014 | Disponibilidad en plataformas (JustWatch) | 5 | Alta |
-| US-019 | Pantalla de historial de recomendaciones | 3 | Media |
 | US-016 | Caché de metadatos TMDB | 5 | Media |
 | US-022 | Integration test E2E | 5 | Alta |
-| US-023 | Validación de criterios de éxito | 5 | Alta |
+| US-023 | Validación de criterios de éxito con usuarios | 5 | Alta |
 
 ## 🔐 Variables de Entorno
 
@@ -216,5 +210,5 @@ cd apps/api && npm run test:integration
 ---
 
 **Última actualización:** 17 de mayo de 2026  
-**Versión:** MVP 1.0 — Sprint 5 (deploy completo en producción)  
-**Estado:** En producción — próximo: JustWatch + historial UI + tests
+**Versión:** MVP 1.0 — Sprint 6 (91% completado)  
+**Estado:** En producción — flujo completo funcionando. Pendiente: tests y validación con usuarios.
