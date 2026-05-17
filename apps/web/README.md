@@ -118,7 +118,7 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 ## Comandos
 
 ```bash
-npm run dev          # Servidor de desarrollo con HMR (puerto 3001)
+npm run dev          # Servidor de desarrollo con HMR (puerto 5173)
 npm run build        # Build de producción → dist/
 npm run preview      # Previsualizar build local
 npm run lint         # ESLint

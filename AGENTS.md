@@ -20,10 +20,18 @@
 ## 🛠️ Stack Tecnológico (MVP)
 
 - **Frontend:** React 18 + Vite + TypeScript + TailwindCSS + TanStack Query
-- **Backend:** Node 20 + Express + TypeScript + Prisma
-- **Base de Datos:** SQLite
-- **Testing:** Vitest (unit) + Playwright (E2E)
+- **Backend:** Node 20 + Express + TypeScript + Prisma 5.13
+- **Base de Datos:** PostgreSQL en Azure Database for PostgreSQL (`recomendador-pg-server`)
+- **LLM:** Google Gemini 2.5 Flash (`@google/generative-ai`) — reemplazó OpenAI por costo
+- **Auth:** JWT (jsonwebtoken) + bcryptjs
+- **Testing:** Vitest (unit) — tests aún no escritos
 - **Arquitectura:** Monorepo (`/apps/web` y `/apps/api`)
+
+## 🌐 URLs de Producción (desde 2026-05-17)
+
+- **Frontend:** https://inteligencia-artificial-aplicada-we.vercel.app (Vercel)
+- **Backend:** https://inteligenciaartificialaplicada.onrender.com (Render — free tier, puede tardar en iniciar)
+- **Health check:** https://inteligenciaartificialaplicada.onrender.com/health
 
 ---
 
@@ -415,48 +423,49 @@ if (!result.success) {
 ### **Setup Inicial**
 ```bash
 # Backend
-cd backend
+cd apps/api
 npm install
-npm run db:migrate
-npm run dev  # Inicia server en puerto 3000
+npm run db:migrate   # prisma migrate deploy
+npm run dev          # Inicia server en puerto 3000 (usa .env.local)
 
 # Frontend
-cd frontend
+cd apps/web
 npm install
-npm run dev  # Inicia en puerto 3001
+npm run dev          # Inicia en puerto 5173
+```
+
+### **Variables de entorno backend (apps/api/.env.local)**
+```env
+DATABASE_URL=postgresql://...azure...
+JWT_SECRET=...
+GEMINI_API_KEY=...        # Google AI Studio (free tier)
+TMDB_API_KEY=...          # themoviedb.org
+LLM_TIMEOUT_MS=30000      # Gemini 2.5 flash es lento (thinking model)
+RECOMMENDATION_MAX_RETRIES=3
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
+```
+
+### **Variable de entorno frontend (apps/web)**
+```env
+VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
 ### **Testing**
 ```bash
-# Unit tests
+cd apps/api
 npm run test:unit
-
-# Integration tests (requiere DB local + APIs mock)
-npm run test:integration
-
-# E2E (requiere ambos servers corriendo)
-npm run test:e2e
-
-# Coverage
-npm run test:coverage
 ```
 
-### **Build + Deploy**
+### **Build producción**
 ```bash
-# Build producción
+# Backend (Render corre esto automáticamente)
+cd apps/api
+npm install --include=dev && npm run build && npx prisma migrate deploy
+
+# Frontend (Vercel corre esto automáticamente)
+cd apps/web
 npm run build
-
-# Deploy (ej: Vercel, Railway, etc.)
-npm run deploy
-```
-
-### **Monitoreo**
-```bash
-# Ver logs
-npm run logs
-
-# Métricas (latencia, hit rate caché, etc.)
-npm run metrics
 ```
 
 ---
@@ -622,6 +631,6 @@ Validar en `US-023`:
 
 ---
 
-**Última actualización:** 14 de mayo, 2026  
+**Última actualización:** 17 de mayo, 2026  
 **Versión:** MVP 1.0  
-**Estado:** En desarrollo (8 sprints planificados)
+**Estado:** En producción — deploy completo en Render + Vercel. Pendiente: tests, JustWatch, historial UI.

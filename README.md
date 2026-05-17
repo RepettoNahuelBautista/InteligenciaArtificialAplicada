@@ -94,9 +94,19 @@ InteligenciaArtificialAplicada/
 - **Routing:** React Router 6.20
 - **Estado:** Context API + React Hooks (sin Redux)
 
-## 📊 Estado del MVP — 55% completado (~73/133 SP)
+## 🌐 Producción
 
-### ✅ Completado (US-001 a US-013 + US-017/018)
+| Servicio | URL |
+|---------|-----|
+| **Frontend** | https://inteligencia-artificial-aplicada-we.vercel.app |
+| **Backend API** | https://inteligenciaartificialaplicada.onrender.com |
+| **Health check** | https://inteligenciaartificialaplicada.onrender.com/health |
+
+> El backend corre en Render free tier — puede tardar ~30s en despertar si estuvo inactivo.
+
+## 📊 Estado del MVP — 65% completado (~78/133 SP)
+
+### ✅ Completado
 
 | ID | Descripción | SP |
 |----|-----------|----|
@@ -115,8 +125,9 @@ InteligenciaArtificialAplicada/
 | US-013 | Enriquecimiento TMDB: póster, sinopsis, título real | 5 |
 | US-017 | Validación y limpieza de respuestas JSON del LLM | 3 |
 | US-018 | Orquestación: Perfil → LLM → TMDB → persistencia | 8 |
+| US-024 | Deployment a producción (Render + Vercel) | 5 |
 
-**Total completado: ~73 SP**
+**Total completado: ~78 SP**
 
 ### ⚠️ Parcialmente implementado
 
@@ -134,7 +145,6 @@ InteligenciaArtificialAplicada/
 | US-016 | Caché de metadatos TMDB | 5 | Media |
 | US-022 | Integration test E2E | 5 | Alta |
 | US-023 | Validación de criterios de éxito | 5 | Alta |
-| US-024 | Deployment a producción | 5 | Crítica |
 
 ## 🔐 Variables de Entorno
 
@@ -205,6 +215,6 @@ cd apps/api && npm run test:integration
 
 ---
 
-**Última actualización:** 16 de mayo de 2026  
-**Versión:** MVP 1.0 — Sprint 4 (US-001 a US-013 completadas)  
-**Estado:** En desarrollo activo — próximo: JustWatch + historial + deployment
+**Última actualización:** 17 de mayo de 2026  
+**Versión:** MVP 1.0 — Sprint 5 (deploy completo en producción)  
+**Estado:** En producción — próximo: JustWatch + historial UI + tests
