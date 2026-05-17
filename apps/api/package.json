@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Backend API for intelligent movie recommendation engine",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env.local src/index.ts",
     "build": "prisma generate && tsc",
