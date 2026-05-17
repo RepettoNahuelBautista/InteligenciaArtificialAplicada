@@ -125,7 +125,7 @@ class GeminiService {
     exclude: string[] = []
   ): Promise<LLMRecommendation> {
     const model = this.client.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-lite',
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.8,
