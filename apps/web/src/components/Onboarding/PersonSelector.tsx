@@ -1,11 +1,5 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { usePersonSelector } from '../../hooks/usePersonSelector';
-
-interface Person {
-  id: number;
-  name: string;
-  department: string;
-}
 
 interface PersonSelectorProps {
   type: 'directors' | 'actors';
@@ -23,20 +17,14 @@ export const PersonSelector: React.FC<PersonSelectorProps> = ({
     isSearching,
     error,
     isValid,
-    selectedIds,
     handleSearch,
     togglePerson,
     clearSearch,
   } = usePersonSelector({ type });
 
-  // Notify parent when selection changes
-  const handleToggle = (person: Person) => {
-    togglePerson(person);
-    // Update parent after toggle (slight delay to ensure state update)
-    setTimeout(() => {
-      onSelectionChange?.(selectedIds);
-    }, 0);
-  };
+  useEffect(() => {
+    onSelectionChange?.(selectedPersons.map((p) => p.id));
+  }, [selectedPersons]);
 
   const displayType = type === 'directors' ? 'Directores' : 'Actores';
   const placeholder = `Buscar ${displayType.toLowerCase()}...`;
@@ -86,7 +74,7 @@ export const PersonSelector: React.FC<PersonSelectorProps> = ({
             return (
               <button
                 key={person.id}
-                onClick={() => handleToggle(person)}
+                onClick={() => togglePerson(person)}
                 className={`w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors flex items-center justify-between ${
                   isSelected ? 'bg-indigo-50' : ''
                 }`}
@@ -117,7 +105,7 @@ export const PersonSelector: React.FC<PersonSelectorProps> = ({
           {selectedPersons.map((person) => (
             <button
               key={person.id}
-              onClick={() => handleToggle(person)}
+              onClick={() => togglePerson(person)}
               className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm hover:bg-indigo-200 transition-colors"
             >
               {person.name}

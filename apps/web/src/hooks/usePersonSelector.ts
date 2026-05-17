@@ -28,21 +28,22 @@ export const usePersonSelector = (options: UsePersonSelectorOptions) => {
 
   const loadSavedPersons = async () => {
     try {
-      const response = await apiClient.get('/profile/people');
-      if (response.data?.data) {
-        const persons = type === 'directors'
-          ? response.data.data.directors
-          : response.data.data.actors;
-
-        setSelectedPersons(
-          persons.map((id: number) => ({
-            id,
-            name: `Person #${id}`,
-            department: type === 'directors' ? 'Directing' : 'Acting',
-          }))
-        );
+      const response = await apiClient.get('/profile');
+      const prefs = response.data?.data?.preferences;
+      if (prefs) {
+        const persons: { id: number; name: string }[] =
+          type === 'directors' ? prefs.directors : prefs.actors;
+        if (Array.isArray(persons) && persons.length > 0) {
+          setSelectedPersons(
+            persons.map((p) => ({
+              id: p.id,
+              name: p.name,
+              department: type === 'directors' ? 'Directing' : 'Acting',
+            }))
+          );
+        }
       }
-    } catch (err) {
+    } catch {
       logger.warn('Failed to load saved persons', { type });
     }
   };

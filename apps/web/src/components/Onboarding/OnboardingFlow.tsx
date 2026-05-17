@@ -25,7 +25,9 @@ export const OnboardingFlow: FC = () => {
   // Person preferences
   const [selectedDirectorIds, setSelectedDirectorIds] = useState<number[]>([]);
   const [selectedActorIds, setSelectedActorIds] = useState<number[]>([]);
-  const [ratedMovieCount, setRatedMovieCount] = useState(0);
+
+  // Summary counts (fetched from API when reaching step 5)
+  const [summaryCounts, setSummaryCounts] = useState({ genres: 0, directors: 0, actors: 0, movies: 0 });
 
   const { selectedGenres: tempGenres, setSelectedGenres: setTempGenres, genres, contentType, setContentType, toggleGenre, isValid } =
     useGenreSelector();
@@ -45,6 +47,30 @@ export const OnboardingFlow: FC = () => {
     };
     loadExistingGenres();
   }, []);
+
+  // Cuando llega al resumen, carga los conteos reales desde la API
+  useEffect(() => {
+    if (step !== 5) return;
+    const fetchCounts = async () => {
+      try {
+        const [profileRes, moviesRes] = await Promise.all([
+          apiClient.get('/profile'),
+          apiClient.get('/profile/watched-movies'),
+        ]);
+        const prefs = profileRes.data?.data?.preferences;
+        const movieStats = moviesRes.data?.data?.stats;
+        setSummaryCounts({
+          genres: prefs?.genres?.length ?? 0,
+          directors: prefs?.directors?.length ?? 0,
+          actors: prefs?.actors?.length ?? 0,
+          movies: movieStats?.total ?? 0,
+        });
+      } catch {
+        // ignore
+      }
+    };
+    fetchCounts();
+  }, [step]);
 
   const handleNext = async () => {
     if (step === 1) {
@@ -185,16 +211,16 @@ export const OnboardingFlow: FC = () => {
               </p>
               <div className="space-y-2 text-left bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700">
-                  <span className="font-semibold">{selectedGenres.length}</span> géneros favoritos
+                  <span className="font-semibold">{summaryCounts.genres}</span> géneros favoritos
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">{selectedDirectorIds.length}</span> directores favoritos
+                  <span className="font-semibold">{summaryCounts.directors}</span> directores favoritos
                 </p>
                 <p className="text-gray-700">
-                  <span className="font-semibold">{selectedActorIds.length}</span> actores favoritos
+                  <span className="font-semibold">{summaryCounts.actors}</span> actores favoritos
                 </p>
                 <p className="text-gray-700 border-t pt-2 mt-2">
-                  <span className="font-semibold">{ratedMovieCount}</span> películas valoradas
+                  <span className="font-semibold">{summaryCounts.movies}</span> películas valoradas
                 </p>
               </div>
               <p className="text-gray-500 mt-6">
