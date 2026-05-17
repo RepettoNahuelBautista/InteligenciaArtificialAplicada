@@ -1,12 +1,14 @@
 # 🎬 Motor de Recomendación de Cine con IA
 
-Motor inteligente de recomendaciones de películas y series basado en IA generativa.
+Motor inteligente de recomendaciones de películas y series basado en IA generativa (Google Gemini).
 
 ## 🚀 Quick Start
 
 ### Requisitos Previos
-- Node.js 20+
+- Node.js 20.6+
 - npm 10+
+- Cuenta en [Google AI Studio](https://aistudio.google.com) (API key de Gemini, gratis)
+- Cuenta en [TMDB](https://www.themoviedb.org) (API key gratis)
 
 ### Setup Inicial
 
@@ -14,10 +16,10 @@ Motor inteligente de recomendaciones de películas y series basado en IA generat
 # 1. Instalar todas las dependencias
 npm run install-all
 
-# 2. Setup base de datos (backend)
+# 2. Configurar backend
 cd apps/api
 cp .env.example .env.local
-npm run db:push
+# Editar .env.local con tus API keys (ver sección Variables de Entorno)
 
 # 3. Configurar frontend
 cd ../web
@@ -51,88 +53,88 @@ InteligenciaArtificialAplicada/
 │   ├── api/                    # Backend (Express + TypeScript + Prisma)
 │   │   ├── src/
 │   │   │   ├── controllers/    # Request handlers
-│   │   │   ├── services/       # Business logic
-│   │   │   ├── middleware/     # Express middleware
+│   │   │   ├── services/       # Business logic (gemini, tmdb, recommendation...)
+│   │   │   ├── middleware/     # Auth + error handling
 │   │   │   ├── schemas/        # Zod validation schemas
-│   │   │   ├── db/             # Database & Prisma
-│   │   │   └── utils/          # Utilities (logger, errors, jwt)
-│   │   ├── tests/              # Unit & integration tests
-│   │   ├── package.json
-│   │   └── tsconfig.json
+│   │   │   ├── db/             # Prisma client
+│   │   │   └── utils/          # Logger, errors, jwt
+│   │   └── prisma/             # Schema + migrations
 │   │
 │   └── web/                    # Frontend (React + Vite + TypeScript)
-│       ├── src/
-│       │   ├── pages/          # Pages components
-│       │   ├── components/     # Reusable components
-│       │   ├── hooks/          # Custom React hooks
-│       │   ├── api/            # API clients
-│       │   ├── styles/         # Global styles
-│       │   ├── App.tsx
-│       │   └── main.tsx
-│       ├── index.html
-│       ├── package.json
-│       └── vite.config.ts
+│       └── src/
+│           ├── pages/          # AuthPage, HomePage, ProfilePage, RecommendationPage
+│           ├── components/     # Auth, Onboarding, Recommendation, MoodSelector...
+│           ├── hooks/          # Custom hooks por feature
+│           └── api/            # Axios client
 │
 ├── AGENTS.md                   # Guía de arquitectura para agentes IA
-├── EPICAS_Y_USER_STORIES.md    # 24 User Stories del MVP
+├── EPICAS_Y_USER_STORIES.md    # 24 User Stories del MVP con criterios de aceptación
 └── README.md                   # Este archivo
 ```
 
 ## 🛠️ Stack Tecnológico
 
 ### Backend
-- **Runtime:** Node.js 20
-- **Framework:** Express.js
-- **Language:** TypeScript
-- **Database:** SQLite (Prisma ORM)
-- **Auth:** JWT + bcryptjs
-- **Validation:** Zod
-- **Testing:** Vitest + Playwright
-- **External APIs:** OpenAI, TMDB, JustWatch
+- **Runtime:** Node.js 20.6+
+- **Framework:** Express 4.18
+- **Language:** TypeScript 5.3
+- **ORM:** Prisma 5.13
+- **Base de datos:** PostgreSQL (Azure Database for PostgreSQL)
+- **Auth:** JWT (jsonwebtoken) + bcryptjs
+- **Validación:** Zod 3.23
+- **LLM:** Google Gemini 2.5 Flash (`@google/generative-ai`)
+- **APIs externas:** TMDB (activo), JustWatch (pendiente)
 
 ### Frontend
 - **Framework:** React 18
-- **Build Tool:** Vite
+- **Build Tool:** Vite 5
 - **Language:** TypeScript
-- **Styling:** TailwindCSS
+- **Styling:** TailwindCSS 3.3
 - **HTTP Client:** Axios
-- **State Management:** Context API + React Hooks
-- **Routing:** React Router
+- **Routing:** React Router 6.20
+- **Estado:** Context API + React Hooks (sin Redux)
 
-## 📊 ETAPA 1: MVP Mínimo (26/65 SP - 40% completado)
+## 📊 Estado del MVP — 55% completado (~73/133 SP)
 
-### ✅ US Completadas (5/15 = 33%):
+### ✅ Completado (US-001 a US-013 + US-017/018)
 
-| ID | Título | SP | Estado |
-|----|---------|----|--------|
-| **US-001** | Autenticación básica | 5 | ✅ Completada |
-| **US-002** | Onboarding - Géneros | 3 | ✅ Completada |
-| **US-003** | Onboarding - Directores/Actores | 5 | ✅ Completada |
-| **US-004** | Onboarding - Películas vistas | 5 | ✅ Completada |
-| **US-005** | Finalizar onboarding | 3 | ✅ Completada |
+| ID | Descripción | SP |
+|----|-----------|----|
+| US-001 | Autenticación JWT (register/login) | 5 |
+| US-002 | Onboarding: géneros favoritos | 3 |
+| US-003 | Onboarding: directores y actores (búsqueda TMDB) | 5 |
+| US-004 | Onboarding: películas vistas (like/dislike) | 5 |
+| US-005 | Perfil completo con estadísticas y nombres reales | 3 |
+| US-006 | Selector de 8 estados de ánimo | 3 |
+| US-007 | Filtros: tipo (película/serie), duración, época | 5 |
+| US-008 | Resumen de contexto antes de pedir recomendación | 2 |
+| US-009 | Motor de IA con Gemini 2.5 Flash | 8 |
+| US-010 | Prompt engineering (perfil + contexto + anti-alucinación) | 5 |
+| US-011 | Explicación justificada personalizada | 3 |
+| US-012 | Validación TMDB + hasta 3 reintentos anti-alucinación | 5 |
+| US-013 | Enriquecimiento TMDB: póster, sinopsis, título real | 5 |
+| US-017 | Validación y limpieza de respuestas JSON del LLM | 3 |
+| US-018 | Orquestación: Perfil → LLM → TMDB → persistencia | 8 |
 
-**Total completado:** 21 SP de 65
+**Total completado: ~73 SP**
 
-### 🔄 US En Desarrollo (1 en progreso):
+### ⚠️ Parcialmente implementado
 
-| ID | Título | SP | Estado | Progreso |
-|----|---------|----|--------|----------|
-| **US-006** | Captura de estado de ánimo | 3 | 🔄 EN DESARROLLO | Backend ✅ + Frontend ✅ |
+| ID | Descripción | Falta |
+|----|-----------|-------|
+| US-015 | Tarjeta de recomendación | Sección de plataformas (JustWatch) |
+| US-019 | Persistencia de recomendaciones | Pantalla de historial |
 
-### ⏳ US Próximas (9 pendientes):
+### ⏳ Pendiente para cerrar el MVP
 
-- **US-007:** Filtros tradicionales (5 SP) - Duración, tipo, año
-- **US-008:** Vista previa contexto (2 SP) - Resumen antes de recomendar
-- **US-009:** Integración OpenAI (8 SP) - LLM para recomendaciones
-- **US-010:** Prompt engineering (5 SP) - Personalización de prompts
-- **US-011:** Explicación justificada (3 SP) - "Por qué esta recomendación"
-- **US-012:** Validación de alucinaciones (5 SP) - Descartar películas falsas
-- **US-017:** Validación Zod (3 SP) - Input/output validation
-- **US-018:** Orquestación completa (8 SP) - Flujo end-to-end
-- **US-022:** Testing E2E (5 SP) - Latencia <7 segundos
-
-**Sprint Actual:** 2-3 semanas en (US-001 a US-006 = 24 SP)  
-**Próximo hito:** US-009 (Motor LLM)
+| ID | Descripción | SP | Prioridad |
+|----|-----------|----|-----------|
+| US-014 | Disponibilidad en plataformas (JustWatch) | 5 | Alta |
+| US-019 | Pantalla de historial de recomendaciones | 3 | Media |
+| US-016 | Caché de metadatos TMDB | 5 | Media |
+| US-022 | Integration test E2E | 5 | Alta |
+| US-023 | Validación de criterios de éxito | 5 | Alta |
+| US-024 | Deployment a producción | 5 | Crítica |
 
 ## 🔐 Variables de Entorno
 
@@ -141,11 +143,22 @@ InteligenciaArtificialAplicada/
 NODE_ENV=development
 PORT=3000
 CORS_ORIGIN=http://localhost:3001
-DATABASE_URL=file:./dev.db
+
+# PostgreSQL (Azure)
+DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+
+# Auth
 JWT_SECRET=your-secret-key-min-32-chars
-JWT_EXPIRY=604800000
-OPENAI_API_KEY=sk-... (requerido para US-009+)
-TMDB_API_KEY=... (requerido actualmente)
+JWT_EXPIRY=7d
+
+# APIs externas
+GEMINI_API_KEY=AIza...          # aistudio.google.com/app/apikey
+TMDB_API_KEY=...                # themoviedb.org/settings/api
+
+# Timeouts (ms)
+LLM_TIMEOUT_MS=30000            # Gemini 2.5-flash es un thinking model, tarda más
+TMDB_TIMEOUT_MS=5000
+RECOMMENDATION_MAX_RETRIES=3
 ```
 
 ### Frontend (`apps/web/.env.local`)
@@ -153,76 +166,45 @@ TMDB_API_KEY=... (requerido actualmente)
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
-## 🌍 Rutas Principales de la Aplicación
+## 🌍 Rutas de la Aplicación
 
-### Públicas (sin autenticación)
-- `GET /` - Página de Login/Register
-- `GET /health` - Health check del backend
-
-### Privadas (requieren autenticación JWT)
-- `GET /home` - Dashboard principal
-- `GET /onboarding` - Flujo de onboarding (5 pasos)
-- `GET /profile` - Perfil del usuario con estadísticas
-- `GET /recommendation` - Selector de estado de ánimo (US-006)
-
-## 📚 Documentación
-
-- [AGENTS.md](./AGENTS.md) - Guía arquitectura y convenciones para agentes IA
-- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) - 24 US del MVP con criterios de aceptación
-- [Backend README](./apps/api/README.md) - Endpoints y servicios
-- [Frontend README](./apps/web/README.md) - Componentes y hooks
+| Ruta | Descripción | Auth |
+|------|------------|------|
+| `/` | Login / Registro | Pública |
+| `/home` | Dashboard principal | Privada |
+| `/onboarding` | Setup de perfil (5 pasos) | Privada |
+| `/profile` | Perfil con estadísticas | Privada |
+| `/recommendation` | Obtener recomendación IA | Privada |
 
 ## 🧪 Testing
 
 ```bash
-# Backend unit tests
 cd apps/api && npm run test:unit
-
-# Integration tests
 cd apps/api && npm run test:integration
-
-# Frontend tests
-cd apps/web && npm run test
-
-# All tests
-npm run test:all
 ```
 
-## 🚨 Riesgos Críticos (Mitigaciones en Progreso)
+> Sin cobertura de tests aún — pendiente US-020, US-021, US-022.
 
-| Riesgo | Impacto | Mitigación | Estado |
-|--------|---------|-----------|--------|
-| Alucinaciones del LLM | 🔴 Crítico | Validación en TMDB (US-012) | Planificado |
-| Rate limits APIs | 🟠 Alto | Caché + Backoff exponencial | Planificado E2 |
-| Latencia >7 segundos | 🟠 Alto | Paralelización + Caché | En validación |
+## 🎯 Criterios de Éxito del MVP
 
-## 🎯 Criterios de Éxito (MVP)
+| Criterio | Estado |
+|---------|--------|
+| Auth + onboarding funcionando | ✅ |
+| Recomendaciones por IA con explicación | ✅ |
+| Póster y sinopsis desde TMDB | ✅ |
+| Disponibilidad en plataformas (JustWatch) | ⏳ |
+| Latencia <7 segundos (95% requests) | ⚠️ Gemini 2.5-flash tarda ~8-15s |
+| >95% recomendaciones válidas en TMDB | ✅ (3 reintentos) |
 
-- ✅ Auth/perfilado funcionando
-- ✅ Onboarding 5 pasos completado
-- 🔄 Mood selector implementado (US-006)
-- ⏳ LLM generando recomendaciones (US-009+)
-- ⏳ Validación TMDB (anti-alucinación)
-- ⏳ Integración JustWatch (dónde ver)
-- ⏳ Latencia <7 segundos (95% requests)
+## 📚 Documentación
 
-## 🤝 Contribuir
-
-1. Leer `AGENTS.md` y `EPICAS_Y_USER_STORIES.md`
-2. Crear rama: `feature/US-XXX-descripcion`
-3. Implementar + tests unitarios
-4. Commit: `[US-XXX] Descripción del cambio`
-5. PR y code review
-6. Mergear a `main`
-
-## 📞 Team
-
-- **PM/Architect:** Nahuel (nahue@...)
-- **Tech Lead:** Colaborativo
-- **Status:** MVP en desarrollo activo
+- [AGENTS.md](./AGENTS.md) — Arquitectura y convenciones para agentes IA
+- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) — 24 US con criterios de aceptación
+- [Backend README](./apps/api/README.md) — Endpoints, servicios, schema DB
+- [Frontend README](./apps/web/README.md) — Páginas, componentes, hooks
 
 ---
 
-**Última actualización:** 16 de mayo, 2026  
-**Versión:** MVP 1.0 (Sprint 1-2)  
-**Estado:** En desarrollo - US-006 en progress
+**Última actualización:** 16 de mayo de 2026  
+**Versión:** MVP 1.0 — Sprint 4 (US-001 a US-013 completadas)  
+**Estado:** En desarrollo activo — próximo: JustWatch + historial + deployment
