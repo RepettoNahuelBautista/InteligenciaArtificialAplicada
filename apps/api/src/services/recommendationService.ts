@@ -34,11 +34,6 @@ class RecommendationService {
     // 1. Load user profile
     const profile = await profileService.getCompleteProfile(userId);
 
-    const genreNames = profile.preferences.genres.map((_, i) => {
-      // genres are stored as numbers, we use index for names from the profile
-      return String(profile.preferences.genres[i]);
-    });
-
     // Build context for LLM
     const ctx: RecommendationPromptContext = {
       genres: profile.preferences.genres.map(String),
