@@ -1,6 +1,10 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import axios, { AxiosError } from 'axios';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/errors';
+
+config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
