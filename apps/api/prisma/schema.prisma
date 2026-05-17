@@ -60,19 +60,22 @@ model Recommendation {
   id              String   @id @default(cuid())
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   tmdbId          String
   title           String
   explanation     String
   genre           String
   year            Int
-  
+  contentType     String?  // "movie" or "tv" (from LLM)
+  posterPath      String?  // TMDB poster path
+  overview        String?  // TMDB synopsis
+
   // Context used for this recommendation
   contextMood     String?  // e.g., "mystery", "escape"
   contextType     String?  // "movie" or "series"
   contextDuration Int?     // max duration in minutes
   contextYear     Int?     // min year
-  
+
   createdAt       DateTime @default(now())
 
   @@map("recommendations")

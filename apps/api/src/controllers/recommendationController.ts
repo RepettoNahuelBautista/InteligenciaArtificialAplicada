@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { recommendationService } from '../services/recommendationService';
+import { prisma } from '../db/client';
 import { logger } from '../utils/logger';
 
 const RecommendationRequestSchema = z.object({
@@ -34,4 +35,42 @@ export const getRecommendationController = async (req: Request, res: Response): 
   });
 
   res.json({ success: true, data: result });
+};
+
+export const getRecommendationHistoryController = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as any).userId as string;
+  const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10));
+  const limit = Math.min(20, Math.max(1, parseInt(String(req.query.limit ?? '10'), 10)));
+
+  const [total, recommendations] = await Promise.all([
+    prisma.recommendation.count({ where: { userId } }),
+    prisma.recommendation.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * limit,
+      take: limit,
+      select: {
+        id: true,
+        tmdbId: true,
+        title: true,
+        explanation: true,
+        genre: true,
+        year: true,
+        contentType: true,
+        posterPath: true,
+        overview: true,
+        contextMood: true,
+        contextType: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  res.json({
+    success: true,
+    data: {
+      recommendations,
+      pagination: { total, page, limit, pages: Math.ceil(total / limit) },
+    },
+  });
 };

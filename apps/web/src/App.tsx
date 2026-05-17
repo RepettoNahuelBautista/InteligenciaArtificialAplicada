@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { ProfilePage } from './pages/ProfilePage';
 import { RecommendationPage } from './pages/RecommendationPage';
+import { HistoryPage } from './pages/HistoryPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
           <Route path="/onboarding" element={<ProtectedRoute><OnboardingFlow /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/recommendation" element={<ProtectedRoute><RecommendationPage /></ProtectedRoute>} />
+          <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

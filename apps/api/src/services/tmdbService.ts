@@ -34,6 +34,12 @@ interface MovieSearchResult {
   overview: string;
 }
 
+export interface WatchProvider {
+  providerId: number;
+  providerName: string;
+  logoPath: string;
+}
+
 /**
  * TMDB Service - Search movies/series/people
  */
@@ -156,75 +162,92 @@ class TMDBService {
   }
 
   /**
-   * Search for a movie by title (for validation)
+   * Search for a movie or TV show by title (for anti-hallucination validation).
+   * Tries movie first; if nothing found, tries TV.
    */
-  async searchMovie(title: string): Promise<{ id: number; title: string } | null> {
+  async searchMovie(
+    title: string,
+    preferredType?: 'movie' | 'tv'
+  ): Promise<{ id: number; title: string; mediaType: 'movie' | 'tv' } | null> {
     try {
-      if (!title || title.trim().length < 2) {
-        return null;
+      if (!title || title.trim().length < 2) return null;
+
+      const types: ('movie' | 'tv')[] = preferredType
+        ? [preferredType, preferredType === 'movie' ? 'tv' : 'movie']
+        : ['movie', 'tv'];
+
+      for (const type of types) {
+        const response = await axios.get(`${this.baseURL}/search/${type}`, {
+          params: { api_key: this.apiKey, query: title.trim(), page: 1 },
+          timeout: this.timeout,
+        });
+        const results: MovieSearchResult[] = response.data.results || [];
+        const top = results[0];
+        if (top?.id) {
+          return {
+            id: top.id,
+            title: top.title || top.name || 'Unknown',
+            mediaType: type,
+          };
+        }
       }
-
-      const response = await axios.get(`${this.baseURL}/search/movie`, {
-        params: {
-          api_key: this.apiKey,
-          query: title.trim(),
-          page: 1,
-        },
-        timeout: this.timeout,
-      });
-
-      const results: MovieSearchResult[] = response.data.results || [];
-      const topResult = results[0];
-
-      if (!topResult || !topResult.id) {
-        return null;
-      }
-
-      return {
-        id: topResult.id,
-        title: topResult.title || 'Unknown',
-      };
+      return null;
     } catch (error) {
-      logger.warn('Failed to search movie', {
-        title,
-        error: (error as Error).message,
-      });
+      logger.warn('Failed to search movie/tv', { title, error: (error as Error).message });
       return null;
     }
   }
 
   /**
-   * Get movie details by ID
+   * Get movie or TV details by ID
    */
   async getMovieDetails(
-    movieId: number
+    movieId: number,
+    mediaType: 'movie' | 'tv' = 'movie'
   ): Promise<{ id: number; title: string; poster_path: string | null; overview: string } | null> {
     try {
-      const response = await axios.get(`${this.baseURL}/movie/${movieId}`, {
-        params: {
-          api_key: this.apiKey,
-        },
+      const response = await axios.get(`${this.baseURL}/${mediaType}/${movieId}`, {
+        params: { api_key: this.apiKey },
         timeout: this.timeout,
       });
-
-      const movie = response.data as MovieSearchResult;
-
-      if (!movie.id) {
-        return null;
-      }
-
+      const item = response.data as MovieSearchResult;
+      if (!item.id) return null;
       return {
-        id: movie.id,
-        title: movie.title || 'Unknown',
-        poster_path: movie.poster_path || null,
-        overview: movie.overview || '',
+        id: item.id,
+        title: item.title || item.name || 'Unknown',
+        poster_path: item.poster_path || null,
+        overview: item.overview || '',
       };
     } catch (error) {
-      logger.warn('Failed to get movie details', {
-        movieId,
-        error: (error as Error).message,
-      });
+      logger.warn('Failed to get details', { movieId, mediaType, error: (error as Error).message });
       return null;
+    }
+  }
+
+  /**
+   * Get streaming providers for a movie or TV show (TMDB Watch Providers, sourced from JustWatch).
+   * Returns flatrate (streaming) providers for Argentina (AR).
+   */
+  async getWatchProviders(
+    tmdbId: string,
+    mediaType: 'movie' | 'tv'
+  ): Promise<WatchProvider[]> {
+    try {
+      const response = await axios.get(
+        `${this.baseURL}/${mediaType}/${tmdbId}/watch/providers`,
+        { params: { api_key: this.apiKey }, timeout: this.timeout }
+      );
+      const ar = response.data?.results?.AR;
+      if (!ar) return [];
+      const flatrate: any[] = ar.flatrate || [];
+      return flatrate.slice(0, 6).map((p: any) => ({
+        providerId: p.provider_id,
+        providerName: p.provider_name,
+        logoPath: p.logo_path,
+      }));
+    } catch (error) {
+      logger.warn('Failed to get watch providers', { tmdbId, mediaType, error: (error as Error).message });
+      return [];
     }
   }
 

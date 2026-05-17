@@ -83,15 +83,15 @@ export function HomePage() {
             </button>
           </div>
 
-          {/* History Card (Coming Soon) */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 opacity-50 cursor-not-allowed">
+          {/* History Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/history')}>
             <div className="text-5xl mb-4">📜</div>
             <h3 className="text-2xl font-bold text-white mb-3">Historial</h3>
             <p className="text-indigo-100 mb-6">
               Ve todas tus recomendaciones previas y vuelve a visitarlas cuando quieras.
             </p>
-            <button disabled className="bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold w-full cursor-not-allowed">
-              Próximamente
+            <button className="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 transition font-semibold w-full">
+              Ver Historial
             </button>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { profileService } from './profileService';
 import { geminiService, RecommendationPromptContext, LLMRecommendation } from './geminiService';
-import { tmdbService } from './tmdbService';
+import { tmdbService, WatchProvider } from './tmdbService';
 import { prisma } from '../db/client';
 import { logger } from '../utils/logger';
 import { AppError } from '../utils/errors';
@@ -23,6 +23,7 @@ export interface RecommendationResult {
   posterPath: string | null;
   contentType: 'movie' | 'tv';
   explanation: string;
+  watchProviders: WatchProvider[];
 }
 
 class RecommendationService {
@@ -86,9 +87,11 @@ class RecommendationService {
       let finalTitle = lastLLMResult.title;
       let overview = '';
       let posterPath: string | null = null;
+      let watchProviders: WatchProvider[] = [];
+      const mediaType = lastLLMResult.contentType;
 
       if (tmdbKeyConfigured) {
-        const tmdbResult = await tmdbService.searchMovie(lastLLMResult.title);
+        const tmdbResult = await tmdbService.searchMovie(lastLLMResult.title, mediaType);
 
         if (!tmdbResult) {
           logger.warn('Title not found in TMDB, retrying', { title: lastLLMResult.title, attempt });
@@ -96,13 +99,23 @@ class RecommendationService {
           continue;
         }
 
-        const tmdbDetails = await tmdbService.getMovieDetails(tmdbResult.id);
+        const [tmdbDetails, providers] = await Promise.all([
+          tmdbService.getMovieDetails(tmdbResult.id, tmdbResult.mediaType),
+          tmdbService.getWatchProviders(String(tmdbResult.id), tmdbResult.mediaType),
+        ]);
+
         tmdbId = String(tmdbResult.id);
         finalTitle = tmdbResult.title;
         overview = tmdbDetails?.overview || '';
         posterPath = tmdbDetails?.poster_path || null;
+        watchProviders = providers;
 
-        logger.info('Recommendation validated via TMDB', { title: finalTitle, tmdbId, attempt });
+        logger.info('Recommendation validated via TMDB', {
+          title: finalTitle,
+          tmdbId,
+          attempt,
+          providers: providers.map((p) => p.providerName),
+        });
       } else {
         logger.warn('TMDB key not configured, skipping validation');
       }
@@ -116,6 +129,7 @@ class RecommendationService {
         posterPath,
         contentType: lastLLMResult.contentType,
         explanation: lastLLMResult.explanation,
+        watchProviders,
       };
 
       // 5. Persist recommendation
@@ -128,6 +142,9 @@ class RecommendationService {
             explanation: result.explanation,
             genre: result.genre,
             year: result.year,
+            contentType: result.contentType,
+            posterPath: result.posterPath,
+            overview: result.overview || null,
             contextMood: req.moodId,
             contextType: req.contentType,
             contextDuration: req.duration ? this.durationToMinutes(req.duration) : null,

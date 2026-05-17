@@ -2,6 +2,12 @@ import { useState } from 'react';
 import { apiClient } from '../api/apiClient';
 import { RecommendationContext } from './useRecommendationContext';
 
+export interface WatchProvider {
+  providerId: number;
+  providerName: string;
+  logoPath: string;
+}
+
 export interface RecommendationResult {
   tmdbId: string;
   title: string;
@@ -11,6 +17,7 @@ export interface RecommendationResult {
   posterPath: string | null;
   contentType: 'movie' | 'tv';
   explanation: string;
+  watchProviders: WatchProvider[];
 }
 
 export function useRecommendation() {
