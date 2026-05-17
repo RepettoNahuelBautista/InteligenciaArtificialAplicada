@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MoodSelector } from '../components/MoodSelector';
 import { FilterPanel } from '../components/Recommendation/FilterPanel';
@@ -5,6 +6,33 @@ import { ContextSummary } from '../components/Recommendation/ContextSummary';
 import { RecommendationCard } from '../components/Recommendation/RecommendationCard';
 import { useRecommendationContext } from '../hooks/useRecommendationContext';
 import { useRecommendation } from '../hooks/useRecommendation';
+import { RecommendationResult } from '../hooks/useRecommendation';
+
+const LOADING_MESSAGES = [
+  'Analizando tu perfil...',
+  'Consultando a Gemini...',
+  'Buscando coincidencias...',
+  'Validando en TMDB...',
+  'Ajustando la recomendación...',
+];
+
+function LoadingIndicator() {
+  const [msgIdx, setMsgIdx] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMsgIdx((i) => (i + 1) % LOADING_MESSAGES.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-center gap-3 py-6">
+      <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white flex-shrink-0" />
+      <span className="text-indigo-200 text-sm font-medium transition-all">{LOADING_MESSAGES[msgIdx]}</span>
+    </div>
+  );
+}
 
 export const RecommendationPage = () => {
   const navigate = useNavigate();
@@ -20,31 +48,88 @@ export const RecommendationPage = () => {
     getSummaryItems,
   } = useRecommendationContext();
 
-  const { result, loading, error, fetchRecommendation, clear } = useRecommendation();
+  const { results, loading, error, fetchRecommendation, fetchNext, clear } = useRecommendation();
 
   const handleGetRecommendation = () => {
     fetchRecommendation(context);
   };
 
-  const handleNewRecommendation = () => {
+  const handleGetAnother = () => {
+    fetchNext(context, results);
+  };
+
+  const handleChangeFilters = () => {
     clear();
   };
 
-  // --- Vista: resultado ---
-  if (result) {
+  // --- Vista: resultados ---
+  if (results.length > 0 || (loading && results.length === 0 && !error)) {
+    // show results view once we have at least 1 result (or still loading first)
+  }
+
+  if (results.length > 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
+          {/* Header */}
+          <div className="mb-6 flex items-center justify-between">
             <button
               onClick={() => navigate('/home')}
               className="text-white hover:text-indigo-200 transition text-sm flex items-center gap-2"
             >
               ← Volver al inicio
             </button>
+            <button
+              onClick={handleChangeFilters}
+              className="text-indigo-300 hover:text-white transition text-sm"
+            >
+              Cambiar filtros
+            </button>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-6">Tu recomendación ✨</h1>
-          <RecommendationCard result={result} onNewRecommendation={handleNewRecommendation} />
+
+          <h1 className="text-3xl font-bold text-white mb-2">
+            {results.length === 1 ? 'Tu recomendación ✨' : `Tus recomendaciones ✨`}
+          </h1>
+          <p className="text-indigo-300 text-sm mb-6">
+            {results.length === 1 ? '1 recomendación' : `${results.length} recomendaciones`} · Los filtros se mantienen activos
+          </p>
+
+          {/* Botón pedir otra */}
+          <button
+            onClick={handleGetAnother}
+            disabled={loading}
+            className={`w-full mb-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${
+              loading
+                ? 'bg-white/10 text-indigo-300 cursor-not-allowed border border-white/10'
+                : 'bg-white/15 border border-white/30 text-white hover:bg-white/25'
+            }`}
+          >
+            {loading ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                Buscando otra...
+              </>
+            ) : (
+              '+ Pedir otra recomendación'
+            )}
+          </button>
+
+          {/* Loading message cuando carga "otra" */}
+          {loading && <LoadingIndicator />}
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg">
+              <p className="text-red-200 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Cards acumuladas (newest on top) */}
+          <div className="space-y-6">
+            {results.map((r: RecommendationResult, i: number) => (
+              <RecommendationCard key={r.tmdbId + i} result={r} index={results.length - i} />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -96,6 +181,9 @@ export const RecommendationPage = () => {
           </div>
         )}
 
+        {/* Loading */}
+        {loading && <LoadingIndicator />}
+
         {/* Acciones */}
         <div className="flex gap-4">
           <button
@@ -115,8 +203,8 @@ export const RecommendationPage = () => {
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Consultando a la IA...
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                Buscando...
               </span>
             ) : isReady ? (
               'Obtener Recomendación ✨'

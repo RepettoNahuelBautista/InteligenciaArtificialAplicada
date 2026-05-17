@@ -9,6 +9,7 @@ const RecommendationRequestSchema = z.object({
   contentType: z.enum(['movie', 'tv']).nullable().optional(),
   duration: z.enum(['short', 'normal', 'long']).nullable().optional(),
   year: z.enum(['classic', 'recent', 'new']).nullable().optional(),
+  excludeTitles: z.array(z.string()).optional().default([]),
 });
 
 export const getRecommendationController = async (req: Request, res: Response): Promise<void> => {
@@ -23,15 +24,16 @@ export const getRecommendationController = async (req: Request, res: Response): 
     return;
   }
 
-  const { moodId, contentType = null, duration = null, year = null } = parsed.data;
+  const { moodId, contentType = null, duration = null, year = null, excludeTitles } = parsed.data;
 
-  logger.info('Recommendation requested', { userId, moodId, contentType, duration, year });
+  logger.info('Recommendation requested', { userId, moodId, contentType, duration, year, excludeCount: excludeTitles.length });
 
   const result = await recommendationService.getRecommendation(userId, {
     moodId,
     contentType: contentType ?? null,
     duration: duration ?? null,
     year: year ?? null,
+    excludeTitles,
   });
 
   res.json({ success: true, data: result });

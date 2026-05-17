@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { apiClient } from '../api/apiClient';
 
 export interface HistoryItem {
@@ -16,36 +16,26 @@ export interface HistoryItem {
   createdAt: string;
 }
 
-interface Pagination {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
-
 export function useHistory() {
-  const [items, setItems] = useState<HistoryItem[]>([]);
-  const [pagination, setPagination] = useState<Pagination>({ total: 0, page: 1, limit: 10, pages: 0 });
+  const [allItems, setAllItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPage = useCallback(async (page: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await apiClient.get('/recommendations', { params: { page, limit: 10 } });
-      setItems(response.data.data.recommendations);
-      setPagination(response.data.data.pagination);
-    } catch {
-      setError('No se pudo cargar el historial');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await apiClient.get('/recommendations', { params: { page: 1, limit: 100 } });
+        setAllItems(response.data.data.recommendations);
+      } catch {
+        setError('No se pudo cargar el historial');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
-  useEffect(() => {
-    fetchPage(1);
-  }, [fetchPage]);
-
-  return { items, pagination, loading, error, fetchPage };
+  return { allItems, loading, error };
 }

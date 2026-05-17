@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHistory, HistoryItem } from '../hooks/useHistory';
 
@@ -17,7 +18,6 @@ const MOOD_LABELS: Record<string, string> = {
 function HistoryCard({ item }: { item: HistoryItem }) {
   return (
     <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden flex gap-4 p-4">
-      {/* Poster */}
       {item.posterPath ? (
         <img
           src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
@@ -30,7 +30,6 @@ function HistoryCard({ item }: { item: HistoryItem }) {
         </div>
       )}
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
           <h3 className="text-white font-semibold leading-tight truncate">{item.title}</h3>
@@ -55,15 +54,36 @@ function HistoryCard({ item }: { item: HistoryItem }) {
   );
 }
 
+type TypeFilter = 'all' | 'movie' | 'tv';
+
 export function HistoryPage() {
   const navigate = useNavigate();
-  const { items, pagination, loading, error, fetchPage } = useHistory();
+  const { allItems, loading, error } = useHistory();
+
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
+  const [moodFilter, setMoodFilter] = useState<string>('all');
+
+  const moodsInHistory = useMemo(() => {
+    const found = new Set<string>();
+    allItems.forEach((item) => { if (item.contextMood) found.add(item.contextMood); });
+    return Array.from(found);
+  }, [allItems]);
+
+  const filtered = useMemo(() => {
+    return allItems.filter((item) => {
+      if (typeFilter !== 'all' && item.contentType !== typeFilter) return false;
+      if (moodFilter !== 'all' && item.contextMood !== moodFilter) return false;
+      return true;
+    });
+  }, [allItems, typeFilter, moodFilter]);
+
+  const hasFilters = typeFilter !== 'all' || moodFilter !== 'all';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <button
             onClick={() => navigate('/home')}
             className="text-white hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm"
@@ -73,10 +93,79 @@ export function HistoryPage() {
           <h1 className="text-3xl font-bold text-white">Historial de Recomendaciones</h1>
           {!loading && (
             <p className="text-indigo-300 mt-1">
-              {pagination.total} {pagination.total === 1 ? 'recomendación' : 'recomendaciones'} en total
+              {hasFilters
+                ? `${filtered.length} de ${allItems.length} recomendaciones`
+                : `${allItems.length} ${allItems.length === 1 ? 'recomendación' : 'recomendaciones'} en total`}
             </p>
           )}
         </div>
+
+        {/* Filtros */}
+        {!loading && allItems.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 mb-6 space-y-3">
+            {/* Tipo */}
+            <div>
+              <p className="text-xs font-semibold text-indigo-300 mb-2">Tipo</p>
+              <div className="flex gap-2">
+                {(['all', 'movie', 'tv'] as TypeFilter[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTypeFilter(t)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      typeFilter === t
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-white/10 text-indigo-200 hover:bg-white/20'
+                    }`}
+                  >
+                    {t === 'all' ? 'Todos' : t === 'movie' ? '🎬 Películas' : '📺 Series'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Estado de ánimo */}
+            {moodsInHistory.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-indigo-300 mb-2">Estado de ánimo</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setMoodFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                      moodFilter === 'all'
+                        ? 'bg-indigo-500 text-white'
+                        : 'bg-white/10 text-indigo-200 hover:bg-white/20'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                  {moodsInHistory.map((mood) => (
+                    <button
+                      key={mood}
+                      onClick={() => setMoodFilter(mood)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                        moodFilter === mood
+                          ? 'bg-indigo-500 text-white'
+                          : 'bg-white/10 text-indigo-200 hover:bg-white/20'
+                      }`}
+                    >
+                      {MOOD_LABELS[mood] ?? mood}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Clear */}
+            {hasFilters && (
+              <button
+                onClick={() => { setTypeFilter('all'); setMoodFilter('all'); }}
+                className="text-xs text-indigo-400 hover:text-indigo-200 transition"
+              >
+                Limpiar filtros
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Loading */}
         {loading && (
@@ -92,8 +181,8 @@ export function HistoryPage() {
           </div>
         )}
 
-        {/* Empty state */}
-        {!loading && !error && items.length === 0 && (
+        {/* Empty state global */}
+        {!loading && !error && allItems.length === 0 && (
           <div className="text-center py-16">
             <p className="text-5xl mb-4">📭</p>
             <p className="text-white font-semibold text-lg mb-2">Todavía no tenés recomendaciones</p>
@@ -107,38 +196,27 @@ export function HistoryPage() {
           </div>
         )}
 
-        {/* List */}
-        {!loading && items.length > 0 && (
-          <>
-            <div className="space-y-4 mb-6">
-              {items.map((item) => (
-                <HistoryCard key={item.id} item={item} />
-              ))}
-            </div>
+        {/* Empty state filtrado */}
+        {!loading && !error && allItems.length > 0 && filtered.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-3xl mb-3">🔍</p>
+            <p className="text-white font-semibold mb-1">Sin resultados para estos filtros</p>
+            <button
+              onClick={() => { setTypeFilter('all'); setMoodFilter('all'); }}
+              className="text-indigo-300 hover:text-white text-sm transition mt-2"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
 
-            {/* Pagination */}
-            {pagination.pages > 1 && (
-              <div className="flex justify-center items-center gap-3">
-                <button
-                  onClick={() => fetchPage(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
-                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg disabled:opacity-40 hover:bg-white/20 transition text-sm"
-                >
-                  ← Anterior
-                </button>
-                <span className="text-indigo-300 text-sm">
-                  {pagination.page} / {pagination.pages}
-                </span>
-                <button
-                  onClick={() => fetchPage(pagination.page + 1)}
-                  disabled={pagination.page >= pagination.pages}
-                  className="bg-white/10 border border-white/20 text-white px-4 py-2 rounded-lg disabled:opacity-40 hover:bg-white/20 transition text-sm"
-                >
-                  Siguiente →
-                </button>
-              </div>
-            )}
-          </>
+        {/* List */}
+        {!loading && filtered.length > 0 && (
+          <div className="space-y-4">
+            {filtered.map((item) => (
+              <HistoryCard key={item.id} item={item} />
+            ))}
+          </div>
         )}
       </div>
     </div>

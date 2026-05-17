@@ -12,6 +12,7 @@ export interface RecommendationRequest {
   contentType: 'movie' | 'tv' | null;
   duration: 'short' | 'normal' | 'long' | null;
   year: 'classic' | 'recent' | 'new' | null;
+  excludeTitles?: string[];
 }
 
 export interface RecommendationResult {
@@ -59,7 +60,7 @@ class RecommendationService {
     ctx.dislikedMovies = watchedMovies.filter((m) => m.rating === 1).map((m) => m.title);
 
     // 2. Call LLM with retry + TMDB validation
-    const excluded: string[] = [];
+    const excluded: string[] = [...(req.excludeTitles ?? [])];
     let lastLLMResult: LLMRecommendation | null = null;
 
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {

@@ -21,14 +21,14 @@ export interface RecommendationResult {
 }
 
 export function useRecommendation() {
-  const [result, setResult] = useState<RecommendationResult | null>(null);
+  const [results, setResults] = useState<RecommendationResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRecommendation = async (context: RecommendationContext) => {
     setLoading(true);
     setError(null);
-    setResult(null);
+    setResults([]);
 
     try {
       const response = await apiClient.post('/recommendations', {
@@ -36,8 +36,30 @@ export function useRecommendation() {
         contentType: context.contentType ?? null,
         duration: context.duration ?? null,
         year: context.year ?? null,
+        excludeTitles: [],
       });
-      setResult(response.data.data);
+      setResults([response.data.data]);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } } };
+      setError(e.response?.data?.error?.message || 'Error obteniendo recomendación');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNext = async (context: RecommendationContext, currentResults: RecommendationResult[]) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.post('/recommendations', {
+        moodId: context.moodId,
+        contentType: context.contentType ?? null,
+        duration: context.duration ?? null,
+        year: context.year ?? null,
+        excludeTitles: currentResults.map((r) => r.title),
+      });
+      setResults((prev) => [response.data.data, ...prev]);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: { message?: string } } } };
       setError(e.response?.data?.error?.message || 'Error obteniendo recomendación');
@@ -47,9 +69,9 @@ export function useRecommendation() {
   };
 
   const clear = () => {
-    setResult(null);
+    setResults([]);
     setError(null);
   };
 
-  return { result, loading, error, fetchRecommendation, clear };
+  return { results, loading, error, fetchRecommendation, fetchNext, clear };
 }
