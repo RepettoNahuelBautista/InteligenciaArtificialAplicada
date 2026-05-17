@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
 import { logger } from '../utils/logger';
 
@@ -20,8 +20,8 @@ export const usePersonSelector = (options: UsePersonSelectorOptions) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load saved preferences on mount
   useEffect(() => {
     loadSavedPersons();
   }, []);
@@ -30,11 +30,10 @@ export const usePersonSelector = (options: UsePersonSelectorOptions) => {
     try {
       const response = await apiClient.get('/profile/people');
       if (response.data?.data) {
-        const persons = type === 'directors' 
-          ? response.data.data.directors 
+        const persons = type === 'directors'
+          ? response.data.data.directors
           : response.data.data.actors;
-        
-        // For now, just store IDs. In a real app, we'd fetch names too
+
         setSelectedPersons(
           persons.map((id: number) => ({
             id,
@@ -48,42 +47,40 @@ export const usePersonSelector = (options: UsePersonSelectorOptions) => {
     }
   };
 
-  const searchPersons = useCallback(
-    async (query: string) => {
-      if (query.trim().length < 2) {
-        setSearchResults([]);
-        setError(null);
-        return;
-      }
-
-      setIsSearching(true);
+  const searchPersons = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
       setError(null);
+      return;
+    }
 
-      try {
-        const response = await apiClient.get('/search/people', {
-          params: { q: query },
-        });
+    setIsSearching(true);
+    setError(null);
 
-        if (response.data?.data) {
-          setSearchResults(response.data.data);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (err) {
-        setError('Failed to search persons');
-        logger.error('Person search error', { query, error: err });
+    try {
+      const response = await apiClient.get('/search/people', {
+        params: { q: query },
+      });
+
+      if (response.data?.data) {
+        setSearchResults(response.data.data);
+      } else {
         setSearchResults([]);
-      } finally {
-        setIsSearching(false);
       }
-    },
-    []
-  );
+    } catch (err) {
+      setError('Error al buscar');
+      logger.error('Person search error', { query, error: err });
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
 
   const handleSearch = useCallback(
     (query: string) => {
       setSearchQuery(query);
-      searchPersons(query);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => searchPersons(query), 350);
     },
     [searchPersons]
   );

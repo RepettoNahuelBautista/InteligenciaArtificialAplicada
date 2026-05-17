@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { apiClient } from '../api/apiClient';
 import { logger } from '../utils/logger';
 
@@ -25,6 +25,7 @@ export const useMovieRater = (options?: UseMovieRaterOptions) => {
   const [currentMovie, setCurrentMovie] = useState<Movie | null>(null);
   const [isRating, setIsRating] = useState(false);
   const [ratedCount, setRatedCount] = useState(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     loadRatedCount();
@@ -83,7 +84,8 @@ export const useMovieRater = (options?: UseMovieRaterOptions) => {
   const handleSearch = useCallback(
     (query: string) => {
       setSearchQuery(query);
-      searchMovies(query);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => searchMovies(query), 350);
     },
     [searchMovies]
   );
