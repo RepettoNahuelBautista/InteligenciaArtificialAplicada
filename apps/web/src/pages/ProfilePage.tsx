@@ -289,7 +289,7 @@ export const ProfilePage = () => {
               <InfoRow label="Correo electrónico" value={profile.email} />
               <InfoRow
                 label="Fecha de nacimiento"
-                value={pi.birthDate ? new Date(pi.birthDate).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : null}
+                value={pi.birthDate ? new Date(pi.birthDate.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : null}
               />
               <InfoRow label="País" value={pi.country} />
               <InfoRow
