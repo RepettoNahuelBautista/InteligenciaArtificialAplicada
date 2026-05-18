@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 import { getGenreName } from '../schemas/genres';
@@ -21,6 +21,7 @@ interface PublicProfile {
 
 export function PublicProfilePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
 
@@ -28,10 +29,21 @@ export function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const navState = location.state as { from?: string; selected?: unknown } | null;
+  const fromReviews = navState?.from === 'reviews';
+
+  const handleBack = () => {
+    if (fromReviews) {
+      navigate('/reviews', { state: { from: 'reviews-back', selected: navState?.selected } });
+    } else {
+      navigate(-1);
+    }
+  };
+
   // If the user is viewing their own profile, redirect to the full profile page
   useEffect(() => {
     if (userId && user?.id === userId) {
-      navigate('/profile', { replace: true });
+      navigate('/profile', { replace: true, state: location.state });
       return;
     }
     const load = async () => {
@@ -67,7 +79,7 @@ export function PublicProfilePage() {
           <p className="text-4xl mb-4">👤</p>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Usuario no encontrado</h2>
           <p className="text-gray-500 mb-6">{error}</p>
-          <button onClick={() => navigate(-1)} className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+          <button onClick={handleBack} className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
             Volver
           </button>
         </div>
@@ -82,7 +94,7 @@ export function PublicProfilePage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={() => navigate(-1)} className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm">
+          <button onClick={handleBack} className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm">
             ← Volver
           </button>
           <div className="flex items-center gap-4">

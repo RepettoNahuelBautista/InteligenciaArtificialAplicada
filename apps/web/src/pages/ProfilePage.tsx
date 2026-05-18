@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 import { getGenreName } from '../schemas/genres';
@@ -17,7 +17,10 @@ const LANGUAGE_OPTIONS = [
 
 export const ProfilePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, updateUser } = useAuth();
+  const navState = location.state as { from?: string; selected?: unknown } | null;
+  const fromReviews = navState?.from === 'reviews';
   const { profile, loading, error, refetch } = useProfile();
 
   const [showPersonalForm, setShowPersonalForm] = useState(false);
@@ -109,7 +112,12 @@ export const ProfilePage = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={() => navigate('/home')} className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2">
+          <button
+            onClick={() => fromReviews
+              ? navigate('/reviews', { state: { from: 'reviews-back', selected: navState?.selected } })
+              : navigate('/home')}
+            className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2"
+          >
             ← Volver
           </button>
           <h1 className="text-4xl font-bold text-white mb-1">Tu Perfil</h1>

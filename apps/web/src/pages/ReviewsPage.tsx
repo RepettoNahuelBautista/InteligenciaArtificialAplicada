@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { apiClient } from '../api/apiClient';
 import { useReviews, ReviewItem } from '../hooks/useReviews';
 import { useAuth } from '../hooks/useAuth';
@@ -43,8 +43,7 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
   );
 }
 
-function ReviewCard({ review, currentUserId }: { review: ReviewItem; currentUserId?: string }) {
-  const navigate = useNavigate();
+function ReviewCard({ review, currentUserId, onAuthorClick }: { review: ReviewItem; currentUserId?: string; onAuthorClick?: (userId: string) => void }) {
   const isOwn = review.author.userId === currentUserId;
 
   return (
@@ -52,7 +51,7 @@ function ReviewCard({ review, currentUserId }: { review: ReviewItem; currentUser
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <button
-            onClick={() => navigate(`/users/${review.author.userId}`)}
+            onClick={() => onAuthorClick?.(review.author.userId)}
             className="font-semibold text-indigo-700 hover:text-indigo-900 hover:underline transition text-sm"
           >
             {review.author.displayName ?? 'Usuario'}
@@ -76,6 +75,7 @@ function ReviewCard({ review, currentUserId }: { review: ReviewItem; currentUser
 
 export function ReviewsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { reviews, loading: loadingReviews, error: reviewsError, fetchReviews, upsertReview, submitting, submitError } = useReviews();
 
@@ -92,6 +92,21 @@ export function ReviewsPage() {
   const [formText, setFormText] = useState('');
 
   const myReview = reviews.find((r) => r.author.userId === user?.id);
+
+  // Restore state when navigating back from a user profile
+  useEffect(() => {
+    const state = location.state as { from?: string; selected?: SelectedTitle } | null;
+    if (state?.from === 'reviews-back' && state.selected) {
+      setSelected(state.selected);
+      fetchReviews(state.selected.tmdbId);
+      window.history.replaceState({}, document.title);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleAuthorClick = (userId: string) => {
+    navigate(`/users/${userId}`, { state: { from: 'reviews', selected } });
+  };
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -304,7 +319,7 @@ export function ReviewsPage() {
               <div className="space-y-3">
                 <p className="text-indigo-300 text-sm">{reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'}</p>
                 {reviews.map((r) => (
-                  <ReviewCard key={r.id} review={r} currentUserId={user?.id} />
+                  <ReviewCard key={r.id} review={r} currentUserId={user?.id} onAuthorClick={handleAuthorClick} />
                 ))}
               </div>
             )}
