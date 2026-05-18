@@ -114,6 +114,18 @@ export function HomePage() {
               Buscar usuarios
             </button>
           </div>
+
+          {/* Lists Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/lists')}>
+            <div className="text-5xl mb-4">📋</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Mis Listas</h3>
+            <p className="text-indigo-100 mb-6">
+              Creá listas de películas y series para organizar tus favoritas y compartirlas con otros.
+            </p>
+            <button className="bg-cyan-600 text-white px-6 py-2 rounded-lg hover:bg-cyan-700 transition font-semibold w-full">
+              Ver mis listas
+            </button>
+          </div>
         </div>
       </main>
     </div>

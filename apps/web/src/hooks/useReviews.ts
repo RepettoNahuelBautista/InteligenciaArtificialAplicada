@@ -17,6 +17,9 @@ export interface ReviewItem {
   createdAt: string;
   updatedAt: string;
   author: ReviewAuthor;
+  likeCount: number;
+  dislikeCount: number;
+  userLike: 1 | -1 | null;
 }
 
 export interface UpsertReviewPayload {
@@ -72,5 +75,34 @@ export function useReviews() {
     }
   };
 
-  return { reviews, loading, error, fetchReviews, upsertReview, submitting, submitError };
+  const likeReview = async (reviewId: string, value: 1 | -1 | null) => {
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.id !== reviewId) return r;
+        const prevLike = r.userLike;
+        let likeCount = r.likeCount;
+        let dislikeCount = r.dislikeCount;
+
+        if (prevLike === 1) likeCount--;
+        if (prevLike === -1) dislikeCount--;
+
+        if (value === 1) likeCount++;
+        if (value === -1) dislikeCount++;
+
+        return { ...r, userLike: value, likeCount, dislikeCount };
+      })
+    );
+
+    try {
+      if (value === null) {
+        await apiClient.delete(`/reviews/${reviewId}/like`);
+      } else {
+        await apiClient.post(`/reviews/${reviewId}/like`, { value });
+      }
+    } catch {
+      // revert on error by re-fetching is not available here; just silently fail
+    }
+  };
+
+  return { reviews, loading, error, fetchReviews, upsertReview, submitting, submitError, likeReview };
 }

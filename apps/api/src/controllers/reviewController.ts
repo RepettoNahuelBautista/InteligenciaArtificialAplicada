@@ -9,7 +9,7 @@ export const getReviewsController = async (req: Request, res: Response): Promise
     return;
   }
 
-  const reviews = await reviewService.getReviews(tmdbId);
+  const reviews = await reviewService.getReviews(tmdbId, req.userId as string);
   res.json({ success: true, data: reviews });
 };
 
@@ -39,6 +39,6 @@ export const getPublicProfileController = async (req: Request, res: Response): P
 
 export const getUserReviewsController = async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params;
-  const reviews = await reviewService.getUserReviews(userId);
+  const reviews = await reviewService.getUserReviews(userId, req.userId as string);
   res.json({ success: true, data: reviews });
 };

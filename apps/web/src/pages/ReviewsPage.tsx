@@ -4,6 +4,8 @@ import { apiClient } from '../api/apiClient';
 import { useReviews, ReviewItem } from '../hooks/useReviews';
 import { useAuth } from '../hooks/useAuth';
 
+type LikeHandler = (reviewId: string, value: 1 | -1 | null) => void;
+
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w92';
 
 interface SearchResult {
@@ -43,8 +45,18 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
   );
 }
 
-function ReviewCard({ review, currentUserId, onAuthorClick }: { review: ReviewItem; currentUserId?: string; onAuthorClick?: (userId: string) => void }) {
+function ReviewCard({ review, currentUserId, onAuthorClick, onLike }: {
+  review: ReviewItem;
+  currentUserId?: string;
+  onAuthorClick?: (userId: string) => void;
+  onLike?: LikeHandler;
+}) {
   const isOwn = review.author.userId === currentUserId;
+
+  const handleLike = (value: 1 | -1) => {
+    if (!onLike) return;
+    onLike(review.id, review.userLike === value ? null : value);
+  };
 
   return (
     <div className={`rounded-xl border p-5 ${isOwn ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}>
@@ -81,6 +93,29 @@ function ReviewCard({ review, currentUserId, onAuthorClick }: { review: ReviewIt
             </div>
           </div>
           <p className="text-gray-700 text-sm leading-relaxed mt-2">{review.text}</p>
+          {/* Like / dislike */}
+          <div className="flex items-center gap-3 mt-3">
+            <button
+              onClick={() => handleLike(1)}
+              className={`flex items-center gap-1 text-sm px-2 py-1 rounded-lg transition ${
+                review.userLike === 1
+                  ? 'bg-green-100 text-green-700 font-semibold'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+              }`}
+            >
+              👍 {review.likeCount > 0 && <span>{review.likeCount}</span>}
+            </button>
+            <button
+              onClick={() => handleLike(-1)}
+              className={`flex items-center gap-1 text-sm px-2 py-1 rounded-lg transition ${
+                review.userLike === -1
+                  ? 'bg-red-100 text-red-700 font-semibold'
+                  : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600'
+              }`}
+            >
+              👎 {review.dislikeCount > 0 && <span>{review.dislikeCount}</span>}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -91,7 +126,7 @@ export function ReviewsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { reviews, loading: loadingReviews, error: reviewsError, fetchReviews, upsertReview, submitting, submitError } = useReviews();
+  const { reviews, loading: loadingReviews, error: reviewsError, fetchReviews, upsertReview, submitting, submitError, likeReview } = useReviews();
 
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -333,7 +368,7 @@ export function ReviewsPage() {
               <div className="space-y-3">
                 <p className="text-indigo-300 text-sm">{reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'}</p>
                 {reviews.map((r) => (
-                  <ReviewCard key={r.id} review={r} currentUserId={user?.id} onAuthorClick={handleAuthorClick} />
+                  <ReviewCard key={r.id} review={r} currentUserId={user?.id} onAuthorClick={handleAuthorClick} onLike={likeReview} />
                 ))}
               </div>
             )}

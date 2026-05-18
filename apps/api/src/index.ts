@@ -12,8 +12,10 @@ import { searchMoviesController, rateMovieController, getWatchedMoviesController
 import { getMoodsController } from './controllers/moodController';
 import { getRecommendationController, getRecommendationHistoryController } from './controllers/recommendationController';
 import { getReviewsController, upsertReviewController, getPublicProfileController, getUserReviewsController } from './controllers/reviewController';
+import { likeReviewController, unlikeReviewController } from './controllers/reviewLikeController';
 import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController } from './controllers/followController';
 import { uploadAvatarController } from './controllers/avatarController';
+import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +63,17 @@ app.get('/api/v1/profile/people', authMiddleware, getPersonPreferencesController
 // Review routes
 app.get('/api/v1/reviews', authMiddleware, getReviewsController);
 app.post('/api/v1/reviews', authMiddleware, upsertReviewController);
+app.post('/api/v1/reviews/:reviewId/like', authMiddleware, likeReviewController);
+app.delete('/api/v1/reviews/:reviewId/like', authMiddleware, unlikeReviewController);
+
+// List routes
+app.get('/api/v1/lists', authMiddleware, getListsController);
+app.post('/api/v1/lists', authMiddleware, createListController);
+app.get('/api/v1/lists/:listId', authMiddleware, getListDetailController);
+app.put('/api/v1/lists/:listId', authMiddleware, updateListController);
+app.delete('/api/v1/lists/:listId', authMiddleware, deleteListController);
+app.post('/api/v1/lists/:listId/items', authMiddleware, addItemController);
+app.delete('/api/v1/lists/:listId/items/:tmdbId', authMiddleware, removeItemController);
 
 // Follow list routes (own profile)
 app.get('/api/v1/profile/followers', authMiddleware, getFollowersController);
@@ -71,6 +84,7 @@ app.post('/api/v1/profile/avatar', authMiddleware, uploadAvatarController);
 app.get('/api/v1/users/search', authMiddleware, searchUsersController);
 app.get('/api/v1/users/:userId/profile', authMiddleware, getPublicProfileController);
 app.get('/api/v1/users/:userId/reviews', authMiddleware, getUserReviewsController);
+app.get('/api/v1/users/:userId/lists', authMiddleware, getPublicListsController);
 app.post('/api/v1/users/:userId/follow', authMiddleware, followController);
 app.delete('/api/v1/users/:userId/follow', authMiddleware, unfollowController);
 

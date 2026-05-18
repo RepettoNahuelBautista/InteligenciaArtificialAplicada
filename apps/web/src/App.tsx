@@ -10,6 +10,8 @@ import { HistoryPage } from './pages/HistoryPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
 import { UserSearchPage } from './pages/UserSearchPage';
+import { MovieListsPage } from './pages/MovieListsPage';
+import { MovieListDetailPage } from './pages/MovieListDetailPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
           <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
           <Route path="/users/search" element={<ProtectedRoute><UserSearchPage /></ProtectedRoute>} />
           <Route path="/users/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
+          <Route path="/lists" element={<ProtectedRoute><MovieListsPage /></ProtectedRoute>} />
+          <Route path="/lists/:listId" element={<ProtectedRoute><MovieListDetailPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>

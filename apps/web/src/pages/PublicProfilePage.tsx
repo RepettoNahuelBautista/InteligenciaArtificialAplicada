@@ -31,6 +31,16 @@ interface ReviewItem {
   rating: number;
   text: string;
   createdAt: string;
+  likeCount: number;
+  dislikeCount: number;
+}
+
+interface ListSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  isPublic: boolean;
+  itemCount: number;
 }
 
 function StarRating({ value }: { value: number }) {
@@ -51,6 +61,7 @@ export function PublicProfilePage() {
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [lists, setLists] = useState<ListSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
@@ -79,12 +90,14 @@ export function PublicProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const [profileRes, reviewsRes] = await Promise.all([
+        const [profileRes, reviewsRes, listsRes] = await Promise.all([
           apiClient.get(`/users/${userId}/profile`),
           apiClient.get(`/users/${userId}/reviews`),
+          apiClient.get(`/users/${userId}/lists`),
         ]);
         setProfile(profileRes.data.data);
         setReviews(reviewsRes.data.data);
+        setLists(listsRes.data.data);
       } catch {
         setError('No se pudo cargar el perfil de este usuario');
       } finally {
@@ -228,6 +241,33 @@ export function PublicProfilePage() {
           </div>
         )}
 
+        {/* Public lists */}
+        {lists.length > 0 && (
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-5 mb-6">
+            <h2 className="text-white font-semibold mb-4">
+              Listas<span className="text-indigo-300 font-normal text-sm ml-2">({lists.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {lists.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => navigate(`/lists/${l.id}`)}
+                  className="w-full text-left bg-white/10 rounded-xl p-3 border border-white/10 hover:bg-white/20 transition flex items-center justify-between gap-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-white font-medium text-sm truncate">{l.name}</p>
+                    {l.description && <p className="text-indigo-400 text-xs truncate">{l.description}</p>}
+                  </div>
+                  <div className="flex-shrink-0 text-right">
+                    <p className="text-white font-bold text-sm">{l.itemCount}</p>
+                    <p className="text-indigo-400 text-xs">{l.itemCount === 1 ? 'título' : 'títulos'}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Reviews by this user */}
         <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-5">
           <h2 className="text-white font-semibold mb-4">
@@ -249,9 +289,17 @@ export function PublicProfilePage() {
                     </div>
                   </div>
                   <p className="text-indigo-100 text-sm leading-relaxed">{r.text}</p>
-                  <p className="text-indigo-400 text-xs mt-2">
-                    {new Date(r.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-indigo-400 text-xs">
+                      {new Date(r.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </p>
+                    {(r.likeCount > 0 || r.dislikeCount > 0) && (
+                      <div className="flex items-center gap-3">
+                        {r.likeCount > 0 && <span className="text-xs text-green-300">👍 {r.likeCount}</span>}
+                        {r.dislikeCount > 0 && <span className="text-xs text-red-300">👎 {r.dislikeCount}</span>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

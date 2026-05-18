@@ -22,6 +22,8 @@ model User {
   recommendations Recommendation[]
   watchedMovies WatchedMovie[]
   reviews       Review[]
+  reviewLikes   ReviewLike[]
+  movieLists    MovieList[]
   following     Follow[] @relation("UserFollowing")
   followers     Follow[] @relation("UserFollowers")
 
@@ -103,8 +105,51 @@ model Review {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  likes       ReviewLike[]
+
   @@unique([userId, tmdbId])
   @@map("reviews")
+}
+
+model ReviewLike {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     Int      // 1 = like, -1 = dislike
+  createdAt DateTime @default(now())
+
+  @@unique([userId, reviewId])
+  @@map("review_likes")
+}
+
+model MovieList {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isPublic    Boolean         @default(true)
+  items       MovieListItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("movie_lists")
+}
+
+model MovieListItem {
+  id          String    @id @default(cuid())
+  listId      String
+  list        MovieList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  tmdbId      String
+  title       String
+  posterPath  String?
+  contentType String
+  addedAt     DateTime  @default(now())
+
+  @@unique([listId, tmdbId])
+  @@map("movie_list_items")
 }
 
 model Follow {
