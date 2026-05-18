@@ -262,7 +262,9 @@ export const OnboardingFlow: FC = () => {
 
         {/* User info */}
         <div className="text-center text-white mt-8 text-sm">
-          <p>Iniciado como: {user?.email}</p>
+          <p>
+            {user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario'}, contanos sobre vos
+          </p>
         </div>
       </div>
     </div>

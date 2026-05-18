@@ -7,10 +7,18 @@ export interface PersonInfo {
   name: string;
 }
 
+export interface PersonalInfo {
+  displayName: string | null;
+  birthDate: string | null;
+  country: string | null;
+  language: string | null;
+}
+
 export interface UserProfileComplete {
   userId: string;
   email: string;
   createdAt: string;
+  personalInfo: PersonalInfo;
   preferences: {
     genres: number[];
     directors: PersonInfo[];

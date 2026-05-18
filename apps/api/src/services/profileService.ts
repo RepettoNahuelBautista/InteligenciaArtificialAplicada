@@ -8,10 +8,18 @@ export interface PersonInfo {
   name: string;
 }
 
+export interface PersonalInfo {
+  displayName: string | null;
+  birthDate: string | null;
+  country: string | null;
+  language: string | null;
+}
+
 export interface UserProfileComplete {
   userId: string;
   email: string;
   createdAt: string;
+  personalInfo: PersonalInfo;
   preferences: {
     genres: number[];
     directors: PersonInfo[];
@@ -123,6 +131,12 @@ class ProfileService {
         userId: user.id,
         email: user.email,
         createdAt: user.createdAt.toISOString(),
+        personalInfo: {
+          displayName: profile.displayName ?? null,
+          birthDate: profile.birthDate ? profile.birthDate.toISOString() : null,
+          country: profile.country ?? null,
+          language: profile.language ?? null,
+        },
         preferences: {
           genres,
           directors: directorObjects,
@@ -157,6 +171,30 @@ class ProfileService {
         'Failed to get complete profile'
       );
     }
+  }
+
+  async updatePersonalInfo(
+    userId: string,
+    data: { displayName?: string | null; birthDate?: string | null; country?: string | null; language?: string | null }
+  ): Promise<PersonalInfo> {
+    const updated = await prisma.userProfile.update({
+      where: { userId },
+      data: {
+        displayName: data.displayName ?? undefined,
+        birthDate: data.birthDate ? new Date(data.birthDate) : data.birthDate === null ? null : undefined,
+        country: data.country ?? undefined,
+        language: data.language ?? undefined,
+      },
+    });
+
+    logger.info('Personal info updated', { userId });
+
+    return {
+      displayName: updated.displayName ?? null,
+      birthDate: updated.birthDate ? updated.birthDate.toISOString() : null,
+      country: updated.country ?? null,
+      language: updated.language ?? null,
+    };
   }
 
   /**

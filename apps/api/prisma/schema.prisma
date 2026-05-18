@@ -34,7 +34,13 @@ model UserProfile {
   favoriteGenres  String   // JSON array of genre IDs
   favoriteDirectors String // JSON array of director IDs
   favoriteActors  String   // JSON array of actor IDs
-  
+
+  // Personal info (optional)
+  displayName     String?
+  birthDate       DateTime?
+  country         String?
+  language        String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

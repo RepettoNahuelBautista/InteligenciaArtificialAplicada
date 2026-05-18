@@ -6,7 +6,7 @@ import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
 import { registerController, loginController, meController } from './controllers/authController';
 import { getGenresController, saveGenrePreferencesController } from './controllers/genreController';
-import { getProfileController } from './controllers/profileController';
+import { getProfileController, updatePersonalInfoController } from './controllers/profileController';
 import { searchPeopleController, savePersonPreferencesController, getPersonPreferencesController } from './controllers/personController';
 import { searchMoviesController, rateMovieController, getWatchedMoviesController, removeWatchedMovieController } from './controllers/movieController';
 import { getMoodsController } from './controllers/moodController';
@@ -48,6 +48,7 @@ app.get('/api/v1/recommendations', authMiddleware, getRecommendationHistoryContr
 
 // Profile route (complete profile with stats)
 app.get('/api/v1/profile', authMiddleware, getProfileController);
+app.put('/api/v1/profile/personal', authMiddleware, updatePersonalInfoController);
 
 // Person (directors/actors) routes
 app.get('/api/v1/search/people', searchPeopleController);

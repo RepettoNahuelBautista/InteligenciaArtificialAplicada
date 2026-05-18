@@ -20,10 +20,11 @@ export function useAuthForm() {
       const response = await authApi.register(email, password);
       const { data: userData, token: userToken } = response.data.data;
 
-      localStorage.setItem('user', JSON.stringify(userData));
+      const user = { ...userData, displayName: null };
+      localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('authToken', userToken);
 
-      setUser(userData);
+      setUser(user);
       setToken(userToken);
       navigate('/onboarding');
     } catch (err: unknown) {
@@ -43,17 +44,24 @@ export function useAuthForm() {
       const response = await authApi.login(email, password);
       const { data: userData, token: userToken } = response.data.data;
 
-      localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('authToken', userToken);
-
-      setUser(userData);
-      setToken(userToken);
 
       try {
         const profileResponse = await apiClient.get('/profile');
         const genres: number[] = profileResponse.data?.data?.preferences?.genres ?? [];
+        const displayName: string | null = profileResponse.data?.data?.personalInfo?.displayName ?? null;
+
+        const user = { ...userData, displayName };
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
+        setToken(userToken);
+
         navigate(genres.length >= 3 ? '/home' : '/onboarding');
       } catch {
+        const user = { ...userData, displayName: null };
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
+        setToken(userToken);
         navigate('/onboarding');
       }
     } catch (err: unknown) {

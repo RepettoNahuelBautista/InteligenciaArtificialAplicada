@@ -17,13 +17,9 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-white">🎬 RecomiendaFilms</h1>
           <div className="flex items-center gap-4">
-            <span className="text-indigo-100">Hola, {user?.email}</span>
-            <button
-              onClick={() => navigate('/profile')}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium"
-            >
-              Mi Perfil
-            </button>
+            <span className="text-indigo-100">
+              Hola, {user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario'}
+            </span>
             <button
               onClick={handleLogout}
               className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition font-medium"
