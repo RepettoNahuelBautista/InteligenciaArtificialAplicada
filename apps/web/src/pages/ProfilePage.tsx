@@ -123,7 +123,6 @@ export const ProfilePage = () => {
   }
 
   const pi = profile.personalInfo;
-  const displayName = pi.displayName || user?.email?.split('@')[0] || 'Usuario';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
@@ -138,8 +137,7 @@ export const ProfilePage = () => {
           >
             ← Volver
           </button>
-          <h1 className="text-4xl font-bold text-white mb-1">Tu Perfil</h1>
-          <p className="text-indigo-200">{displayName}</p>
+          <h1 className="text-4xl font-bold text-white">Tu Perfil</h1>
         </div>
 
         {/* Información Personal */}
