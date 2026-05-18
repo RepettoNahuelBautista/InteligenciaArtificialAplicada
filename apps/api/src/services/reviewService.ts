@@ -116,6 +116,7 @@ class ReviewService {
       author: {
         userId: review.userId,
         displayName: review.user.profile?.displayName ?? review.user.email.split('@')[0],
+        avatarUrl: review.user.profile?.avatarUrl ?? null,
       },
     };
   }
@@ -177,7 +178,7 @@ class ReviewService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: {
-        user: { include: { profile: { select: { displayName: true } } } },
+        user: { include: { profile: { select: { displayName: true, avatarUrl: true } } } },
       },
     });
 
