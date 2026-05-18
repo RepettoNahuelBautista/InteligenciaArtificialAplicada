@@ -1,20 +1,9 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
 import { getGenreName } from '../schemas/genres';
 import { apiClient } from '../api/apiClient';
-
-interface MyReview {
-  id: string;
-  tmdbId: string;
-  title: string;
-  contentType: string;
-  rating: number;
-  liked: boolean | null;
-  text: string;
-  createdAt: string;
-}
 
 const LANGUAGE_OPTIONS = [
   { value: 'es', label: 'Español' },
@@ -56,15 +45,6 @@ export const ProfilePage = () => {
       setSocialLoading(false);
     }
   };
-
-  const [myReviews, setMyReviews] = useState<MyReview[]>([]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    apiClient.get(`/users/${user.id}/reviews`)
-      .then((res) => setMyReviews(res.data.data))
-      .catch(() => {});
-  }, [user?.id]);
 
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -374,40 +354,8 @@ export const ProfilePage = () => {
                     <p className="text-sm text-gray-500">{new Date(movie.createdAt).toLocaleDateString('es-AR')}</p>
                   </div>
                   <span className="text-sm font-bold text-gray-900">
-                    {movie.rating === 5 ? '👍 Me gustó' : '👎 No me gustó'}
+                    {movie.liked === true ? '👍 Me gustó' : movie.liked === false ? '👎 No me gustó' : '—'}
                   </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* My Reviews */}
-        {myReviews.length > 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Mis Reseñas</h2>
-            <div className="space-y-3">
-              {myReviews.map((r) => (
-                <div key={r.id} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
-                  <div className="flex-shrink-0 mt-0.5">
-                    {r.liked === true && <span className="text-2xl">👍</span>}
-                    {r.liked === false && <span className="text-2xl">👎</span>}
-                    {r.liked === null && <span className="text-2xl text-gray-300">🎬</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 truncate">{r.title}</p>
-                        <p className="text-xs text-gray-400">{r.contentType === 'tv' ? 'Serie' : 'Película'} · {new Date(r.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                      </div>
-                      <div className="flex-shrink-0 flex gap-0.5 text-yellow-500">
-                        {[1,2,3,4,5].map((s) => (
-                          <span key={s} className="text-sm">{s <= r.rating ? '★' : '☆'}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">{r.text}</p>
-                  </div>
                 </div>
               ))}
             </div>

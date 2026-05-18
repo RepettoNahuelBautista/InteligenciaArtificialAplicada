@@ -43,6 +43,7 @@ export interface UserProfileComplete {
     tmdbId: string;
     title: string;
     rating: number;
+    liked: boolean | null;
     createdAt: string;
   }>;
 }
@@ -107,21 +108,46 @@ class ProfileService {
         name: actorDetails[i]?.name ?? `Actor #${id}`,
       }));
 
-      // Get watched movies stats, follow counts, and recent movies in parallel
-      const [watchedMovies, followerCount, followingCount, recentMovies] = await Promise.all([
+      // Get watched movies stats, follow counts, recent movies and reviews in parallel
+      const [watchedMovies, followerCount, followingCount, recentWatched, recentReviews] = await Promise.all([
         prisma.watchedMovie.findMany({ where: { userId }, select: { rating: true, id: true } }),
         prisma.follow.count({ where: { followingId: userId } }),
         prisma.follow.count({ where: { followerId: userId } }),
         prisma.watchedMovie.findMany({
           where: { userId },
           orderBy: { createdAt: 'desc' },
-          take: 5,
+          take: 20,
           select: { id: true, tmdbId: true, title: true, rating: true, createdAt: true },
+        }),
+        prisma.review.findMany({
+          where: { userId, liked: { not: null } },
+          orderBy: { updatedAt: 'desc' },
+          take: 20,
+          select: { id: true, tmdbId: true, title: true, rating: true, liked: true, updatedAt: true },
         }),
       ]);
 
       const moviesLiked = watchedMovies.filter((m) => m.rating === 5).length;
       const moviesDisliked = watchedMovies.filter((m) => m.rating === 1).length;
+
+      // Merge watched + reviewed, deduplicate by tmdbId keeping the most recent entry
+      type RecentEntry = { id: string; tmdbId: string; title: string; rating: number; liked: boolean | null; createdAt: string };
+      const entryMap = new Map<string, RecentEntry>();
+
+      for (const m of recentWatched) {
+        entryMap.set(m.tmdbId, { id: m.id, tmdbId: m.tmdbId, title: m.title, rating: m.rating, liked: m.rating === 5, createdAt: m.createdAt.toISOString() });
+      }
+      for (const r of recentReviews) {
+        const existing = entryMap.get(r.tmdbId);
+        const reviewDate = r.updatedAt.toISOString();
+        if (!existing || reviewDate > existing.createdAt) {
+          entryMap.set(r.tmdbId, { id: r.id, tmdbId: r.tmdbId, title: r.title, rating: r.rating, liked: r.liked, createdAt: reviewDate });
+        }
+      }
+
+      const recentMovies = Array.from(entryMap.values())
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 10);
 
       logger.info('Complete profile retrieved', { userId });
 
@@ -150,10 +176,7 @@ class ProfileService {
           moviesDisliked,
         },
         social: { followerCount, followingCount },
-        recentMovies: recentMovies.map((m) => ({
-          ...m,
-          createdAt: m.createdAt.toISOString(),
-        })),
+        recentMovies,
       };
     } catch (error) {
       if (error instanceof AppError) {

@@ -42,6 +42,7 @@ export interface UserProfileComplete {
     tmdbId: string;
     title: string;
     rating: number;
+    liked: boolean | null;
     createdAt: string;
   }>;
 }
