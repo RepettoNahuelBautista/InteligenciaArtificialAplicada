@@ -1,16 +1,18 @@
-# 🎬 Motor de Recomendación de Cine con IA
+# RecomiendaFilms — Motor de Recomendación de Cine con IA + Red Social
 
-Motor inteligente de recomendaciones de películas y series basado en IA generativa (Google Gemini).
+Motor inteligente de recomendaciones de películas y series basado en IA generativa (Google Gemini), con una capa social completa para compartir reseñas, listas y seguir a otros usuarios.
 
-## 🚀 Quick Start
+## Producción
 
-### Requisitos Previos
-- Node.js 20.6+
-- npm 10+
-- Cuenta en [Google AI Studio](https://aistudio.google.com) (API key de Gemini, gratis)
-- Cuenta en [TMDB](https://www.themoviedb.org) (API key gratis)
+| Servicio | URL |
+|---------|-----|
+| **Frontend** | https://inteligencia-artificial-aplicada-we.vercel.app |
+| **Backend API** | https://inteligenciaartificialaplicada.onrender.com |
+| **Health check** | https://inteligenciaartificialaplicada.onrender.com/health |
 
-### Setup Inicial
+> El backend corre en Render free tier — puede tardar ~30s en despertar si estuvo inactivo.
+
+## Quick Start
 
 ```bash
 # 1. Instalar todas las dependencias
@@ -21,31 +23,23 @@ cd apps/api
 cp .env.example .env.local
 # Editar .env.local con tus API keys (ver sección Variables de Entorno)
 
-# 3. Configurar frontend
+# 3. Aplicar migraciones
+npx prisma migrate deploy
+
+# 4. Configurar frontend
 cd ../web
 cp .env.example .env.local
+# VITE_API_BASE_URL=http://localhost:3000/api/v1
 
-# 4. Volver a raíz
+# 5. Volver a raíz y ejecutar
 cd ../..
-```
-
-### Ejecutar en desarrollo
-
-```bash
-# Ambos servidores (backend + frontend)
 npm run dev
-
-# Backend solo (puerto 3000)
-cd apps/api && npm run dev
-
-# Frontend solo (puerto 3001)
-cd apps/web && npm run dev
 ```
 
-**🌐 Frontend:** http://localhost:3001  
-**🔌 Backend API:** http://localhost:3000
+**Frontend:** http://localhost:3001  
+**Backend API:** http://localhost:3000
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 InteligenciaArtificialAplicada/
@@ -53,7 +47,7 @@ InteligenciaArtificialAplicada/
 │   ├── api/                    # Backend (Express + TypeScript + Prisma)
 │   │   ├── src/
 │   │   │   ├── controllers/    # Request handlers
-│   │   │   ├── services/       # Business logic (gemini, tmdb, recommendation...)
+│   │   │   ├── services/       # Business logic (gemini, tmdb, recommendation, reviews...)
 │   │   │   ├── middleware/     # Auth + error handling
 │   │   │   ├── schemas/        # Zod validation schemas
 │   │   │   ├── db/             # Prisma client
@@ -62,20 +56,19 @@ InteligenciaArtificialAplicada/
 │   │
 │   └── web/                    # Frontend (React + Vite + TypeScript)
 │       └── src/
-│           ├── pages/          # AuthPage, HomePage, ProfilePage, RecommendationPage
+│           ├── pages/          # AuthPage, HomePage, ProfilePage, ReviewsPage, ...
 │           ├── components/     # Auth, Onboarding, Recommendation, MoodSelector...
 │           ├── hooks/          # Custom hooks por feature
 │           └── api/            # Axios client
 │
-├── AGENTS.md                   # Guía de arquitectura para agentes IA
-├── EPICAS_Y_USER_STORIES.md    # 24 User Stories del MVP con criterios de aceptación
+├── EPICAS_Y_USER_STORIES.md    # User Stories completas con criterios de aceptación
+├── TESTING.md                  # Guía de testing manual y pruebas de API
 └── README.md                   # Este archivo
 ```
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 ### Backend
-- **Runtime:** Node.js 20.6+
 - **Framework:** Express 4.18
 - **Language:** TypeScript 5.3
 - **ORM:** Prisma 5.13
@@ -83,7 +76,8 @@ InteligenciaArtificialAplicada/
 - **Auth:** JWT (jsonwebtoken) + bcryptjs
 - **Validación:** Zod 3.23
 - **LLM:** Google Gemini 2.5 Flash (`@google/generative-ai`)
-- **APIs externas:** TMDB (activo), JustWatch (pendiente)
+- **Imágenes:** Cloudinary (avatares de usuario, multer memory storage)
+- **APIs externas:** TMDB (catálogo + watch providers)
 
 ### Frontend
 - **Framework:** React 18
@@ -94,53 +88,7 @@ InteligenciaArtificialAplicada/
 - **Routing:** React Router 6.20
 - **Estado:** Context API + React Hooks (sin Redux)
 
-## 🌐 Producción
-
-| Servicio | URL |
-|---------|-----|
-| **Frontend** | https://inteligencia-artificial-aplicada-we.vercel.app |
-| **Backend API** | https://inteligenciaartificialaplicada.onrender.com |
-| **Health check** | https://inteligenciaartificialaplicada.onrender.com/health |
-
-> El backend corre en Render free tier — puede tardar ~30s en despertar si estuvo inactivo.
-
-## 📊 Estado del MVP — 91% completado (~91/100 SP estimados)
-
-### ✅ Completado
-
-| ID | Descripción | SP |
-|----|-----------|----|
-| US-001 | Autenticación JWT (register/login) | 5 |
-| US-002 | Onboarding: géneros favoritos | 3 |
-| US-003 | Onboarding: directores y actores (búsqueda TMDB) | 5 |
-| US-004 | Onboarding: películas vistas (like/dislike) | 5 |
-| US-005 | Perfil completo con estadísticas y nombres reales | 3 |
-| US-006 | Selector de 8 estados de ánimo | 3 |
-| US-007 | Filtros: tipo (película/serie), duración, época | 5 |
-| US-008 | Resumen de contexto antes de pedir recomendación | 2 |
-| US-009 | Motor de IA con Gemini 2.5 Flash | 8 |
-| US-010 | Prompt engineering (perfil + contexto + anti-alucinación) | 5 |
-| US-011 | Explicación justificada personalizada | 3 |
-| US-012 | Validación TMDB + hasta 3 reintentos anti-alucinación | 5 |
-| US-013 | Enriquecimiento TMDB: póster, sinopsis, título real | 5 |
-| US-014 | Disponibilidad en plataformas (JustWatch vía TMDB) | 5 |
-| US-015 | Tarjeta de recomendación completa | 3 |
-| US-017 | Validación y limpieza de respuestas JSON del LLM | 3 |
-| US-018 | Orquestación: Perfil → LLM → TMDB → persistencia | 8 |
-| US-019 | Historial de recomendaciones (backend + UI) | 3 |
-| US-024 | Deployment a producción (Render + Vercel) | 5 |
-
-**Total completado: ~91 SP**
-
-### ⏳ Pendiente para cerrar el MVP
-
-| ID | Descripción | SP | Prioridad |
-|----|-----------|----|-----------|
-| US-016 | Caché de metadatos TMDB | 5 | Media |
-| US-022 | Integration test E2E | 5 | Alta |
-| US-023 | Validación de criterios de éxito con usuarios | 5 | Alta |
-
-## 🔐 Variables de Entorno
+## Variables de Entorno
 
 ### Backend (`apps/api/.env.local`)
 ```env
@@ -156,11 +104,16 @@ JWT_SECRET=your-secret-key-min-32-chars
 JWT_EXPIRY=7d
 
 # APIs externas
-GEMINI_API_KEY=AIza...          # aistudio.google.com/app/apikey
-TMDB_API_KEY=...                # themoviedb.org/settings/api
+GEMINI_API_KEY=AIza...
+TMDB_API_KEY=...
 
-# Timeouts (ms)
-LLM_TIMEOUT_MS=30000            # Gemini 2.5-flash es un thinking model, tarda más
+# Cloudinary (solo en Render, nunca en código)
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# Timeouts
+LLM_TIMEOUT_MS=30000
 TMDB_TIMEOUT_MS=5000
 RECOMMENDATION_MAX_RETRIES=3
 ```
@@ -170,45 +123,74 @@ RECOMMENDATION_MAX_RETRIES=3
 VITE_API_BASE_URL=http://localhost:3000/api/v1
 ```
 
-## 🌍 Rutas de la Aplicación
+## Rutas de la Aplicación
 
 | Ruta | Descripción | Auth |
 |------|------------|------|
 | `/` | Login / Registro | Pública |
 | `/home` | Dashboard principal | Privada |
 | `/onboarding` | Setup de perfil (5 pasos) | Privada |
-| `/profile` | Perfil con estadísticas | Privada |
+| `/profile` | Perfil propio con estadísticas y foto | Privada |
 | `/recommendation` | Obtener recomendación IA | Privada |
+| `/history` | Historial de recomendaciones | Privada |
+| `/reviews` | Reseñas de películas/series | Privada |
+| `/lists` | Mis listas de películas | Privada |
+| `/lists/:listId` | Detalle de lista | Privada |
+| `/users/search` | Buscar usuarios | Privada |
+| `/users/:userId` | Perfil público de usuario | Privada |
 
-## 🧪 Testing
+## Estado del Proyecto — MVP Completo + Features Sociales
 
-```bash
-cd apps/api && npm run test:unit
-cd apps/api && npm run test:integration
-```
+### Núcleo MVP (completado)
 
-> Sin cobertura de tests aún — pendiente US-020, US-021, US-022.
+| ID | Descripción | SP |
+|----|-----------|----|
+| US-001 | Autenticación JWT (register/login/me) | 5 |
+| US-002 | Onboarding: géneros favoritos (mín. 3) | 3 |
+| US-003 | Onboarding: directores y actores (búsqueda TMDB) | 5 |
+| US-004 | Onboarding: películas vistas (👍/👎) | 5 |
+| US-005 | Perfil completo con estadísticas | 3 |
+| US-006 | Selector de 8 estados de ánimo | 3 |
+| US-007 | Filtros: tipo, duración, año | 5 |
+| US-008 | Resumen de contexto antes de recomendar | 2 |
+| US-009 | Motor de IA con Gemini 2.5 Flash | 8 |
+| US-010 | Prompt engineering (perfil + contexto + anti-alucinación) | 5 |
+| US-011 | Explicación justificada personalizada | 3 |
+| US-012 | Validación TMDB + hasta 3 reintentos | 5 |
+| US-013 | Enriquecimiento TMDB: póster, sinopsis, año | 5 |
+| US-014 | Disponibilidad en plataformas (TMDB Watch Providers) | 5 |
+| US-015 | Tarjeta de recomendación completa | 3 |
+| US-019 | Historial de recomendaciones | 3 |
+| US-024 | Deployment a producción (Render + Vercel) | 5 |
 
-## 🎯 Criterios de Éxito del MVP
+### Features Sociales (completadas post-MVP)
 
-| Criterio | Estado |
-|---------|--------|
-| Auth + onboarding funcionando | ✅ |
-| Recomendaciones por IA con explicación | ✅ |
-| Póster y sinopsis desde TMDB | ✅ |
-| Disponibilidad en plataformas (JustWatch) | ⏳ |
-| Latencia <7 segundos (95% requests) | ⚠️ Gemini 2.5-flash tarda ~8-15s |
-| >95% recomendaciones válidas en TMDB | ✅ (3 reintentos) |
+| ID | Descripción |
+|----|------------|
+| US-025 | Seguir / dejar de seguir usuarios |
+| US-026 | Búsqueda de usuarios por nombre o email |
+| US-027 | Perfil público con stats, géneros, listas y reseñas |
+| US-028 | Foto de perfil (Cloudinary, redonda) |
+| US-029 | Reseñas: crear/editar, 1 por usuario por título, 👍/👎 + rating + texto |
+| US-030 | Reacciones a reseñas: like/dislike de otros usuarios |
+| US-031 | Listas de películas: públicas/privadas, CRUD completo |
 
-## 📚 Documentación
+### Pendiente
 
-- [AGENTS.md](./AGENTS.md) — Arquitectura y convenciones para agentes IA
-- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) — 24 US con criterios de aceptación
+| ID | Descripción | SP | Prioridad |
+|----|-----------|----|-----------|
+| US-016 | Caché de metadatos TMDB en DB | 5 | Media |
+| US-022 | Integration tests E2E (Vitest) | 5 | Alta |
+| US-023 | Validación de criterios de éxito | 5 | Alta |
+
+## Documentación
+
+- [EPICAS_Y_USER_STORIES.md](./EPICAS_Y_USER_STORIES.md) — User Stories con criterios de aceptación
+- [TESTING.md](./TESTING.md) — Guía de testing manual completa
 - [Backend README](./apps/api/README.md) — Endpoints, servicios, schema DB
 - [Frontend README](./apps/web/README.md) — Páginas, componentes, hooks
 
 ---
 
-**Última actualización:** 17 de mayo de 2026  
-**Versión:** MVP 1.0 — Sprint 6 (91% completado)  
-**Estado:** En producción — flujo completo funcionando. Pendiente: tests y validación con usuarios.
+**Última actualización:** 18 de mayo de 2026  
+**Estado:** MVP + Features Sociales en producción. Pendiente: tests E2E y validación con usuarios.
