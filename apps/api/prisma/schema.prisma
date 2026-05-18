@@ -21,6 +21,7 @@ model User {
   profile       UserProfile?
   recommendations Recommendation[]
   watchedMovies WatchedMovie[]
+  reviews       Review[]
 
   @@map("users")
 }
@@ -85,4 +86,20 @@ model Recommendation {
   createdAt       DateTime @default(now())
 
   @@map("recommendations")
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tmdbId      String
+  title       String
+  contentType String
+  rating      Int      // 1–5
+  text        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, tmdbId])
+  @@map("reviews")
 }

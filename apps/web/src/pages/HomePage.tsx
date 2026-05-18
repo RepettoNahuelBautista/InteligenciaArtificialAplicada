@@ -90,6 +90,18 @@ export function HomePage() {
               Ver Historial
             </button>
           </div>
+
+          {/* Reviews Card */}
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/reviews')}>
+            <div className="text-5xl mb-4">⭐</div>
+            <h3 className="text-2xl font-bold text-white mb-3">Reseñas</h3>
+            <p className="text-indigo-100 mb-6">
+              Buscá una película o serie, leé lo que opinan otros usuarios y dejá tu propia reseña.
+            </p>
+            <button className="bg-yellow-500 text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition font-semibold w-full">
+              Ver Reseñas
+            </button>
+          </div>
         </div>
       </main>
     </div>

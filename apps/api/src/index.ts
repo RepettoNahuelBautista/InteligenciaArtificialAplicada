@@ -11,6 +11,7 @@ import { searchPeopleController, savePersonPreferencesController, getPersonPrefe
 import { searchMoviesController, rateMovieController, getWatchedMoviesController, removeWatchedMovieController } from './controllers/movieController';
 import { getMoodsController } from './controllers/moodController';
 import { getRecommendationController, getRecommendationHistoryController } from './controllers/recommendationController';
+import { getReviewsController, upsertReviewController, getPublicProfileController } from './controllers/reviewController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,11 @@ app.put('/api/v1/profile/personal', authMiddleware, updatePersonalInfoController
 app.get('/api/v1/search/people', searchPeopleController);
 app.post('/api/v1/profile/people', authMiddleware, savePersonPreferencesController);
 app.get('/api/v1/profile/people', authMiddleware, getPersonPreferencesController);
+
+// Review routes
+app.get('/api/v1/reviews', authMiddleware, getReviewsController);
+app.post('/api/v1/reviews', authMiddleware, upsertReviewController);
+app.get('/api/v1/users/:userId/profile', authMiddleware, getPublicProfileController);
 
 // Movie routes
 app.get('/api/v1/search/movies', searchMoviesController);
