@@ -6,6 +6,7 @@ interface UserResult {
   userId: string;
   displayName: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 export function UserSearchPage() {
@@ -70,8 +71,12 @@ export function UserSearchPage() {
                 onClick={() => navigate(`/users/${u.userId}`, { state: { from: 'search' } })}
                 className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 flex items-center gap-4 transition text-left"
               >
-                <div className="w-11 h-11 rounded-full bg-indigo-500 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
-                  {u.displayName[0].toUpperCase()}
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
+                  {u.avatarUrl ? (
+                    <img src={u.avatarUrl} alt={u.displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    u.displayName[0].toUpperCase()
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="font-semibold text-white truncate">{u.displayName}</p>

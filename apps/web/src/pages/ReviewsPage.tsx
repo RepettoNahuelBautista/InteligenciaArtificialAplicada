@@ -48,27 +48,41 @@ function ReviewCard({ review, currentUserId, onAuthorClick }: { review: ReviewIt
 
   return (
     <div className={`rounded-xl border p-5 ${isOwn ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200'}`}>
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <button
-            onClick={() => onAuthorClick?.(review.author.userId)}
-            className="font-semibold text-indigo-700 hover:text-indigo-900 hover:underline transition text-sm"
-          >
-            {review.author.displayName ?? 'Usuario'}
-            {isOwn && <span className="ml-2 text-xs text-indigo-400">(vos)</span>}
-          </button>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {new Date(review.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
-            {' · '}
-            {new Date(review.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
-            {review.updatedAt !== review.createdAt && ' · editada'}
-          </p>
-        </div>
-        <div className="flex-shrink-0">
-          <StarRating value={review.rating} readonly />
+      <div className="flex items-start gap-3 mb-3">
+        {/* Avatar */}
+        <button onClick={() => onAuthorClick?.(review.author.userId)} className="flex-shrink-0 mt-0.5">
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-indigo-400 flex items-center justify-center text-sm font-bold text-white">
+            {review.author.avatarUrl ? (
+              <img src={review.author.avatarUrl} alt={review.author.displayName ?? 'Avatar'} className="w-full h-full object-cover" />
+            ) : (
+              (review.author.displayName ?? 'U')[0].toUpperCase()
+            )}
+          </div>
+        </button>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <button
+                onClick={() => onAuthorClick?.(review.author.userId)}
+                className="font-semibold text-indigo-700 hover:text-indigo-900 hover:underline transition text-sm"
+              >
+                {review.author.displayName ?? 'Usuario'}
+                {isOwn && <span className="ml-2 text-xs text-indigo-400">(vos)</span>}
+              </button>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {new Date(review.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                {' · '}
+                {new Date(review.createdAt).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                {review.updatedAt !== review.createdAt && ' · editada'}
+              </p>
+            </div>
+            <div className="flex-shrink-0">
+              <StarRating value={review.rating} readonly />
+            </div>
+          </div>
+          <p className="text-gray-700 text-sm leading-relaxed mt-2">{review.text}</p>
         </div>
       </div>
-      <p className="text-gray-700 text-sm leading-relaxed">{review.text}</p>
     </div>
   );
 }

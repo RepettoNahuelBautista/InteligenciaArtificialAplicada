@@ -6,12 +6,14 @@ export interface UserSearchResult {
   userId: string;
   displayName: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 export interface FollowUserItem {
   userId: string;
   displayName: string;
   email: string;
+  avatarUrl: string | null;
 }
 
 class FollowService {
@@ -24,7 +26,7 @@ class FollowService {
         },
       },
       include: {
-        profile: { select: { displayName: true } },
+        profile: { select: { displayName: true, avatarUrl: true } },
       },
       take: 10,
       orderBy: { createdAt: 'asc' },
@@ -34,6 +36,7 @@ class FollowService {
       userId: u.id,
       displayName: u.profile?.displayName ?? u.email.split('@')[0],
       email: u.email,
+      avatarUrl: u.profile?.avatarUrl ?? null,
     }));
   }
 
@@ -78,7 +81,7 @@ class FollowService {
     const follows = await prisma.follow.findMany({
       where: { followingId: userId },
       include: {
-        follower: { include: { profile: { select: { displayName: true } } } },
+        follower: { include: { profile: { select: { displayName: true, avatarUrl: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -86,6 +89,7 @@ class FollowService {
       userId: f.follower.id,
       displayName: f.follower.profile?.displayName ?? f.follower.email.split('@')[0],
       email: f.follower.email,
+      avatarUrl: f.follower.profile?.avatarUrl ?? null,
     }));
   }
 
@@ -93,7 +97,7 @@ class FollowService {
     const follows = await prisma.follow.findMany({
       where: { followerId: userId },
       include: {
-        following: { include: { profile: { select: { displayName: true } } } },
+        following: { include: { profile: { select: { displayName: true, avatarUrl: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -101,6 +105,7 @@ class FollowService {
       userId: f.following.id,
       displayName: f.following.profile?.displayName ?? f.following.email.split('@')[0],
       email: f.following.email,
+      avatarUrl: f.following.profile?.avatarUrl ?? null,
     }));
   }
 }

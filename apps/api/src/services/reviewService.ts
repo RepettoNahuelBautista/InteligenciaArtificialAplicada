@@ -16,6 +16,7 @@ export type UpsertReviewInput = z.infer<typeof UpsertReviewSchema>;
 export interface ReviewAuthor {
   userId: string;
   displayName: string | null;
+  avatarUrl: string | null;
 }
 
 export interface ReviewItem {
@@ -56,7 +57,7 @@ class ReviewService {
       orderBy: { createdAt: 'desc' },
       include: {
         user: {
-          include: { profile: { select: { displayName: true } } },
+          include: { profile: { select: { displayName: true, avatarUrl: true } } },
         },
       },
     });
@@ -73,6 +74,7 @@ class ReviewService {
       author: {
         userId: r.userId,
         displayName: r.user.profile?.displayName ?? r.user.email.split('@')[0],
+        avatarUrl: r.user.profile?.avatarUrl ?? null,
       },
     }));
   }
@@ -95,7 +97,7 @@ class ReviewService {
       },
       include: {
         user: {
-          include: { profile: { select: { displayName: true } } },
+          include: { profile: { select: { displayName: true, avatarUrl: true } } },
         },
       },
     });
@@ -191,6 +193,7 @@ class ReviewService {
       author: {
         userId: r.userId,
         displayName: r.user.profile?.displayName ?? r.user.email.split('@')[0],
+        avatarUrl: r.user.profile?.avatarUrl ?? null,
       },
     }));
   }

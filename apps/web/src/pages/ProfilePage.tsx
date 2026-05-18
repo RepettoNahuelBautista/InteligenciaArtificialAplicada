@@ -29,7 +29,7 @@ export const ProfilePage = () => {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [socialModal, setSocialModal] = useState<'followers' | 'following' | null>(null);
-  const [socialList, setSocialList] = useState<{ userId: string; displayName: string; email: string }[]>([]);
+  const [socialList, setSocialList] = useState<{ userId: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
   const [socialLoading, setSocialLoading] = useState(false);
 
   const openSocialModal = async (type: 'followers' | 'following') => {
@@ -407,8 +407,12 @@ export const ProfilePage = () => {
                       onClick={() => { setSocialModal(null); navigate(`/users/${u.userId}`); }}
                       className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-indigo-50 transition text-left"
                     >
-                      <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-base font-bold text-white flex-shrink-0">
-                        {u.displayName[0].toUpperCase()}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center text-base font-bold text-white flex-shrink-0">
+                        {u.avatarUrl ? (
+                          <img src={u.avatarUrl} alt={u.displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          u.displayName[0].toUpperCase()
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="font-semibold text-gray-900 truncate">{u.displayName}</p>

@@ -4,6 +4,7 @@ import { apiClient } from '../api/apiClient';
 export interface ReviewAuthor {
   userId: string;
   displayName: string | null;
+  avatarUrl: string | null;
 }
 
 export interface ReviewItem {
