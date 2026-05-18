@@ -25,3 +25,15 @@ export const unfollowController = async (req: Request, res: Response): Promise<v
   await followService.unfollow(followerId, followingId);
   res.json({ success: true, data: { following: false } });
 };
+
+export const getFollowersController = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.userId as string;
+  const list = await followService.getFollowersList(userId);
+  res.json({ success: true, data: list });
+};
+
+export const getFollowingController = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.userId as string;
+  const list = await followService.getFollowingList(userId);
+  res.json({ success: true, data: list });
+};

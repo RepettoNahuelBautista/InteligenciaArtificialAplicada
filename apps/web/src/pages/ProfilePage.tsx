@@ -28,6 +28,24 @@ export const ProfilePage = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [socialModal, setSocialModal] = useState<'followers' | 'following' | null>(null);
+  const [socialList, setSocialList] = useState<{ userId: string; displayName: string; email: string }[]>([]);
+  const [socialLoading, setSocialLoading] = useState(false);
+
+  const openSocialModal = async (type: 'followers' | 'following') => {
+    setSocialModal(type);
+    setSocialList([]);
+    setSocialLoading(true);
+    try {
+      const res = await apiClient.get(`/profile/${type}`);
+      setSocialList(res.data.data);
+    } catch {
+      setSocialList([]);
+    } finally {
+      setSocialLoading(false);
+    }
+  };
+
   const [formData, setFormData] = useState({
     displayName: '',
     birthDate: '',
@@ -231,8 +249,8 @@ export const ProfilePage = () => {
 
         {/* Social stats */}
         <div className="grid grid-cols-2 gap-4 mb-4">
-          <StatCard color="teal" label="Seguidores" value={profile.social?.followerCount ?? 0} />
-          <StatCard color="cyan" label="Seguidos" value={profile.social?.followingCount ?? 0} />
+          <StatCard color="teal" label="Seguidores" value={profile.social?.followerCount ?? 0} onClick={() => openSocialModal('followers')} />
+          <StatCard color="cyan" label="Seguidos" value={profile.social?.followingCount ?? 0} onClick={() => openSocialModal('following')} />
         </div>
 
         {/* Stats */}
@@ -299,6 +317,58 @@ export const ProfilePage = () => {
           </button>
         </div>
       </div>
+
+      {/* Followers / Following modal */}
+      {socialModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setSocialModal(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">
+                {socialModal === 'followers' ? 'Seguidores' : 'Seguidos'}
+              </h2>
+              <button onClick={() => setSocialModal(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
+                ✕
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-4">
+              {socialLoading ? (
+                <div className="flex justify-center py-8">
+                  <span className="animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-500" />
+                </div>
+              ) : socialList.length === 0 ? (
+                <p className="text-center text-gray-400 py-8 text-sm">
+                  {socialModal === 'followers' ? 'Nadie te sigue aún' : 'No seguís a nadie aún'}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {socialList.map((u) => (
+                    <button
+                      key={u.userId}
+                      onClick={() => { setSocialModal(null); navigate(`/users/${u.userId}`); }}
+                      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-indigo-50 transition text-left"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center text-base font-bold text-white flex-shrink-0">
+                        {u.displayName[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 truncate">{u.displayName}</p>
+                        <p className="text-xs text-gray-400 truncate">{u.email}</p>
+                      </div>
+                      <span className="ml-auto text-indigo-400 flex-shrink-0 text-sm">→</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -312,7 +382,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
   );
 }
 
-function StatCard({ color, label, value }: { color: string; label: string; value: number }) {
+function StatCard({ color, label, value, onClick }: { color: string; label: string; value: number; onClick?: () => void }) {
   const colors: Record<string, string> = {
     blue: 'from-blue-500 to-blue-600',
     purple: 'from-purple-500 to-purple-600',
@@ -323,8 +393,18 @@ function StatCard({ color, label, value }: { color: string; label: string; value
     teal: 'from-teal-500 to-teal-600',
     cyan: 'from-cyan-500 to-cyan-600',
   };
+  const base = `bg-gradient-to-br ${colors[color]} rounded-lg shadow-lg p-6 text-white`;
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={`${base} w-full text-left hover:brightness-110 transition`}>
+        <p className="text-white/80 text-sm font-semibold uppercase">{label}</p>
+        <p className="text-4xl font-bold">{value}</p>
+        <p className="text-white/60 text-xs mt-1">Ver lista →</p>
+      </button>
+    );
+  }
   return (
-    <div className={`bg-gradient-to-br ${colors[color]} rounded-lg shadow-lg p-6 text-white`}>
+    <div className={base}>
       <p className="text-white/80 text-sm font-semibold uppercase">{label}</p>
       <p className="text-4xl font-bold">{value}</p>
     </div>

@@ -12,7 +12,7 @@ import { searchMoviesController, rateMovieController, getWatchedMoviesController
 import { getMoodsController } from './controllers/moodController';
 import { getRecommendationController, getRecommendationHistoryController } from './controllers/recommendationController';
 import { getReviewsController, upsertReviewController, getPublicProfileController, getUserReviewsController } from './controllers/reviewController';
-import { searchUsersController, followController, unfollowController } from './controllers/followController';
+import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController } from './controllers/followController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -60,6 +60,10 @@ app.get('/api/v1/profile/people', authMiddleware, getPersonPreferencesController
 // Review routes
 app.get('/api/v1/reviews', authMiddleware, getReviewsController);
 app.post('/api/v1/reviews', authMiddleware, upsertReviewController);
+
+// Follow list routes (own profile)
+app.get('/api/v1/profile/followers', authMiddleware, getFollowersController);
+app.get('/api/v1/profile/following', authMiddleware, getFollowingController);
 
 // User / follow routes — /users/search must be before /users/:userId/*
 app.get('/api/v1/users/search', authMiddleware, searchUsersController);

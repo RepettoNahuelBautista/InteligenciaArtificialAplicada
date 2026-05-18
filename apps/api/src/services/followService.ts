@@ -8,6 +8,12 @@ export interface UserSearchResult {
   email: string;
 }
 
+export interface FollowUserItem {
+  userId: string;
+  displayName: string;
+  email: string;
+}
+
 class FollowService {
   async searchUsers(query: string, currentUserId: string): Promise<UserSearchResult[]> {
     const users = await prisma.user.findMany({
@@ -66,6 +72,36 @@ class FollowService {
       select: { id: true },
     });
     return follow !== null;
+  }
+
+  async getFollowersList(userId: string): Promise<FollowUserItem[]> {
+    const follows = await prisma.follow.findMany({
+      where: { followingId: userId },
+      include: {
+        follower: { include: { profile: { select: { displayName: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return follows.map((f) => ({
+      userId: f.follower.id,
+      displayName: f.follower.profile?.displayName ?? f.follower.email.split('@')[0],
+      email: f.follower.email,
+    }));
+  }
+
+  async getFollowingList(userId: string): Promise<FollowUserItem[]> {
+    const follows = await prisma.follow.findMany({
+      where: { followerId: userId },
+      include: {
+        following: { include: { profile: { select: { displayName: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return follows.map((f) => ({
+      userId: f.following.id,
+      displayName: f.following.profile?.displayName ?? f.following.email.split('@')[0],
+      email: f.following.email,
+    }));
   }
 }
 
