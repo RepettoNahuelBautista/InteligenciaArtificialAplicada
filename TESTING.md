@@ -1,316 +1,249 @@
-# 🚀 Guía de Testing Local - RecomiendaFilms MVP
+# Guía de Testing Local — RecomiendaFilms
 
 ## Requisitos Previos
 
 - **Node.js 20+** ([Descargar](https://nodejs.org/))
 - **npm 10+** (incluido con Node.js)
-- **Git** (para clonar/actualizar el proyecto)
+- **Git**
 
 ## Instalación Rápida (Primera Vez)
 
-### 1️⃣ Setup Inicial
-
 ```bash
-# Clonar/ir al proyecto
 cd c:\Users\nahue\InteligenciaArtificialAplicada
 
 # Instalar dependencias de todo (root + apps)
 npm run install-all
-
-# Esperar a que termine (puede tomar 2-3 minutos)
 ```
 
-### 2️⃣ Configurar Backend
+## Configurar Backend
 
 ```bash
 cd apps/api
-
-# Crear archivo .env.local
 cp .env.example .env.local
+# Completar DATABASE_URL, JWT_SECRET, GEMINI_API_KEY, TMDB_API_KEY, etc.
 
-# Inicializar base de datos
-npm run db:push
+# Aplicar migraciones
+npx prisma migrate deploy
 
-# Volver a raíz
 cd ../..
 ```
 
-### 3️⃣ Configurar Frontend
+## Configurar Frontend
 
 ```bash
 cd apps/web
-
-# Crear archivo .env.local
 cp .env.example .env.local
-
-# Volver a raíz
+# VITE_API_BASE_URL=http://localhost:3000/api/v1
 cd ../..
 ```
 
 ## Ejecutar en Desarrollo
 
-### Opción A: Ambos Servidores Simultáneamente (Recomendado)
-
 ```bash
+# Ambos servidores simultáneos (recomendado)
 npm run dev
+# Backend → http://localhost:3000
+# Frontend → http://localhost:3001
 ```
-
-Esto inicia:
-- **Backend** en http://localhost:3000 ✅
-- **Frontend** en http://localhost:3001 ✅
-
-Espera a ver:
-```
-✓ api is running on http://localhost:3000
-✓ web is running on http://localhost:3001
-```
-
-### Opción B: Servidores Separados (Terminal Multiple)
-
-**Terminal 1 - Backend:**
-```bash
-cd apps/api && npm run dev
-# Backend ready on port 3000
-```
-
-**Terminal 2 - Frontend:**
-```bash
-cd apps/web && npm run dev
-# Frontend ready on port 3001
-```
-
-## Flujo de Prueba Completo (Manual)
-
-### 🔐 1. Autenticación (US-001)
-
-1. Abre http://localhost:3001 en tu navegador
-2. Verás la página de **Login/Register**
-
-**Registrarse (nuevo usuario):**
-```
-Email: test@example.com
-Contraseña: SecurePass123
-- 8+ caracteres ✓
-- Mayúscula ✓
-- Minúscula ✓
-- Número ✓
-```
-3. Haz clic en "Registrarse"
-4. Deberías ser redirigido automáticamente a `/onboarding`
-
-**Login (si ya te registraste):**
-```
-Email: test@example.com
-Contraseña: SecurePass123
-```
-5. Haz clic en "Iniciar sesión"
-6. Ir a Dashboard
-
-### 🎯 2. Onboarding (US-002 a US-005)
-
-#### Paso 1: Seleccionar Géneros
-- Elige **al menos 3 géneros** de películas o series
-- El botón "Siguiente" está deshabilitado hasta seleccionar 3+
-- Haz clic en "Siguiente" → Paso 2
-
-#### Paso 2: Seleccionar Directores
-- Escribe un nombre en la caja (ej: "Steven Spielberg")
-- Verás resultados de TMDB con sugerencias
-- Haz clic en un director para agregarlo (opcional)
-- Máximo 15 directores
-- Haz clic en "Siguiente" → Paso 3
-
-#### Paso 3: Seleccionar Actores
-- Mismo proceso que directores
-- Busca actores (ej: "Tom Hanks")
-- Agregalos a tu lista (opcional, máximo 15)
-- Haz clic en "Siguiente" → Paso 4
-
-#### Paso 4: Calificar Películas
-- Escribe un título de película (ej: "Inception")
-- Verás carátulas de TMDB
-- Haz clic en 👍 (me gustó, rating 5) o 👎 (no me gustó, rating 1)
-- Puedes calificar 0 o más películas
-- Haz clic en "Siguiente" → Paso 5
-
-#### Paso 5: Resumen del Perfil
-- Ves un resumen: X géneros, Y directores, Z actores, W películas
-- Botón "Comenzar" completa el onboarding
-- Redirigido a `/home` (Dashboard)
-
-### 📊 3. Ver Perfil (US-005)
-
-1. En el Dashboard, haz clic en **"Mi Perfil"**
-2. Deberías ver:
-   - ✉️ Tu email
-   - 📅 Fecha de registro
-   - 📊 6 tarjetas de estadísticas (géneros, directores, actores, películas vistas, me gustó, no me gustó)
-   - 🏷️ Tags con tus preferencias
-   - 🎬 Últimas 5 películas que calificaste
-   - 🔘 Botones "Volver" y "Editar perfil"
-
-### 😎 4. Selector de Estado de Ánimo (US-006) ← NUEVO
-
-1. En el Dashboard, haz clic en **"Obtener Recomendación"**
-2. Deberías ver:
-   - 🎯 Título: "¿Cuál es tu estado de ánimo hoy?"
-   - 8️⃣ Botones de estados: Misterio 🕵️, Desconectar 😎, Llorar 😭, Reír 😂, Acción 💥, Amor 💕, Terror 👻, Inspiración ✨
-   - Selecciona uno (se marca con borde púrpura y fondo)
-   - Panel verde confirma tu selección
-   - Botón "Obtener Recomendación" se activa
-3. Haz clic en el botón (mostrado: "Próximamente - US-009" en alerta)
-4. (US-009+ implementará las recomendaciones reales)
-
-## Pruebas Rápidas (API Manual)
-
-Si prefieres probar los endpoints directamente:
-
-### Registrarse
-```bash
-curl -X POST http://localhost:3000/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "password": "SecurePass123"
-  }'
-```
-
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "id": "cuid-...",
-    "email": "test@example.com",
-    "token": "eyJhbGc..."
-  }
-}
-```
-
-### Obtener Perfil Completo
-```bash
-curl -X GET http://localhost:3000/api/v1/profile \
-  -H "Authorization: Bearer <token-aqui>"
-```
-
-### Obtener Moods
-```bash
-curl -X GET http://localhost:3000/api/v1/moods
-```
-
-Response:
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": "mystery",
-      "label": "Misterio",
-      "emoji": "🕵️",
-      "description": "Quiero intriga y suspense"
-    },
-    ...
-  ]
-}
-```
-
-## Solución de Problemas
-
-### ❌ Error: "Cannot find module 'express'"
-```bash
-# Solución
-cd apps/api && npm install
-npm run dev
-```
-
-### ❌ Error: "Port 3000 already in use"
-```bash
-# Cambiar puerto en .env.local
-PORT=3001
-
-# O matar el proceso
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
-
-# macOS/Linux
-lsof -i :3000
-kill -9 <PID>
-```
-
-### ❌ Database error "SQLITE_CANTOPEN"
-```bash
-# Reinicializar BD
-cd apps/api
-rm dev.db  # Eliminar BD actual
-npm run db:push  # Crear nueva
-```
-
-### ❌ Frontend muestra "Cannot connect to API"
-- Verifica que backend está corriendo en http://localhost:3000
-- Revisa que `.env.local` en frontend tiene: `VITE_API_BASE_URL=http://localhost:3000/api/v1`
-- Abre DevTools (F12) → Network para ver qué URLs se están llamando
-
-### ❌ Contraseña rechazada en registro
-- Requiere: 8+ caracteres, MAYÚSCULA, minúscula, número
-- Ej válida: `SecurePass123`
-- Ej inválida: `password` (no número, no mayúscula)
-
-## Logs Útiles
-
-### Ver logs del backend
-```bash
-cd apps/api
-npm run dev  # Ver output en terminal
-
-# O revisar archivo (si está configurado)
-tail -f logs/app.log
-```
-
-### Ver logs del frontend
-```bash
-# DevTools del navegador
-F12 → Console → Busca "INFO", "ERROR", "WARN"
-```
-
-## Línea de Progreso Actual
-
-```
-✅ US-001: Autenticación (5 SP)
-✅ US-002: Géneros (3 SP)
-✅ US-003: Directores/Actores (5 SP)
-✅ US-004: Películas vistas (5 SP)
-✅ US-005: Perfil completo (3 SP)
-🔄 US-006: Estado de ánimo (3 SP) ← AHORA
-⏳ US-007-008: Filtros + Contexto (7 SP)
-⏳ US-009-012: LLM + Validación (21 SP)
-⏳ US-017-018: Orchestración (11 SP)
-⏳ US-022: Testing E2E (5 SP)
-
-TOTAL: 26/65 SP completados (40%)
-```
-
-## Siguientes Pasos
-
-### Próxima User Story (US-007)
-- Agregar filtros: duración (min-max), tipo (película/serie), año
-- Nueva pantalla RecommendationFilters.tsx
-- State management para filtros temporales
-
-### Después (US-009 - Crítica)
-- Integración con OpenAI API
-- Prompt engineering para recomendaciones personalizadas
-- Validación contra TMDB para evitar alucinaciones
-
-## Contacto & Soporte
-
-- **Issues locales:** Revisar logs en terminal
-- **Documentación:** Ver `AGENTS.md` y `EPICAS_Y_USER_STORIES.md`
-- **Backend API:** Ver `apps/api/README.md`
-- **Frontend:** Ver `apps/web/README.md`
 
 ---
 
-**Última actualización:** 16 de mayo, 2026  
-**Versión:** MVP 1.0 (Sprint 1-2)  
-**Status:** Abierto para pruebas locales ✅
+## Flujo de Prueba Completo (Manual)
+
+### 1. Autenticación
+
+1. Abrir http://localhost:3001
+2. **Registrarse:** email + contraseña (mín. 8 chars, 1 mayúscula, 1 número)
+   - El campo contraseña tiene icono de ojito para mostrar/ocultar
+3. Al registrarse → redirige a `/onboarding`
+4. **Iniciar sesión:** con las mismas credenciales → redirige a `/home`
+
+---
+
+### 2. Onboarding
+
+| Paso | Qué hace |
+|------|----------|
+| 1 — Géneros | Elegir al menos 3 géneros (películas o series) |
+| 2 — Directores | Buscar en TMDB, agregar favoritos (máx. 15) |
+| 3 — Actores | Buscar en TMDB, agregar favoritos (máx. 15) |
+| 4 — Películas vistas | Buscar y calificar con 👍/👎 |
+| 5 — Resumen | Confirmar y crear perfil → redirige a `/home` |
+
+---
+
+### 3. Home
+
+Desde el Dashboard podés acceder a:
+
+| Card | Ruta | Descripción |
+|------|------|-------------|
+| Mis Preferencias | `/onboarding` | Editar géneros, directores, actores |
+| Ver Mi Perfil | `/profile` | Tu perfil completo con estadísticas |
+| Obtener Recomendación | `/recommendation` | Motor IA |
+| Historial | `/history` | Tus recomendaciones previas |
+| Reseñas | `/reviews` | Escribir y leer reseñas de películas/series |
+| Buscar usuarios | `/users/search` | Encontrar y seguir otros usuarios |
+| Mis Listas | `/lists` | Crear y gestionar listas de películas |
+
+---
+
+### 4. Recomendación IA
+
+1. Seleccionar un estado de ánimo (8 opciones)
+2. Configurar filtros opcionales: tipo, duración, año
+3. Click "Obtener Recomendación"
+4. Ver: póster, título, sinopsis, año, género, plataformas de streaming, explicación personalizada
+5. Marcar como 👍/👎 → se guarda en historial
+6. Botón "Nueva recomendación" para volver a pedir
+
+---
+
+### 5. Perfil Propio (`/profile`)
+
+- **Foto de perfil:** click en el círculo o en 📷 → sube a Cloudinary
+- **Información personal:** nombre, fecha de nacimiento, país, idioma
+- **Estadísticas:** géneros, directores, actores, películas vistas, gustadas, no gustadas
+- **Seguidores/Seguidos:** click en las tarjetas → modal con lista y enlaces a perfiles
+- **Películas Recientes:** últimas 10 entradas combinando películas calificadas **y** reseñas con 👍/👎
+- **Preferencias:** géneros, directores y actores favoritos
+
+---
+
+### 6. Reseñas (`/reviews`)
+
+1. Buscar una película o serie (TMDB)
+2. Seleccionar el título
+3. Click "Dejar una reseña":
+   - Elegir **👍 Me gustó** o **👎 No me gustó** (obligatorio)
+   - Puntaje 1-5 estrellas (obligatorio)
+   - Texto (mín. 1 char, máx. 2000)
+4. La reseña aparece en la lista con el badge 👍/👎 y las estrellas
+5. Cada reseña tiene botones **👍/👎** para que otros usuarios reaccionen (like/dislike de la reseña)
+6. Click en el nombre/avatar del autor → perfil público del usuario
+7. Sólo se puede tener una reseña por película/serie (editable)
+
+---
+
+### 7. Buscar Usuarios (`/users/search`)
+
+1. Escribir nombre o email en el buscador (debounce 350ms)
+2. Los resultados muestran avatar, nombre y email
+3. Click en un usuario → su perfil público
+
+---
+
+### 8. Perfil Público (`/users/:userId`)
+
+- **Avatar, nombre, fecha de membresía**
+- **Botón Seguir / Dejar de seguir** (optimistic update)
+- **Contadores de seguidores y seguidos**
+- **Estadísticas** del usuario
+- **Géneros favoritos**
+- **Listas públicas** del usuario (click para ver detalle)
+- **Reseñas** del usuario con 👍/👎 badge, estrellas, texto y botones de reacción
+- Botón ← Volver respeta el origen (reseñas, búsqueda de usuarios, historial)
+
+---
+
+### 9. Mis Listas (`/lists`)
+
+1. Click "Nueva lista" → formulario: nombre, descripción, pública/privada
+2. La lista aparece con nombre, estado y conteo de títulos
+3. Click en una lista → detalle
+
+#### Detalle de lista (`/lists/:listId`)
+
+- **Si sos el dueño:**
+  - Buscador de películas/series para agregar
+  - Botón ✕ para quitar cada título
+  - Botón "Editar" → formulario inline
+  - Botón "Eliminar" → confirm dialog
+- **Si no sos el dueño (lista pública):** solo lectura
+
+---
+
+## Pruebas de API Rápidas
+
+```bash
+# Registrarse
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"SecurePass123"}'
+
+# Login
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"SecurePass123"}'
+
+# Perfil (con token)
+curl http://localhost:3000/api/v1/profile \
+  -H "Authorization: Bearer <token>"
+
+# Reseñas de una película
+curl "http://localhost:3000/api/v1/reviews?tmdbId=27205" \
+  -H "Authorization: Bearer <token>"
+```
+
+---
+
+## Solución de Problemas
+
+| Error | Solución |
+|-------|----------|
+| `Cannot find module 'express'` | `cd apps/api && npm install` |
+| `Port 3000 already in use` | `netstat -ano \| findstr :3000` → `taskkill /PID X /F` |
+| `Prisma migration error` | `cd apps/api && npx prisma migrate deploy` |
+| Frontend sin conexión a API | Verificar que `VITE_API_BASE_URL` apunte al backend correcto |
+| Contraseña rechazada | Requiere: 8+ chars, mayúscula, número |
+| Avatar no sube | Verificar variables `CLOUDINARY_*` en backend |
+
+---
+
+## Estado de Implementación
+
+```
+NÚCLEO MVP
+✅ US-001  Autenticación JWT (register/login)         5 SP
+✅ US-002  Onboarding géneros                          3 SP
+✅ US-003  Onboarding directores/actores               5 SP
+✅ US-004  Onboarding películas vistas (like/dislike)  5 SP
+✅ US-005  Perfil completo con estadísticas            3 SP
+✅ US-006  Selector de estado de ánimo (8 moods)      3 SP
+✅ US-007  Filtros: tipo / duración / año              5 SP
+✅ US-008  Resumen de contexto antes de recomendar     2 SP
+✅ US-009  Integración LLM (Gemini 2.5 Flash)         8 SP
+✅ US-010  Prompt engineering personalizado           5 SP
+✅ US-011  Explicación justificada                    3 SP
+✅ US-012  Anti-alucinaciones + reintentos TMDB       5 SP
+✅ US-013  Enriquecimiento TMDB (póster, sinopsis)    5 SP
+✅ US-014  Plataformas streaming (TMDB Watch Prov.)   5 SP
+✅ US-015  Tarjeta de recomendación completa          3 SP
+✅ US-019  Historial de recomendaciones               3 SP
+✅ US-024  Deployment (Render + Vercel)               5 SP
+
+FEATURES SOCIALES (Post-MVP)
+✅ Perfil personal ampliado (nombre, foto, fecha, país)
+✅ Foto de perfil (Cloudinary, redonda, en perfil y reseñas)
+✅ Seguir / dejar de seguir usuarios
+✅ Búsqueda de usuarios por nombre/email
+✅ Seguidores y seguidos (modal con lista y enlaces)
+✅ Perfil público de usuario (stats, géneros, listas, reseñas)
+✅ Reseñas: crear / editar (1 por usuario por título)
+✅ Reseñas: campo liked (👍/👎 obligatorio)
+✅ Reseñas: reacciones de otros usuarios (like/dislike)
+✅ Listas de películas (públicas/privadas, CRUD completo)
+✅ Listas visibles en perfil público
+✅ Películas Recientes fusiona WatchedMovies + reseñas con liked
+
+PENDIENTE
+⏳ US-016  Caché TMDB en BD (evitar repetir llamadas)  5 SP
+⏳ US-022  Integration tests E2E                       5 SP
+⏳ US-023  Validación criterios de éxito MVP           5 SP
+```
+
+**Total completado:** ~120 SP estimados  
+**Última actualización:** 18 de mayo, 2026  
+**URLs de producción:**
+- Frontend: https://inteligencia-artificial-aplicada-we.vercel.app
+- Backend: https://inteligenciaartificialaplicada.onrender.com
