@@ -9,7 +9,7 @@ const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w92';
 interface SearchResult {
   id: number;
   title: string;
-  type: 'movie' | 'tv';
+  media_type: 'movie' | 'tv';
   year: number;
   poster_path?: string | null;
 }
@@ -130,7 +130,7 @@ export function ReviewsPage() {
     const title: SelectedTitle = {
       tmdbId: String(result.id),
       title: result.title,
-      contentType: result.type,
+      contentType: result.media_type,
       year: result.year,
       posterPath: result.poster_path,
     };
@@ -204,12 +204,12 @@ export function ReviewsPage() {
                     <img src={`${TMDB_IMAGE_BASE}${r.poster_path}`} alt={r.title} className="w-8 h-12 object-cover rounded flex-shrink-0" />
                   ) : (
                     <div className="w-8 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 text-lg">
-                      {r.type === 'tv' ? '📺' : '🎬'}
+                      {r.media_type === 'tv' ? '📺' : '🎬'}
                     </div>
                   )}
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-900 truncate">{r.title}</p>
-                    <p className="text-xs text-gray-500">{r.year} · {r.type === 'tv' ? 'Serie' : 'Película'}</p>
+                    <p className="text-xs text-gray-500">{r.year} · {r.media_type === 'tv' ? 'Serie' : 'Película'}</p>
                   </div>
                 </button>
               ))}
