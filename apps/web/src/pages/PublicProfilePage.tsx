@@ -33,6 +33,7 @@ interface ReviewItem {
   createdAt: string;
   likeCount: number;
   dislikeCount: number;
+  userLike: 1 | -1 | null;
 }
 
 interface ListSummary {
@@ -106,6 +107,33 @@ export function PublicProfilePage() {
     };
     load();
   }, [userId, user?.id, navigate, location.state]);
+
+  const handleLike = async (reviewId: string, value: 1 | -1) => {
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.id !== reviewId) return r;
+        const prevLike = r.userLike;
+        const next = prevLike === value ? null : value;
+        let likeCount = r.likeCount;
+        let dislikeCount = r.dislikeCount;
+        if (prevLike === 1) likeCount--;
+        if (prevLike === -1) dislikeCount--;
+        if (next === 1) likeCount++;
+        if (next === -1) dislikeCount++;
+        return { ...r, userLike: next, likeCount, dislikeCount };
+      })
+    );
+    try {
+      const r = reviews.find((r) => r.id === reviewId);
+      if (r?.userLike === value) {
+        await apiClient.delete(`/reviews/${reviewId}/like`);
+      } else {
+        await apiClient.post(`/reviews/${reviewId}/like`, { value });
+      }
+    } catch {
+      // silently fail — state already updated optimistically
+    }
+  };
 
   const handleFollow = async () => {
     if (!profile || followLoading) return;
@@ -289,16 +317,32 @@ export function PublicProfilePage() {
                     </div>
                   </div>
                   <p className="text-indigo-100 text-sm leading-relaxed">{r.text}</p>
-                  <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center justify-between mt-3">
                     <p className="text-indigo-400 text-xs">
                       {new Date(r.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
-                    {(r.likeCount > 0 || r.dislikeCount > 0) && (
-                      <div className="flex items-center gap-3">
-                        {r.likeCount > 0 && <span className="text-xs text-green-300">👍 {r.likeCount}</span>}
-                        {r.dislikeCount > 0 && <span className="text-xs text-red-300">👎 {r.dislikeCount}</span>}
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleLike(r.id, 1)}
+                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition ${
+                          r.userLike === 1
+                            ? 'bg-green-500/30 text-green-300 font-semibold'
+                            : 'text-indigo-400 hover:bg-white/10 hover:text-indigo-200'
+                        }`}
+                      >
+                        👍{r.likeCount > 0 && <span>{r.likeCount}</span>}
+                      </button>
+                      <button
+                        onClick={() => handleLike(r.id, -1)}
+                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition ${
+                          r.userLike === -1
+                            ? 'bg-red-500/30 text-red-300 font-semibold'
+                            : 'text-indigo-400 hover:bg-white/10 hover:text-indigo-200'
+                        }`}
+                      >
+                        👎{r.dislikeCount > 0 && <span>{r.dislikeCount}</span>}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
