@@ -194,6 +194,7 @@ class ProfileService {
       birthDate: updated.birthDate ? updated.birthDate.toISOString() : null,
       country: updated.country ?? null,
       language: updated.language ?? null,
+      avatarUrl: updated.avatarUrl ?? null,
     };
   }
 

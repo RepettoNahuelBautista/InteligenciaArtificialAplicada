@@ -12,7 +12,8 @@ const multerUpload = multer({
 }).single('avatar');
 
 export const uploadAvatarController = (req: Request, res: Response, next: NextFunction): void => {
-  multerUpload(req, res, async (err) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  multerUpload(req as any, res as any, async (err) => {
     if (err) {
       res.status(400).json({ success: false, error: { code: 'INVALID_FILE', message: err.message } });
       return;
