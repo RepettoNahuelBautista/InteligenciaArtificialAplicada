@@ -18,7 +18,7 @@ export function useAuthForm() {
 
     try {
       const response = await authApi.register(email, password);
-      const { data: userData, token: userToken } = response.data.data;
+      const { token: userToken, ...userData } = response.data.data;
 
       const user = { ...userData, displayName: null };
       localStorage.setItem('user', JSON.stringify(user));
@@ -42,7 +42,7 @@ export function useAuthForm() {
 
     try {
       const response = await authApi.login(email, password);
-      const { data: userData, token: userToken } = response.data.data;
+      const { token: userToken, ...userData } = response.data.data;
 
       localStorage.setItem('authToken', userToken);
 

@@ -28,7 +28,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem('authToken');
 
     if (storedUser && storedToken) {
-      setUserState(storedUser !== 'undefined' ? JSON.parse(storedUser) : null);
+      const parsed = storedUser !== 'undefined' ? JSON.parse(storedUser) : null;
+      if (parsed && !parsed.id) {
+        try {
+          const payload = JSON.parse(atob(storedToken.split('.')[1]));
+          parsed.id = payload.userId;
+          if (!parsed.email) parsed.email = payload.email;
+          localStorage.setItem('user', JSON.stringify(parsed));
+        } catch {
+          // ignore — user will re-login when token expires
+        }
+      }
+      setUserState(parsed);
       setToken(storedToken);
     }
 
