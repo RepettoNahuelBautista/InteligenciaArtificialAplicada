@@ -8,6 +8,7 @@ export const UpsertReviewSchema = z.object({
   title: z.string().min(1).max(300),
   contentType: z.enum(['movie', 'tv']),
   rating: z.number().int().min(1).max(5),
+  liked: z.boolean().nullable().optional(),
   text: z.string().min(1).max(2000),
 });
 
@@ -25,6 +26,7 @@ export interface ReviewItem {
   title: string;
   contentType: string;
   rating: number;
+  liked: boolean | null;
   text: string;
   createdAt: string;
   updatedAt: string;
@@ -55,7 +57,7 @@ export interface PublicProfile {
 
 type ReviewWithRelations = {
   id: string; userId: string; tmdbId: string; title: string; contentType: string;
-  rating: number; text: string; createdAt: Date; updatedAt: Date;
+  rating: number; liked: boolean | null; text: string; createdAt: Date; updatedAt: Date;
   user: { email: string; profile: { displayName: string | null; avatarUrl: string | null } | null };
   likes: { value: number; userId: string }[];
 };
@@ -68,6 +70,7 @@ class ReviewService {
       title: r.title,
       contentType: r.contentType,
       rating: r.rating,
+      liked: r.liked,
       text: r.text,
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
@@ -97,8 +100,8 @@ class ReviewService {
   async upsertReview(userId: string, input: UpsertReviewInput): Promise<ReviewItem> {
     const review = await prisma.review.upsert({
       where: { userId_tmdbId: { userId, tmdbId: input.tmdbId } },
-      create: { userId, tmdbId: input.tmdbId, title: input.title, contentType: input.contentType, rating: input.rating, text: input.text },
-      update: { rating: input.rating, text: input.text, updatedAt: new Date() },
+      create: { userId, tmdbId: input.tmdbId, title: input.title, contentType: input.contentType, rating: input.rating, liked: input.liked ?? null, text: input.text },
+      update: { rating: input.rating, liked: input.liked ?? null, text: input.text, updatedAt: new Date() },
       include: {
         user: { include: { profile: { select: { displayName: true, avatarUrl: true } } } },
         likes: { select: { value: true, userId: true } },

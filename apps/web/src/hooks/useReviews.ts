@@ -13,6 +13,7 @@ export interface ReviewItem {
   title: string;
   contentType: string;
   rating: number;
+  liked: boolean | null;
   text: string;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +28,7 @@ export interface UpsertReviewPayload {
   title: string;
   contentType: 'movie' | 'tv';
   rating: number;
+  liked: boolean | null;
   text: string;
 }
 

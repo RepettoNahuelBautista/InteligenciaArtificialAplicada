@@ -88,7 +88,12 @@ function ReviewCard({ review, currentUserId, onAuthorClick, onLike }: {
                 {review.updatedAt !== review.createdAt && ' · editada'}
               </p>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {review.liked !== null && (
+                <span className={`text-base ${review.liked ? 'text-green-500' : 'text-red-500'}`}>
+                  {review.liked ? '👍' : '👎'}
+                </span>
+              )}
               <StarRating value={review.rating} readonly />
             </div>
           </div>
@@ -137,6 +142,7 @@ export function ReviewsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [showForm, setShowForm] = useState(false);
+  const [formLiked, setFormLiked] = useState<boolean | null>(null);
   const [formRating, setFormRating] = useState(0);
   const [formText, setFormText] = useState('');
 
@@ -209,9 +215,11 @@ export function ReviewsPage() {
 
   const handleOpenForm = () => {
     if (myReview) {
+      setFormLiked(myReview.liked);
       setFormRating(myReview.rating);
       setFormText(myReview.text);
     } else {
+      setFormLiked(null);
       setFormRating(0);
       setFormText('');
     }
@@ -220,12 +228,13 @@ export function ReviewsPage() {
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selected || formRating === 0 || !formText.trim()) return;
+    if (!selected || formLiked === null || formRating === 0 || !formText.trim()) return;
     const saved = await upsertReview({
       tmdbId: selected.tmdbId,
       title: selected.title,
       contentType: selected.contentType,
       rating: formRating,
+      liked: formLiked,
       text: formText.trim(),
     });
     if (saved) setShowForm(false);
@@ -308,6 +317,35 @@ export function ReviewsPage() {
             {showForm ? (
               <form onSubmit={handleSubmitReview} className="bg-white rounded-xl p-5 mb-4 shadow-lg">
                 <h3 className="font-bold text-gray-900 mb-4">{myReview ? 'Editar tu reseña' : 'Nueva reseña'}</h3>
+                {/* Liked / disliked */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">¿Te gustó?</label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFormLiked(true)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 font-medium text-sm transition ${
+                        formLiked === true
+                          ? 'border-green-500 bg-green-50 text-green-700'
+                          : 'border-gray-200 text-gray-500 hover:border-green-300 hover:bg-green-50'
+                      }`}
+                    >
+                      <span className="text-xl">👍</span> Me gustó
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormLiked(false)}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 font-medium text-sm transition ${
+                        formLiked === false
+                          ? 'border-red-500 bg-red-50 text-red-700'
+                          : 'border-gray-200 text-gray-500 hover:border-red-300 hover:bg-red-50'
+                      }`}
+                    >
+                      <span className="text-xl">👎</span> No me gustó
+                    </button>
+                  </div>
+                  {formLiked === null && <p className="text-xs text-red-500 mt-1">Indicá si te gustó o no</p>}
+                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Puntaje</label>
                   <StarRating value={formRating} onChange={setFormRating} />
@@ -333,7 +371,7 @@ export function ReviewsPage() {
                   </button>
                   <button
                     type="submit"
-                    disabled={submitting || formRating === 0 || !formText.trim()}
+                    disabled={submitting || formLiked === null || formRating === 0 || !formText.trim()}
                     className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
                   >
                     {submitting ? 'Guardando...' : myReview ? 'Actualizar reseña' : 'Publicar reseña'}

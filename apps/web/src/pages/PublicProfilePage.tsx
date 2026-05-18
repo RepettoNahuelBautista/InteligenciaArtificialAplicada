@@ -29,6 +29,7 @@ interface ReviewItem {
   title: string;
   contentType: string;
   rating: number;
+  liked: boolean | null;
   text: string;
   createdAt: string;
   likeCount: number;
@@ -312,7 +313,12 @@ export function PublicProfilePage() {
                       <p className="text-white font-semibold text-sm truncate">{r.title}</p>
                       <p className="text-indigo-400 text-xs">{r.contentType === 'tv' ? 'Serie' : 'Película'}</p>
                     </div>
-                    <div className="flex-shrink-0 text-yellow-400">
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {r.liked !== null && (
+                        <span className={`text-base ${r.liked ? 'text-green-400' : 'text-red-400'}`}>
+                          {r.liked ? '👍' : '👎'}
+                        </span>
+                      )}
                       <StarRating value={r.rating} />
                     </div>
                   </div>

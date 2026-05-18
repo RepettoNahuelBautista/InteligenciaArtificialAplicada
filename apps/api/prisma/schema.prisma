@@ -101,6 +101,7 @@ model Review {
   title       String
   contentType String
   rating      Int      // 1–5
+  liked       Boolean?
   text        String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
