@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useProfile } from '../hooks/useProfile';
@@ -43,6 +43,28 @@ export const ProfilePage = () => {
       setSocialList([]);
     } finally {
       setSocialLoading(false);
+    }
+  };
+
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      await apiClient.post('/profile/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      await refetch();
+    } catch {
+      // silently ignore — user can try again
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
     }
   };
 
@@ -142,8 +164,42 @@ export const ProfilePage = () => {
 
         {/* Información Personal */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900">Información Personal</h2>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className="relative flex-shrink-0">
+                <div
+                  onClick={() => !avatarUploading && avatarInputRef.current?.click()}
+                  className="w-16 h-16 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center cursor-pointer ring-2 ring-indigo-200 hover:ring-indigo-400 transition"
+                  title="Cambiar foto"
+                >
+                  {avatarUploading ? (
+                    <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+                  ) : pi.avatarUrl ? (
+                    <img src={pi.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-bold text-white">
+                      {(pi.displayName ?? profile.email)[0].toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => !avatarUploading && avatarInputRef.current?.click()}
+                  className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center text-white text-xs shadow transition"
+                  title="Cambiar foto"
+                >
+                  📷
+                </button>
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Información Personal</h2>
+            </div>
             <button
               onClick={openPersonalForm}
               className="text-sm bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-lg hover:bg-indigo-200 transition font-medium"

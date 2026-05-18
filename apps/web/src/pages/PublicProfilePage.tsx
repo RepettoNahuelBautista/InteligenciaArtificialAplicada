@@ -7,6 +7,7 @@ import { getGenreName } from '../schemas/genres';
 interface PublicProfile {
   userId: string;
   displayName: string | null;
+  avatarUrl: string | null;
   memberSince: string;
   stats: {
     moviesWatched: number;
@@ -157,8 +158,12 @@ export function PublicProfilePage() {
             ← Volver
           </button>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-3xl font-bold text-white">
-              {(profile.displayName ?? 'U')[0].toUpperCase()}
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center text-3xl font-bold text-white flex-shrink-0">
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.displayName ?? 'Avatar'} className="w-full h-full object-cover" />
+              ) : (
+                (profile.displayName ?? 'U')[0].toUpperCase()
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-3xl font-bold text-white truncate">{profile.displayName ?? 'Usuario'}</h1>

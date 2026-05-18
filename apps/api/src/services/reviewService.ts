@@ -33,6 +33,7 @@ export interface ReviewItem {
 export interface PublicProfile {
   userId: string;
   displayName: string | null;
+  avatarUrl: string | null;
   memberSince: string;
   stats: {
     moviesWatched: number;
@@ -152,6 +153,7 @@ class ReviewService {
     return {
       userId: user.id,
       displayName: user.profile?.displayName ?? user.email.split('@')[0],
+      avatarUrl: user.profile?.avatarUrl ?? null,
       memberSince: user.createdAt.toISOString(),
       stats: {
         moviesWatched: watchedMovies.length,

@@ -43,6 +43,7 @@ model UserProfile {
   birthDate       DateTime?
   country         String?
   language        String?
+  avatarUrl       String?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

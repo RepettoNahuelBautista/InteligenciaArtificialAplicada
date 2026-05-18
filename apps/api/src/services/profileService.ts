@@ -13,6 +13,7 @@ export interface PersonalInfo {
   birthDate: string | null;
   country: string | null;
   language: string | null;
+  avatarUrl: string | null;
 }
 
 export interface UserProfileComplete {
@@ -133,6 +134,7 @@ class ProfileService {
           birthDate: profile.birthDate ? profile.birthDate.toISOString() : null,
           country: profile.country ?? null,
           language: profile.language ?? null,
+          avatarUrl: profile.avatarUrl ?? null,
         },
         preferences: {
           genres,

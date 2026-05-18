@@ -12,6 +12,7 @@ export interface PersonalInfo {
   birthDate: string | null;
   country: string | null;
   language: string | null;
+  avatarUrl: string | null;
 }
 
 export interface UserProfileComplete {
