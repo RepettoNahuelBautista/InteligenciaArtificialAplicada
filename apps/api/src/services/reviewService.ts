@@ -43,6 +43,9 @@ export interface PublicProfile {
     actorCount: number;
   };
   favoriteGenres: number[];
+  followerCount: number;
+  followingCount: number;
+  isFollowing: boolean;
 }
 
 class ReviewService {
@@ -114,7 +117,7 @@ class ReviewService {
     };
   }
 
-  async getPublicProfile(userId: string): Promise<PublicProfile> {
+  async getPublicProfile(userId: string, currentUserId: string): Promise<PublicProfile> {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: { profile: true },
@@ -124,10 +127,15 @@ class ReviewService {
       throw new AppError('USER_NOT_FOUND', 404, 'User not found');
     }
 
-    const watchedMovies = await prisma.watchedMovie.findMany({
-      where: { userId },
-      select: { rating: true },
-    });
+    const [watchedMovies, followerCount, followingCount, followRecord] = await Promise.all([
+      prisma.watchedMovie.findMany({ where: { userId }, select: { rating: true } }),
+      prisma.follow.count({ where: { followingId: userId } }),
+      prisma.follow.count({ where: { followerId: userId } }),
+      prisma.follow.findUnique({
+        where: { followerId_followingId: { followerId: currentUserId, followingId: userId } },
+        select: { id: true },
+      }),
+    ]);
 
     let genres: number[] = [];
     let directors: number[] = [];
@@ -154,7 +162,35 @@ class ReviewService {
         actorCount: actors.length,
       },
       favoriteGenres: genres,
+      followerCount,
+      followingCount,
+      isFollowing: followRecord !== null,
     };
+  }
+
+  async getUserReviews(userId: string): Promise<ReviewItem[]> {
+    const reviews = await prisma.review.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { include: { profile: { select: { displayName: true } } } },
+      },
+    });
+
+    return reviews.map((r) => ({
+      id: r.id,
+      tmdbId: r.tmdbId,
+      title: r.title,
+      contentType: r.contentType,
+      rating: r.rating,
+      text: r.text,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+      author: {
+        userId: r.userId,
+        displayName: r.user.profile?.displayName ?? r.user.email.split('@')[0],
+      },
+    }));
   }
 }
 

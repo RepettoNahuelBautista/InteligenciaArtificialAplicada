@@ -22,6 +22,8 @@ model User {
   recommendations Recommendation[]
   watchedMovies WatchedMovie[]
   reviews       Review[]
+  following     Follow[] @relation("UserFollowing")
+  followers     Follow[] @relation("UserFollowers")
 
   @@map("users")
 }
@@ -102,4 +104,16 @@ model Review {
 
   @@unique([userId, tmdbId])
   @@map("reviews")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
 }

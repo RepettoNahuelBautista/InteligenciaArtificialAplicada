@@ -9,6 +9,7 @@ import { RecommendationPage } from './pages/RecommendationPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { ReviewsPage } from './pages/ReviewsPage';
 import { PublicProfilePage } from './pages/PublicProfilePage';
+import { UserSearchPage } from './pages/UserSearchPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/recommendation" element={<ProtectedRoute><RecommendationPage /></ProtectedRoute>} />
           <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
           <Route path="/reviews" element={<ProtectedRoute><ReviewsPage /></ProtectedRoute>} />
+          <Route path="/users/search" element={<ProtectedRoute><UserSearchPage /></ProtectedRoute>} />
           <Route path="/users/:userId" element={<ProtectedRoute><PublicProfilePage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

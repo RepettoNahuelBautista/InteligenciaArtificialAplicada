@@ -33,6 +33,10 @@ export interface UserProfileComplete {
     moviesLiked: number;
     moviesDisliked: number;
   };
+  social: {
+    followerCount: number;
+    followingCount: number;
+  };
   recentMovies: Array<{
     id: string;
     tmdbId: string;
@@ -102,28 +106,21 @@ class ProfileService {
         name: actorDetails[i]?.name ?? `Actor #${id}`,
       }));
 
-      // Get watched movies stats
-      const watchedMovies = await prisma.watchedMovie.findMany({
-        where: { userId },
-        select: { rating: true, id: true },
-      });
+      // Get watched movies stats, follow counts, and recent movies in parallel
+      const [watchedMovies, followerCount, followingCount, recentMovies] = await Promise.all([
+        prisma.watchedMovie.findMany({ where: { userId }, select: { rating: true, id: true } }),
+        prisma.follow.count({ where: { followingId: userId } }),
+        prisma.follow.count({ where: { followerId: userId } }),
+        prisma.watchedMovie.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          select: { id: true, tmdbId: true, title: true, rating: true, createdAt: true },
+        }),
+      ]);
 
       const moviesLiked = watchedMovies.filter((m) => m.rating === 5).length;
       const moviesDisliked = watchedMovies.filter((m) => m.rating === 1).length;
-
-      // Get recent movies (last 5)
-      const recentMovies = await prisma.watchedMovie.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          tmdbId: true,
-          title: true,
-          rating: true,
-          createdAt: true,
-        },
-      });
 
       logger.info('Complete profile retrieved', { userId });
 
@@ -150,6 +147,7 @@ class ProfileService {
           moviesLiked,
           moviesDisliked,
         },
+        social: { followerCount, followingCount },
         recentMovies: recentMovies.map((m) => ({
           ...m,
           createdAt: m.createdAt.toISOString(),

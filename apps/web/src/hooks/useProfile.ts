@@ -32,6 +32,10 @@ export interface UserProfileComplete {
     moviesLiked: number;
     moviesDisliked: number;
   };
+  social: {
+    followerCount: number;
+    followingCount: number;
+  };
   recentMovies: Array<{
     id: string;
     tmdbId: string;

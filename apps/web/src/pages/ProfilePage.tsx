@@ -229,6 +229,12 @@ export const ProfilePage = () => {
           )}
         </div>
 
+        {/* Social stats */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <StatCard color="teal" label="Seguidores" value={profile.social?.followerCount ?? 0} />
+          <StatCard color="cyan" label="Seguidos" value={profile.social?.followingCount ?? 0} />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <StatCard color="blue" label="Géneros" value={profile.stats.genreCount} />
@@ -314,6 +320,8 @@ function StatCard({ color, label, value }: { color: string; label: string; value
     green: 'from-green-500 to-green-600',
     yellow: 'from-yellow-500 to-yellow-600',
     red: 'from-red-500 to-red-600',
+    teal: 'from-teal-500 to-teal-600',
+    cyan: 'from-cyan-500 to-cyan-600',
   };
   return (
     <div className={`bg-gradient-to-br ${colors[color]} rounded-lg shadow-lg p-6 text-white`}>

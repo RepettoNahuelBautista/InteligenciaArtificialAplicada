@@ -32,6 +32,13 @@ export const upsertReviewController = async (req: Request, res: Response): Promi
 
 export const getPublicProfileController = async (req: Request, res: Response): Promise<void> => {
   const { userId } = req.params;
-  const profile = await reviewService.getPublicProfile(userId);
+  const currentUserId = req.userId as string;
+  const profile = await reviewService.getPublicProfile(userId, currentUserId);
   res.json({ success: true, data: profile });
+};
+
+export const getUserReviewsController = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params;
+  const reviews = await reviewService.getUserReviews(userId);
+  res.json({ success: true, data: reviews });
 };

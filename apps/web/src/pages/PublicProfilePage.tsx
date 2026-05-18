@@ -17,6 +17,29 @@ interface PublicProfile {
     actorCount: number;
   };
   favoriteGenres: number[];
+  followerCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+}
+
+interface ReviewItem {
+  id: string;
+  tmdbId: string;
+  title: string;
+  contentType: string;
+  rating: number;
+  text: string;
+  createdAt: string;
+}
+
+function StarRating({ value }: { value: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span key={star} className="text-lg">{star <= value ? '★' : '☆'}</span>
+      ))}
+    </div>
+  );
 }
 
 export function PublicProfilePage() {
@@ -26,8 +49,10 @@ export function PublicProfilePage() {
   const { user } = useAuth();
 
   const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const navState = location.state as { from?: string; selected?: unknown } | null;
   const fromReviews = navState?.from === 'reviews';
@@ -35,31 +60,65 @@ export function PublicProfilePage() {
   const handleBack = () => {
     if (fromReviews) {
       navigate('/reviews', { state: { from: 'reviews-back', selected: navState?.selected } });
+    } else if (navState?.from === 'search') {
+      navigate('/users/search');
     } else {
       navigate(-1);
     }
   };
 
-  // If the user is viewing their own profile, redirect to the full profile page
   useEffect(() => {
     if (userId && user?.id === userId) {
       navigate('/profile', { replace: true, state: location.state });
       return;
     }
+    if (!userId) return;
+
     const load = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await apiClient.get(`/users/${userId}/profile`);
-        setProfile(response.data.data);
+        const [profileRes, reviewsRes] = await Promise.all([
+          apiClient.get(`/users/${userId}/profile`),
+          apiClient.get(`/users/${userId}/reviews`),
+        ]);
+        setProfile(profileRes.data.data);
+        setReviews(reviewsRes.data.data);
       } catch {
         setError('No se pudo cargar el perfil de este usuario');
       } finally {
         setLoading(false);
       }
     };
-    if (userId) load();
-  }, [userId, user?.id, navigate]);
+    load();
+  }, [userId, user?.id, navigate, location.state]);
+
+  const handleFollow = async () => {
+    if (!profile || followLoading) return;
+    setFollowLoading(true);
+    const wasFollowing = profile.isFollowing;
+    setProfile((p) => p ? {
+      ...p,
+      isFollowing: !wasFollowing,
+      followerCount: p.followerCount + (wasFollowing ? -1 : 1),
+    } : p);
+    try {
+      if (wasFollowing) {
+        await apiClient.delete(`/users/${userId}/follow`);
+      } else {
+        await apiClient.post(`/users/${userId}/follow`);
+      }
+    } catch {
+      // revert on error
+      setProfile((p) => p ? {
+        ...p,
+        isFollowing: wasFollowing,
+        followerCount: p.followerCount + (wasFollowing ? 1 : -1),
+      } : p);
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -101,11 +160,34 @@ export function PublicProfilePage() {
             <div className="w-16 h-16 rounded-full bg-indigo-500 flex items-center justify-center text-3xl font-bold text-white">
               {(profile.displayName ?? 'U')[0].toUpperCase()}
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white">{profile.displayName ?? 'Usuario'}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl font-bold text-white truncate">{profile.displayName ?? 'Usuario'}</h1>
               <p className="text-indigo-300 text-sm">
                 Miembro desde {new Date(profile.memberSince).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
               </p>
+            </div>
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              className={`flex-shrink-0 px-5 py-2 rounded-xl font-semibold text-sm transition ${
+                profile.isFollowing
+                  ? 'bg-white/10 border border-white/30 text-white hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-300'
+                  : 'bg-indigo-500 hover:bg-indigo-400 text-white'
+              } disabled:opacity-50`}
+            >
+              {followLoading ? '...' : profile.isFollowing ? 'Siguiendo' : '+ Seguir'}
+            </button>
+          </div>
+
+          {/* Follow counts */}
+          <div className="flex gap-6 mt-4 ml-20">
+            <div className="text-center">
+              <p className="text-white font-bold text-lg">{profile.followerCount}</p>
+              <p className="text-indigo-300 text-xs">seguidores</p>
+            </div>
+            <div className="text-center">
+              <p className="text-white font-bold text-lg">{profile.followingCount}</p>
+              <p className="text-indigo-300 text-xs">seguidos</p>
             </div>
           </div>
         </div>
@@ -129,7 +211,7 @@ export function PublicProfilePage() {
 
         {/* Favorite genres */}
         {profile.favoriteGenres.length > 0 && (
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-5">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-5 mb-6">
             <h2 className="text-white font-semibold mb-3">Géneros favoritos</h2>
             <div className="flex flex-wrap gap-2">
               {profile.favoriteGenres.map((id) => (
@@ -140,6 +222,36 @@ export function PublicProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Reviews by this user */}
+        <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-5">
+          <h2 className="text-white font-semibold mb-4">
+            Reseñas{reviews.length > 0 && <span className="text-indigo-300 font-normal text-sm ml-2">({reviews.length})</span>}
+          </h2>
+          {reviews.length === 0 ? (
+            <p className="text-indigo-300 text-sm text-center py-4">Este usuario aún no escribió reseñas</p>
+          ) : (
+            <div className="space-y-4">
+              {reviews.map((r) => (
+                <div key={r.id} className="bg-white/10 rounded-xl p-4 border border-white/10">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{r.title}</p>
+                      <p className="text-indigo-400 text-xs">{r.contentType === 'tv' ? 'Serie' : 'Película'}</p>
+                    </div>
+                    <div className="flex-shrink-0 text-yellow-400">
+                      <StarRating value={r.rating} />
+                    </div>
+                  </div>
+                  <p className="text-indigo-100 text-sm leading-relaxed">{r.text}</p>
+                  <p className="text-indigo-400 text-xs mt-2">
+                    {new Date(r.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
