@@ -58,6 +58,12 @@ export const ProfilePage = () => {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [avatarPrompt, setAvatarPrompt] = useState('');
+  const [avatarGenerating, setAvatarGenerating] = useState(false);
+  const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
+  const [avatarGenError, setAvatarGenError] = useState<string | null>(null);
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -83,6 +89,48 @@ export const ProfilePage = () => {
     country: '',
     language: 'es',
   });
+
+  const openAvatarModal = () => {
+    setAvatarPrompt('');
+    setGeneratedPreview(null);
+    setAvatarGenError(null);
+    setShowAvatarModal(true);
+  };
+
+  const handleGenerateAvatar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!avatarPrompt.trim()) return;
+    setAvatarGenerating(true);
+    setAvatarGenError(null);
+    setGeneratedPreview(null);
+    try {
+      const res = await apiClient.post('/profile/avatar/generate', { prompt: avatarPrompt });
+      setGeneratedPreview(res.data.data.previewUrl);
+    } catch {
+      setAvatarGenError('No se pudo generar la imagen. Intentá de nuevo.');
+    } finally {
+      setAvatarGenerating(false);
+    }
+  };
+
+  const handleUseGeneratedAvatar = async () => {
+    if (!generatedPreview) return;
+    setAvatarUploading(true);
+    setShowAvatarModal(false);
+    try {
+      const response = await fetch(generatedPreview);
+      const blob = await response.blob();
+      const file = new File([blob], 'generated-avatar.jpg', { type: blob.type });
+      const formData = new FormData();
+      formData.append('avatar', file);
+      await apiClient.post('/profile/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await refetch();
+    } catch {
+      // silently ignore — user can try again
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const validateNewPassword = (pw: string): string[] => {
     const errs: string[] = [];
@@ -215,7 +263,7 @@ export const ProfilePage = () => {
               {/* Avatar */}
               <div className="relative flex-shrink-0">
                 <div
-                  onClick={() => !avatarUploading && avatarInputRef.current?.click()}
+                  onClick={() => !avatarUploading && openAvatarModal()}
                   className="w-16 h-16 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center cursor-pointer ring-2 ring-indigo-200 hover:ring-indigo-400 transition"
                   title="Cambiar foto"
                 >
@@ -230,7 +278,7 @@ export const ProfilePage = () => {
                   )}
                 </div>
                 <button
-                  onClick={() => !avatarUploading && avatarInputRef.current?.click()}
+                  onClick={() => !avatarUploading && openAvatarModal()}
                   className="absolute -bottom-1 -right-1 w-6 h-6 bg-indigo-600 hover:bg-indigo-700 rounded-full flex items-center justify-center text-white text-xs shadow transition"
                   title="Cambiar foto"
                 >
@@ -425,6 +473,110 @@ export const ProfilePage = () => {
           </button>
         </div>
       </div>
+
+      {/* Avatar source modal */}
+      {showAvatarModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => { if (!avatarGenerating) setShowAvatarModal(false); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">Cambiar foto de perfil</h2>
+              {!avatarGenerating && (
+                <button onClick={() => setShowAvatarModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+              )}
+            </div>
+
+            <div className="p-6">
+              {/* Sin preview generado: mostrar opciones o formulario de prompt */}
+              {!generatedPreview && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <button
+                      onClick={() => { setShowAvatarModal(false); avatarInputRef.current?.click(); }}
+                      className="flex flex-col items-center gap-3 p-5 border-2 border-gray-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition"
+                    >
+                      <span className="text-3xl">📁</span>
+                      <span className="text-sm font-semibold text-gray-700 text-center">Subir desde mi PC</span>
+                    </button>
+                    <button
+                      onClick={() => { setAvatarPrompt(''); setAvatarGenError(null); }}
+                      className="flex flex-col items-center gap-3 p-5 border-2 border-indigo-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition bg-indigo-50/50"
+                    >
+                      <span className="text-3xl">✨</span>
+                      <span className="text-sm font-semibold text-indigo-700 text-center">Generar con IA</span>
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleGenerateAvatar} className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Describí el avatar que querés generar</label>
+                      <textarea
+                        value={avatarPrompt}
+                        onChange={(e) => setAvatarPrompt(e.target.value)}
+                        placeholder="Ej: un astronauta con casco de vidrio reflejando galaxias, estilo pixel art"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none"
+                      />
+                    </div>
+                    {avatarGenError && <p className="text-red-600 text-sm">{avatarGenError}</p>}
+                    <button
+                      type="submit"
+                      disabled={!avatarPrompt.trim() || avatarGenerating}
+                      className="w-full py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-40 transition flex items-center justify-center gap-2"
+                    >
+                      {avatarGenerating ? (
+                        <>
+                          <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                          Generando imagen...
+                        </>
+                      ) : '✨ Generar'}
+                    </button>
+                  </form>
+                </>
+              )}
+
+              {/* Con preview generado: mostrar imagen y opciones */}
+              {generatedPreview && (
+                <div className="space-y-4">
+                  <div className="flex justify-center">
+                    <img
+                      src={generatedPreview}
+                      alt="Avatar generado"
+                      className="w-48 h-48 rounded-full object-cover ring-4 ring-indigo-200 shadow-lg"
+                    />
+                  </div>
+                  <p className="text-center text-sm text-gray-500">¿Querés usar esta imagen como foto de perfil?</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setGeneratedPreview(null)}
+                      className="flex-1 py-2.5 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                    >
+                      Generar otra
+                    </button>
+                    <button
+                      onClick={handleUseGeneratedAvatar}
+                      className="flex-1 py-2.5 bg-green-500 text-white text-sm font-semibold rounded-lg hover:bg-green-600 transition"
+                    >
+                      Usar esta foto ✓
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowAvatarModal(false)}
+                    className="w-full text-sm text-gray-400 hover:text-gray-600 transition"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Password change modal */}
       {showPasswordModal && (

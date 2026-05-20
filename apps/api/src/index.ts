@@ -14,7 +14,7 @@ import { getRecommendationController, getRecommendationHistoryController } from 
 import { getReviewsController, upsertReviewController, getPublicProfileController, getUserReviewsController } from './controllers/reviewController';
 import { likeReviewController, unlikeReviewController } from './controllers/reviewLikeController';
 import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController } from './controllers/followController';
-import { uploadAvatarController } from './controllers/avatarController';
+import { uploadAvatarController, generateAvatarController } from './controllers/avatarController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
 
 const app = express();
@@ -80,6 +80,7 @@ app.delete('/api/v1/lists/:listId/items/:tmdbId', authMiddleware, removeItemCont
 app.get('/api/v1/profile/followers', authMiddleware, getFollowersController);
 app.get('/api/v1/profile/following', authMiddleware, getFollowingController);
 app.post('/api/v1/profile/avatar', authMiddleware, uploadAvatarController);
+app.post('/api/v1/profile/avatar/generate', authMiddleware, generateAvatarController);
 
 // User / follow routes — /users/search must be before /users/:userId/*
 app.get('/api/v1/users/search', authMiddleware, searchUsersController);
