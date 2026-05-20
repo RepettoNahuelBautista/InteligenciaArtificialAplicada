@@ -28,6 +28,14 @@ export const ProfilePage = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', newPass: '', confirm: '' });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+
   const [socialModal, setSocialModal] = useState<'followers' | 'following' | null>(null);
   const [socialList, setSocialList] = useState<{ userId: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
   const [socialLoading, setSocialLoading] = useState(false);
@@ -74,6 +82,42 @@ export const ProfilePage = () => {
     country: '',
     language: 'es',
   });
+
+  const validateNewPassword = (pw: string): string[] => {
+    const errs: string[] = [];
+    if (pw.length < 8) errs.push('mínimo 8 caracteres');
+    if (!/[A-Z]/.test(pw)) errs.push('al menos una mayúscula');
+    if (!/[0-9]/.test(pw)) errs.push('al menos un número');
+    return errs;
+  };
+
+  const openPasswordModal = () => {
+    setPasswordForm({ current: '', newPass: '', confirm: '' });
+    setPasswordError(null);
+    setPasswordSuccess(false);
+    setShowCurrentPw(false);
+    setShowNewPw(false);
+    setShowPasswordModal(true);
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const pwErrors = validateNewPassword(passwordForm.newPass);
+    if (pwErrors.length > 0) { setPasswordError(`La contraseña no cumple: ${pwErrors.join(', ')}`); return; }
+    if (passwordForm.newPass !== passwordForm.confirm) { setPasswordError('Las contraseñas nuevas no coinciden'); return; }
+    setPasswordSaving(true);
+    setPasswordError(null);
+    try {
+      await apiClient.put('/auth/password', { currentPassword: passwordForm.current, newPassword: passwordForm.newPass });
+      setPasswordSuccess(true);
+      setTimeout(() => setShowPasswordModal(false), 1500);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { error?: { message?: string } } } };
+      setPasswordError(e.response?.data?.error?.message || 'Error al cambiar la contraseña');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   const openPersonalForm = () => {
     if (profile?.personalInfo) {
@@ -200,12 +244,20 @@ export const ProfilePage = () => {
               </div>
               <h2 className="text-xl font-bold text-gray-900">Información Personal</h2>
             </div>
-            <button
-              onClick={openPersonalForm}
-              className="text-sm bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-lg hover:bg-indigo-200 transition font-medium"
-            >
-              {pi.displayName ? 'Editar' : 'Completar'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={openPersonalForm}
+                className="text-sm bg-indigo-100 text-indigo-700 px-4 py-1.5 rounded-lg hover:bg-indigo-200 transition font-medium"
+              >
+                {pi.displayName ? 'Editar' : 'Completar'}
+              </button>
+              <button
+                onClick={openPasswordModal}
+                className="text-sm bg-gray-100 text-gray-700 px-4 py-1.5 rounded-lg hover:bg-gray-200 transition font-medium"
+              >
+                Cambiar contraseña
+              </button>
+            </div>
           </div>
 
           {showPersonalForm ? (
@@ -366,11 +418,118 @@ export const ProfilePage = () => {
           <button onClick={() => navigate('/home')} className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition font-semibold">
             Volver al inicio
           </button>
-          <button onClick={() => navigate('/onboarding')} className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition font-semibold">
+          <button onClick={() => navigate('/onboarding?mode=edit')} className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 transition font-semibold">
             Editar preferencias
           </button>
         </div>
       </div>
+
+      {/* Password change modal */}
+      {showPasswordModal && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPasswordModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-900">Cambiar contraseña</h2>
+              <button onClick={() => setShowPasswordModal(false)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+            </div>
+            <form onSubmit={handleChangePassword} className="p-6 space-y-4">
+              {passwordError && <p className="bg-red-50 text-red-700 text-sm p-3 rounded-lg">{passwordError}</p>}
+              {passwordSuccess && <p className="bg-green-50 text-green-700 text-sm p-3 rounded-lg">¡Contraseña actualizada correctamente!</p>}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña actual</label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPw ? 'text' : 'password'}
+                    value={passwordForm.current}
+                    onChange={(e) => setPasswordForm((p) => ({ ...p, current: e.target.value }))}
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowCurrentPw((v) => !v)} className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+                    {showCurrentPw ? '🙈' : '👁'}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nueva contraseña</label>
+                <div className="relative">
+                  <input
+                    type={showNewPw ? 'text' : 'password'}
+                    value={passwordForm.newPass}
+                    onChange={(e) => setPasswordForm((p) => ({ ...p, newPass: e.target.value }))}
+                    className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
+                      passwordForm.newPass.length === 0
+                        ? 'border-gray-300 focus:ring-indigo-500'
+                        : validateNewPassword(passwordForm.newPass).length === 0
+                        ? 'border-green-400 focus:ring-green-400'
+                        : 'border-red-400 focus:ring-red-400'
+                    }`}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowNewPw((v) => !v)} className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+                    {showNewPw ? '🙈' : '👁'}
+                  </button>
+                </div>
+                {passwordForm.newPass.length > 0 ? (
+                  <p className={`text-xs mt-1 font-medium ${validateNewPassword(passwordForm.newPass).length === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {validateNewPassword(passwordForm.newPass).length === 0
+                      ? '✓ La contraseña cumple con todos los requisitos'
+                      : `✗ No cumple: ${validateNewPassword(passwordForm.newPass).join(', ')}`}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400 mt-1">Mínimo 8 caracteres, con mayúscula y número</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
+                <input
+                  type="password"
+                  value={passwordForm.confirm}
+                  onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
+                    passwordForm.confirm.length > 0 && passwordForm.confirm !== passwordForm.newPass
+                      ? 'border-red-400 focus:ring-red-400'
+                      : 'border-gray-300 focus:ring-indigo-500'
+                  }`}
+                  placeholder="••••••••"
+                  required
+                />
+                {passwordForm.confirm.length > 0 && passwordForm.confirm !== passwordForm.newPass && (
+                  <p className="text-xs text-red-600 mt-1">✗ Las contraseñas no coinciden</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordSaving || passwordSuccess}
+                  className="flex-1 px-6 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 font-medium"
+                >
+                  {passwordSaving ? 'Actualizando...' : 'Actualizar contraseña'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Followers / Following modal */}
       {socialModal && (

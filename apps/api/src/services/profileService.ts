@@ -110,7 +110,7 @@ class ProfileService {
 
       // Get watched movies stats, follow counts, recent movies and reviews in parallel
       const [watchedMovies, followerCount, followingCount, recentWatched, recentReviews] = await Promise.all([
-        prisma.watchedMovie.findMany({ where: { userId }, select: { rating: true, id: true } }),
+        prisma.watchedMovie.findMany({ where: { userId }, select: { rating: true, id: true, tmdbId: true } }),
         prisma.follow.count({ where: { followingId: userId } }),
         prisma.follow.count({ where: { followerId: userId } }),
         prisma.watchedMovie.findMany({
@@ -122,13 +122,18 @@ class ProfileService {
         prisma.review.findMany({
           where: { userId, liked: { not: null } },
           orderBy: { updatedAt: 'desc' },
-          take: 20,
           select: { id: true, tmdbId: true, title: true, rating: true, liked: true, updatedAt: true },
         }),
       ]);
 
       const moviesLiked = watchedMovies.filter((m) => m.rating === 5).length;
       const moviesDisliked = watchedMovies.filter((m) => m.rating === 1).length;
+
+      // Count unique movies across watchedMovies + reviews (both tables contribute to "Películas vistas")
+      const allSeenTmdbIds = new Set([
+        ...watchedMovies.map((m) => m.tmdbId),
+        ...recentReviews.map((r) => r.tmdbId),
+      ]);
 
       // Merge watched + reviewed, deduplicate by tmdbId keeping the most recent entry
       type RecentEntry = { id: string; tmdbId: string; title: string; rating: number; liked: boolean | null; createdAt: string };
@@ -171,7 +176,7 @@ class ProfileService {
           genreCount: genres.length,
           directorCount: directors.length,
           actorCount: actors.length,
-          moviesWatched: watchedMovies.length,
+          moviesWatched: allSeenTmdbIds.size,
           moviesLiked,
           moviesDisliked,
         },

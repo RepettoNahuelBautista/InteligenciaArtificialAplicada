@@ -94,6 +94,18 @@ export async function loginUser(input: LoginInput): Promise<AuthResponse> {
   };
 }
 
+export async function changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new NotFoundError('User');
+
+  const isValid = await bcrypt.compare(currentPassword, user.password);
+  if (!isValid) throw new AuthenticationError('La contraseña actual es incorrecta');
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: userId }, data: { password: hashed } });
+  logger.info('Password changed', { userId });
+}
+
 export async function getUserById(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },

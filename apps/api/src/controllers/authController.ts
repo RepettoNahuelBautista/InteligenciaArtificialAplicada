@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { registerUser, loginUser } from '../services/authService';
-import { RegisterSchema, LoginSchema } from '../schemas/auth';
+import { registerUser, loginUser, changePassword } from '../services/authService';
+import { RegisterSchema, LoginSchema, ChangePasswordSchema } from '../schemas/auth';
 import { logger } from '../utils/logger';
 
 export async function registerController(req: Request, res: Response): Promise<void> {
@@ -42,4 +42,10 @@ export function meController(req: Request, res: Response): void {
     },
     timestamp: new Date().toISOString(),
   });
+}
+
+export async function changePasswordController(req: Request, res: Response): Promise<void> {
+  const { currentPassword, newPassword } = ChangePasswordSchema.parse(req.body);
+  await changePassword(req.userId!, currentPassword, newPassword);
+  res.status(200).json({ success: true, timestamp: new Date().toISOString() });
 }

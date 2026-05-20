@@ -4,7 +4,7 @@ import cors from 'cors';
 import { logger } from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { authMiddleware } from './middleware/auth';
-import { registerController, loginController, meController } from './controllers/authController';
+import { registerController, loginController, meController, changePasswordController } from './controllers/authController';
 import { getGenresController, saveGenrePreferencesController } from './controllers/genreController';
 import { getProfileController, updatePersonalInfoController } from './controllers/profileController';
 import { searchPeopleController, savePersonPreferencesController, getPersonPreferencesController } from './controllers/personController';
@@ -39,6 +39,7 @@ app.get('/health', (req, res) => {
 app.post('/api/v1/auth/register', registerController);
 app.post('/api/v1/auth/login', loginController);
 app.get('/api/v1/auth/me', authMiddleware, meController);
+app.put('/api/v1/auth/password', authMiddleware, changePasswordController);
 
 // Genre routes
 app.get('/api/v1/genres', getGenresController);
