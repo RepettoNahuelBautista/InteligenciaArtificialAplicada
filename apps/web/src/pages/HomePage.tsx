@@ -44,7 +44,7 @@ export function HomePage() {
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {/* Onboarding Card */}
-          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding')}>
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-8 hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding?mode=edit')}>
             <div className="text-5xl mb-4">🎯</div>
             <h3 className="text-2xl font-bold text-white mb-3">Mis Preferencias</h3>
             <p className="text-indigo-100 mb-6">

@@ -4,11 +4,13 @@ import { PersonSelector } from './PersonSelector';
 import { MovieRater } from './MovieRater';
 import { useGenreSelector, useOnboarding } from '../../hooks/useOnboarding';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
 
 export const OnboardingFlow: FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isEditMode = searchParams.get('mode') === 'edit';
   const { user } = useAuth();
   const {
     step,
@@ -204,10 +206,10 @@ export const OnboardingFlow: FC = () => {
           {step === 5 && (
             <div className="text-center py-12">
               <p className="text-2xl font-bold text-gray-800 mb-4">
-                ¡Tu perfil está listo! 🎉
+                {isEditMode ? '¡Preferencias actualizadas! 🎉' : '¡Tu perfil está listo! 🎉'}
               </p>
               <p className="text-gray-600 mb-6">
-                Hemos guardado tus preferencias:
+                {isEditMode ? 'Tus preferencias guardadas:' : 'Hemos guardado tus preferencias:'}
               </p>
               <div className="space-y-2 text-left bg-gray-50 p-4 rounded-lg">
                 <p className="text-gray-700">
@@ -224,7 +226,9 @@ export const OnboardingFlow: FC = () => {
                 </p>
               </div>
               <p className="text-gray-500 mt-6">
-                Ahora puedes empezar a recibir recomendaciones personalizadas basadas en tus gustos
+                {isEditMode
+                  ? 'Tus preferencias han sido actualizadas exitosamente'
+                  : 'Ahora puedes empezar a recibir recomendaciones personalizadas basadas en tus gustos'}
               </p>
             </div>
           )}
@@ -232,13 +236,22 @@ export const OnboardingFlow: FC = () => {
 
         {/* Buttons */}
         <div className="flex gap-4">
-          <button
-            onClick={prevStep}
-            disabled={step === 1 || isLoading}
-            className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100 disabled:opacity-50"
-          >
-            ← Atrás
-          </button>
+          {isEditMode && step === 1 ? (
+            <button
+              onClick={() => navigate('/home')}
+              className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100"
+            >
+              Cancelar
+            </button>
+          ) : (
+            <button
+              onClick={prevStep}
+              disabled={step === 1 || isLoading}
+              className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100 disabled:opacity-50"
+            >
+              ← Atrás
+            </button>
+          )}
 
           {step < 5 && (
             <button
@@ -255,10 +268,21 @@ export const OnboardingFlow: FC = () => {
               onClick={() => navigate('/home')}
               className="flex-1 bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600"
             >
-              Comenzar ✓
+              {isEditMode ? 'Actualizar ✓' : 'Comenzar ✓'}
             </button>
           )}
         </div>
+
+        {isEditMode && step > 1 && (
+          <div className="text-center mt-4">
+            <button
+              onClick={() => navigate('/home')}
+              className="text-indigo-200 hover:text-white text-sm underline"
+            >
+              Cancelar y volver al menú principal
+            </button>
+          </div>
+        )}
 
         {/* User info */}
         <div className="text-center text-white mt-8 text-sm">
