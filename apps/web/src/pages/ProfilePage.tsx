@@ -35,6 +35,7 @@ export const ProfilePage = () => {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   const [socialModal, setSocialModal] = useState<'followers' | 'following' | null>(null);
   const [socialList, setSocialList] = useState<{ userId: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
@@ -97,6 +98,7 @@ export const ProfilePage = () => {
     setPasswordSuccess(false);
     setShowCurrentPw(false);
     setShowNewPw(false);
+    setShowConfirmPw(false);
     setShowPasswordModal(true);
   };
 
@@ -493,18 +495,23 @@ export const ProfilePage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar nueva contraseña</label>
-                <input
-                  type="password"
-                  value={passwordForm.confirm}
-                  onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
-                    passwordForm.confirm.length > 0 && passwordForm.confirm !== passwordForm.newPass
-                      ? 'border-red-400 focus:ring-red-400'
-                      : 'border-gray-300 focus:ring-indigo-500'
-                  }`}
-                  placeholder="••••••••"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showConfirmPw ? 'text' : 'password'}
+                    value={passwordForm.confirm}
+                    onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
+                    className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:border-transparent text-sm ${
+                      passwordForm.confirm.length > 0 && passwordForm.confirm !== passwordForm.newPass
+                        ? 'border-red-400 focus:ring-red-400'
+                        : 'border-gray-300 focus:ring-indigo-500'
+                    }`}
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowConfirmPw((v) => !v)} className="absolute inset-y-0 right-0 px-3 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+                    {showConfirmPw ? '🙈' : '👁'}
+                  </button>
+                </div>
                 {passwordForm.confirm.length > 0 && passwordForm.confirm !== passwordForm.newPass && (
                   <p className="text-xs text-red-600 mt-1">✗ Las contraseñas no coinciden</p>
                 )}

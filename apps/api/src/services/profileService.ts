@@ -126,14 +126,17 @@ class ProfileService {
         }),
       ]);
 
-      const moviesLiked = watchedMovies.filter((m) => m.rating === 5).length;
-      const moviesDisliked = watchedMovies.filter((m) => m.rating === 1).length;
-
-      // Count unique movies across watchedMovies + reviews (both tables contribute to "Películas vistas")
-      const allSeenTmdbIds = new Set([
-        ...watchedMovies.map((m) => m.tmdbId),
-        ...recentReviews.map((r) => r.tmdbId),
-      ]);
+      // Merge watchedMovies + reviews by tmdbId; reviews override watchedMovies for liked status
+      const statsMap = new Map<string, boolean | null>();
+      for (const m of watchedMovies) {
+        statsMap.set(m.tmdbId, m.rating === 5 ? true : m.rating === 1 ? false : null);
+      }
+      for (const r of recentReviews) {
+        statsMap.set(r.tmdbId, r.liked);
+      }
+      const moviesWatched = statsMap.size;
+      const moviesLiked = Array.from(statsMap.values()).filter((v) => v === true).length;
+      const moviesDisliked = Array.from(statsMap.values()).filter((v) => v === false).length;
 
       // Merge watched + reviewed, deduplicate by tmdbId keeping the most recent entry
       type RecentEntry = { id: string; tmdbId: string; title: string; rating: number; liked: boolean | null; createdAt: string };
@@ -176,7 +179,7 @@ class ProfileService {
           genreCount: genres.length,
           directorCount: directors.length,
           actorCount: actors.length,
-          moviesWatched: allSeenTmdbIds.size,
+          moviesWatched,
           moviesLiked,
           moviesDisliked,
         },
