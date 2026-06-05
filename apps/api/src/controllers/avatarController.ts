@@ -19,21 +19,35 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  const encoded = encodeURIComponent(prompt.trim());
-  const seed = Math.floor(Math.random() * 1000000);
-  const pollinationsUrl = `https://image.pollinations.ai/prompt/${encoded}?width=400&height=400&nologo=true&model=flux&seed=${seed}`;
-
-  logger.info('Generating avatar via Pollinations', { userId: req.userId });
-
-  const response = await fetch(pollinationsUrl, { signal: AbortSignal.timeout(60000) });
-  if (!response.ok) {
-    res.status(502).json({ success: false, error: { message: 'Error al generar la imagen, intentá de nuevo' } });
+  const hfToken = process.env.HUGGINGFACE_API_TOKEN;
+  if (!hfToken) {
+    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado' } });
     return;
   }
 
+  logger.info('Generating avatar via HuggingFace', { userId: req.userId });
+
+  const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${hfToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ inputs: prompt.trim() }),
+    signal: AbortSignal.timeout(90000),
+  });
+
+  if (!response.ok) {
+    const message = response.status === 503
+      ? 'El modelo está cargando, esperá unos segundos e intentá de nuevo'
+      : 'Error al generar la imagen, intentá de nuevo';
+    res.status(502).json({ success: false, error: { message } });
+    return;
+  }
+
+  const contentType = response.headers.get('content-type') ?? 'image/jpeg';
   const buffer = Buffer.from(await response.arrayBuffer());
   const base64 = buffer.toString('base64');
-  const contentType = response.headers.get('content-type') ?? 'image/jpeg';
 
   res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
 }
