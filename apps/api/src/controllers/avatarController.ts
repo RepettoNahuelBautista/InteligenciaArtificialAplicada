@@ -25,31 +25,41 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  logger.info('Generating avatar via HuggingFace', { userId: req.userId });
+  try {
+    logger.info('Generating avatar via HuggingFace', { userId: req.userId });
 
-  const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${hfToken}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ inputs: prompt.trim() }),
-    signal: AbortSignal.timeout(90000),
-  });
+    const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${hfToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ inputs: prompt.trim() }),
+      signal: AbortSignal.timeout(90000),
+    });
 
-  if (!response.ok) {
-    const message = response.status === 503
-      ? 'El modelo está cargando, esperá unos segundos e intentá de nuevo'
-      : 'Error al generar la imagen, intentá de nuevo';
-    res.status(502).json({ success: false, error: { message } });
-    return;
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      logger.error('HuggingFace API error', { status: response.status, body: bodyText });
+      const message = response.status === 503
+        ? 'El modelo está cargando, esperá unos segundos e intentá de nuevo'
+        : `Error al generar la imagen (${response.status}), intentá de nuevo`;
+      res.status(502).json({ success: false, error: { message } });
+      return;
+    }
+
+    const contentType = response.headers.get('content-type') ?? 'image/jpeg';
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const base64 = buffer.toString('base64');
+
+    res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
+  } catch (err) {
+    logger.error('generateAvatarController error', { err });
+    const message = err instanceof Error && err.name === 'TimeoutError'
+      ? 'La generación tardó demasiado, intentá de nuevo'
+      : 'Error inesperado al generar la imagen';
+    res.status(500).json({ success: false, error: { message } });
   }
-
-  const contentType = response.headers.get('content-type') ?? 'image/jpeg';
-  const buffer = Buffer.from(await response.arrayBuffer());
-  const base64 = buffer.toString('base64');
-
-  res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
 }
 
 export const uploadAvatarController = (req: Request, res: Response, next: NextFunction): void => {

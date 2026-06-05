@@ -106,8 +106,11 @@ export const ProfilePage = () => {
     try {
       const res = await apiClient.post('/profile/avatar/generate', { prompt: avatarPrompt });
       setGeneratedPreview(res.data.data.previewUrl);
-    } catch {
-      setAvatarGenError('No se pudo generar la imagen. Intentá de nuevo.');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message
+        ?? 'No se pudo generar la imagen. Intentá de nuevo.';
+      setAvatarGenError(msg);
     } finally {
       setAvatarGenerating(false);
     }
