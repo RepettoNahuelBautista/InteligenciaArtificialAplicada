@@ -19,36 +19,30 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  const hfToken = process.env.HUGGINGFACE_API_TOKEN;
-  if (!hfToken) {
-    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado' } });
-    return;
-  }
-
   try {
-    logger.info('Generating avatar via HuggingFace', { userId: req.userId });
+    logger.info('Generating avatar via Pollinations', { userId: req.userId });
 
-    const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${hfToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ inputs: prompt.trim() }),
-      signal: AbortSignal.timeout(90000),
+    const encodedPrompt = encodeURIComponent(prompt.trim());
+    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&model=flux-schnell&nologo=true&seed=${Date.now()}`;
+
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(60000),
     });
 
     if (!response.ok) {
-      const bodyText = await response.text().catch(() => '');
-      logger.error('HuggingFace API error', { status: response.status, body: bodyText });
-      const message = response.status === 503
-        ? 'El modelo está cargando, esperá unos segundos e intentá de nuevo'
-        : `Error al generar la imagen (${response.status}), intentá de nuevo`;
-      res.status(502).json({ success: false, error: { message } });
+      logger.error('Pollinations API error', { status: response.status });
+      res.status(502).json({ success: false, error: { message: `Error al generar la imagen (${response.status}), intentá de nuevo` } });
       return;
     }
 
     const contentType = response.headers.get('content-type') ?? 'image/jpeg';
+    if (!contentType.startsWith('image/')) {
+      const bodyText = await response.text().catch(() => '');
+      logger.error('Pollinations returned non-image', { contentType, body: bodyText.slice(0, 200) });
+      res.status(502).json({ success: false, error: { message: 'El servicio de imágenes no respondió correctamente' } });
+      return;
+    }
+
     const buffer = Buffer.from(await response.arrayBuffer());
     const base64 = buffer.toString('base64');
 
@@ -56,7 +50,7 @@ export async function generateAvatarController(req: Request, res: Response): Pro
   } catch (err) {
     logger.error('generateAvatarController error', { err });
     const message = err instanceof Error && err.name === 'TimeoutError'
-      ? 'La generación tardó demasiado, intentá de nuevo'
+      ? 'La generación tardó demasiado (>60s), intentá de nuevo'
       : 'Error inesperado al generar la imagen';
     res.status(500).json({ success: false, error: { message } });
   }
