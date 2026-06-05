@@ -74,14 +74,10 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     const { id } = await submitRes.json() as { id: string };
     logger.info('Stable Horde job submitted', { jobId: id });
 
-    const imgUrl = await pollStableHorde(id, Date.now() + 110000);
+    // r2:false → img is raw base64 data, not a URL
+    const imgBase64 = await pollStableHorde(id, Date.now() + 110000);
 
-    const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(15000) });
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-    const base64 = buffer.toString('base64');
-    const contentType = imgRes.headers.get('content-type') ?? 'image/webp';
-
-    res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
+    res.json({ success: true, data: { previewUrl: `data:image/webp;base64,${imgBase64}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
     const msg = err instanceof Error ? err.message : '';
