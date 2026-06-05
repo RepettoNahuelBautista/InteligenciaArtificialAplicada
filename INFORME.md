@@ -54,7 +54,7 @@ Respuesta enriquecida al frontend
 
 ### Generación de avatares con IA
 
-Adicionalmente, la aplicación usa **Pollinations.ai** para generar avatares de perfil personalizados mediante IA generativa de imágenes.
+Adicionalmente, la aplicación usa **AI Horde** (aihorde.net) para generar avatares de perfil personalizados mediante IA generativa de imágenes. El proceso de llegar a este proveedor involucró descartar múltiples alternativas que dejaron de funcionar de forma gratuita (ver Problema 9).
 
 ---
 
@@ -64,7 +64,7 @@ Adicionalmente, la aplicación usa **Pollinations.ai** para generar avatares de 
 |-----------|-----------|-----|
 | **LLM principal** | Google Gemini 2.5 Flash (`@google/generative-ai ^0.24.1`) | Generar recomendaciones justificadas |
 | **Catálogo y validación** | TMDB API (The Movie Database) | Búsqueda, metadatos, pósters, watch providers |
-| **Generación de imágenes** | Pollinations.ai | Avatares de usuario generados por IA |
+| **Generación de imágenes** | AI Horde / aihorde.net (Stable Diffusion comunitario) | Avatares de usuario generados por IA |
 | **Base de datos** | PostgreSQL en Azure | Persistencia de perfiles, reseñas, listas |
 | **Almacenamiento de imágenes** | Cloudinary | Subida y gestión de fotos de perfil |
 
@@ -155,7 +155,7 @@ A partir de ese punto, el desarrollo continuó con **Claude (Anthropic)**, que t
 - Perfil de usuario con estadísticas
 - Features sociales completas (reviews, listas, follows, búsqueda de usuarios)
 - Foto de perfil con Cloudinary
-- Generación de avatares con Pollinations.ai
+- Generación de avatares con IA (AI Horde)
 - Deployment a producción (Vercel + Render + Azure PostgreSQL)
 
 ---
@@ -243,6 +243,34 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 
 ---
 
+### Problema 9 — Generación de avatares: colapso del ecosistema de APIs gratuitas de imagen
+
+**Situación:** La funcionalidad de generación de avatares a partir de texto requería un servicio de text-to-image. A lo largo del desarrollo se intentaron **cinco proveedores distintos**, todos con fallas diferentes:
+
+| Proveedor | Resultado | Causa |
+|-----------|-----------|-------|
+| **Pollinations.ai** | HTTP 402 Payment Required | Pasó a ser de pago |
+| **HuggingFace FLUX.1-schnell** | Error de red (`fetch failed`) | `api-inference.huggingface.co` está bloqueado/inaccesible desde Render |
+| **HuggingFace SDXL** | Mismo `fetch failed` | Mismo dominio bloqueado en Render |
+| **Gemini image generation** | Fallo inmediato | `gemini-2.0-flash-preview-image-generation` fue eliminado el 14/11/2025; los modelos nuevos no tienen free tier |
+| **AI Horde (clave anónima)** | Timeout >110s | Prioridad mínima en la cola comunitaria sin cuenta registrada |
+
+**Diagnóstico clave:** El problema con HuggingFace no era el modelo ni el token — era que el servidor de Render directamente no puede resolver el DNS de `api-inference.huggingface.co`. El error `fetch failed` (error de red a nivel sistema) fue determinante para descartar toda la infraestructura de HuggingFace.
+
+**Solución final:** **AI Horde** (aihorde.net) con clave de cuenta registrada gratuita:
+- Red de GPUs comunitaria completamente gratuita
+- Con una cuenta registrada la prioridad sube y el tiempo baja a ~30-60 segundos
+- El servidor de Render sí puede alcanzar `aihorde.net`
+
+**Bug adicional descubierto:** Una vez que AI Horde funcionó, apareció un nuevo error: `Failed to parse URL from [datos base64]`. El campo `img` de la respuesta de AI Horde, cuando se configura `r2: false`, **devuelve la imagen directamente como base64**, no como una URL. El código intentaba hacer `fetch()` sobre esos datos. El fix fue usar el base64 directamente: `data:image/webp;base64,{img}`.
+
+**Aprendizajes:**
+1. Siempre surfacear el error real al cliente durante debugging (no un mensaje genérico) — cada iteración con error genérico retrasó el diagnóstico
+2. Verificar conectividad de red desde el servidor de producción antes de asumir que un error es de credenciales o modelo
+3. El ecosistema de generación de imágenes gratuita se deterioró significativamente entre 2024 y 2026
+
+---
+
 ### Problema 8 — TMDB API Key no detectada en runtime
 
 **Situación:** La key de TMDB se leía correctamente en desarrollo pero Render no la tenía configurada, devolviendo errores 401 silenciosos.
@@ -260,7 +288,7 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 | **Auth** | JWT (jsonwebtoken) + bcryptjs |
 | **Validación** | Zod 3.23 |
 | **LLM** | Google Gemini 2.5 Flash |
-| **Imágenes** | Cloudinary (fotos de perfil) + Pollinations.ai (avatares IA) |
+| **Imágenes** | Cloudinary (fotos de perfil) + AI Horde / aihorde.net (avatares IA) |
 | **Frontend** | React 18 + Vite 5 + TailwindCSS 3.3 + React Router 6.20 |
 | **APIs externas** | TMDB (catálogo + watch providers) |
 | **Hosting frontend** | Vercel |
@@ -297,4 +325,4 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 
 ---
 
-*Última actualización: mayo 2026*
+*Última actualización: junio 2026*
