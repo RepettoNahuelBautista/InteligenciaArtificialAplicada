@@ -535,7 +535,7 @@ export const ProfilePage = () => {
                       {avatarGenerating ? (
                         <>
                           <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                          Generando imagen (puede tardar ~1 min)...
+                          Generando imagen...
                         </>
                       ) : '✨ Generar'}
                     </button>

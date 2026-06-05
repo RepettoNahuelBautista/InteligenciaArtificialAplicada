@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { uploadAvatar } from '../services/avatarService';
 import { logger } from '../utils/logger';
 
@@ -12,29 +13,6 @@ const multerUpload = multer({
   },
 }).single('avatar');
 
-async function pollStableHorde(jobId: string, deadlineMs: number): Promise<string> {
-  while (Date.now() < deadlineMs) {
-    await new Promise(r => setTimeout(r, 4000));
-
-    const checkRes = await fetch(`https://stablehorde.net/api/v2/generate/check/${jobId}`, {
-      signal: AbortSignal.timeout(10000),
-    });
-    const check = await checkRes.json() as { done: boolean; faulted?: boolean; wait_time?: number };
-
-    if (check.faulted) throw new Error('faulted');
-    if (!check.done) continue;
-
-    const statusRes = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`, {
-      signal: AbortSignal.timeout(15000),
-    });
-    const status = await statusRes.json() as { generations: Array<{ img: string }> };
-    const imgUrl = status.generations?.[0]?.img;
-    if (!imgUrl) throw new Error('no_image');
-    return imgUrl;
-  }
-  throw new Error('timeout');
-}
-
 export async function generateAvatarController(req: Request, res: Response): Promise<void> {
   const { prompt } = req.body;
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
@@ -42,53 +20,41 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  try {
-    logger.info('Generating avatar via Stable Horde', { userId: req.userId });
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado' } });
+    return;
+  }
 
-    const submitRes = await fetch('https://stablehorde.net/api/v2/generate/async', {
-      method: 'POST',
-      headers: {
-        'apikey': '0000000000',
-        'Content-Type': 'application/json',
-        'Client-Agent': 'recomendador-peliculas:1.0:anonymous',
-      },
-      body: JSON.stringify({
-        prompt: prompt.trim(),
-        params: { width: 512, height: 512, steps: 20, n: 1, sampler_name: 'k_euler' },
-        models: ['Deliberate'],
-        r2: false,
-      }),
-      signal: AbortSignal.timeout(15000),
+  try {
+    logger.info('Generating avatar via Gemini', { userId: req.userId });
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.0-flash-preview-image-generation',
     });
 
-    if (!submitRes.ok) {
-      const body = await submitRes.text().catch(() => '');
-      logger.error('Stable Horde submit error', { status: submitRes.status, body });
-      res.status(502).json({ success: false, error: { message: `Error al iniciar la generación (${submitRes.status})` } });
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: `Generate a profile avatar image: ${prompt.trim()}` }] }],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      generationConfig: { responseModalities: ['IMAGE'] } as any,
+    });
+
+    const parts = result.response.candidates?.[0]?.content?.parts ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const imagePart = (parts as any[]).find(p => p.inlineData);
+
+    if (!imagePart?.inlineData) {
+      logger.error('Gemini returned no image part', { candidateCount: result.response.candidates?.length });
+      res.status(502).json({ success: false, error: { message: 'No se generó ninguna imagen, intentá de nuevo' } });
       return;
     }
 
-    const { id } = await submitRes.json() as { id: string };
-    logger.info('Stable Horde job submitted', { jobId: id });
-
-    const imgUrl = await pollStableHorde(id, Date.now() + 110000);
-
-    // Fetch and proxy the image
-    const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(15000) });
-    const buffer = Buffer.from(await imgRes.arrayBuffer());
-    const base64 = buffer.toString('base64');
-    const contentType = imgRes.headers.get('content-type') ?? 'image/webp';
-
-    res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
+    const { data, mimeType } = imagePart.inlineData as { data: string; mimeType: string };
+    res.json({ success: true, data: { previewUrl: `data:${mimeType};base64,${data}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
-    const errMsg = err instanceof Error ? err.message : '';
-    const message =
-      errMsg === 'timeout' ? 'La generación tardó demasiado, intentá de nuevo' :
-      errMsg === 'faulted' ? 'El servidor de imágenes reportó un error, intentá de nuevo' :
-      errMsg === 'TimeoutError' ? 'Tiempo de espera agotado, intentá de nuevo' :
-      'Error inesperado al generar la imagen';
-    res.status(500).json({ success: false, error: { message } });
+    res.status(500).json({ success: false, error: { message: 'Error al generar la imagen, intentá de nuevo' } });
   }
 }
 
