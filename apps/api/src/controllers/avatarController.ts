@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { uploadAvatar } from '../services/avatarService';
 import { logger } from '../utils/logger';
 
@@ -20,41 +19,58 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado' } });
+  const hfToken = process.env.HUGGINGFACE_API_TOKEN;
+  if (!hfToken) {
+    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado (falta HUGGINGFACE_API_TOKEN)' } });
     return;
   }
 
   try {
-    logger.info('Generating avatar via Gemini', { userId: req.userId });
+    logger.info('Generating avatar via HuggingFace SDXL', { userId: req.userId });
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-preview-image-generation',
-    });
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${hfToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inputs: prompt.trim() }),
+        signal: AbortSignal.timeout(90000),
+      }
+    );
 
-    const result = await model.generateContent({
-      contents: [{ role: 'user', parts: [{ text: `Generate a profile avatar image: ${prompt.trim()}` }] }],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      generationConfig: { responseModalities: ['IMAGE'] } as any,
-    });
-
-    const parts = result.response.candidates?.[0]?.content?.parts ?? [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const imagePart = (parts as any[]).find(p => p.inlineData);
-
-    if (!imagePart?.inlineData) {
-      logger.error('Gemini returned no image part', { candidateCount: result.response.candidates?.length });
-      res.status(502).json({ success: false, error: { message: 'No se generó ninguna imagen, intentá de nuevo' } });
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => '');
+      logger.error('HuggingFace SDXL error', { status: response.status, body: bodyText });
+      // Surface the real error so we can diagnose
+      const hfError = (() => { try { return JSON.parse(bodyText); } catch { return null; } })();
+      const detail = hfError?.error ?? bodyText.slice(0, 200) ?? '';
+      const message = response.status === 503
+        ? `Modelo cargando, esperá unos segundos e intentá de nuevo${detail ? ` (${detail})` : ''}`
+        : `HuggingFace error ${response.status}${detail ? `: ${detail}` : ''}`;
+      res.status(502).json({ success: false, error: { message } });
       return;
     }
 
-    const { data, mimeType } = imagePart.inlineData as { data: string; mimeType: string };
-    res.json({ success: true, data: { previewUrl: `data:${mimeType};base64,${data}` } });
+    const contentType = response.headers.get('content-type') ?? 'image/jpeg';
+    if (!contentType.startsWith('image/')) {
+      const bodyText = await response.text().catch(() => '');
+      logger.error('HuggingFace returned non-image', { contentType, body: bodyText.slice(0, 300) });
+      res.status(502).json({ success: false, error: { message: `Respuesta inesperada del servicio: ${bodyText.slice(0, 150)}` } });
+      return;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const base64 = buffer.toString('base64');
+    res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
-    res.status(500).json({ success: false, error: { message: 'Error al generar la imagen, intentá de nuevo' } });
+    const message = err instanceof Error
+      ? (err.name === 'TimeoutError' ? 'Timeout esperando imagen (90s), intentá de nuevo' : `Error: ${err.message}`)
+      : 'Error inesperado';
+    res.status(500).json({ success: false, error: { message } });
   }
 }
 
