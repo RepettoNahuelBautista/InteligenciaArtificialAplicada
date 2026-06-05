@@ -12,6 +12,29 @@ const multerUpload = multer({
   },
 }).single('avatar');
 
+async function pollStableHorde(jobId: string, deadlineMs: number): Promise<string> {
+  while (Date.now() < deadlineMs) {
+    await new Promise(r => setTimeout(r, 4000));
+
+    const checkRes = await fetch(`https://stablehorde.net/api/v2/generate/check/${jobId}`, {
+      signal: AbortSignal.timeout(10000),
+    });
+    const check = await checkRes.json() as { done: boolean; faulted?: boolean; wait_time?: number };
+
+    if (check.faulted) throw new Error('faulted');
+    if (!check.done) continue;
+
+    const statusRes = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`, {
+      signal: AbortSignal.timeout(15000),
+    });
+    const status = await statusRes.json() as { generations: Array<{ img: string }> };
+    const imgUrl = status.generations?.[0]?.img;
+    if (!imgUrl) throw new Error('no_image');
+    return imgUrl;
+  }
+  throw new Error('timeout');
+}
+
 export async function generateAvatarController(req: Request, res: Response): Promise<void> {
   const { prompt } = req.body;
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
@@ -20,38 +43,51 @@ export async function generateAvatarController(req: Request, res: Response): Pro
   }
 
   try {
-    logger.info('Generating avatar via Pollinations', { userId: req.userId });
+    logger.info('Generating avatar via Stable Horde', { userId: req.userId });
 
-    const encodedPrompt = encodeURIComponent(prompt.trim());
-    const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&model=flux-schnell&nologo=true&seed=${Date.now()}`;
-
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(60000),
+    const submitRes = await fetch('https://stablehorde.net/api/v2/generate/async', {
+      method: 'POST',
+      headers: {
+        'apikey': '0000000000',
+        'Content-Type': 'application/json',
+        'Client-Agent': 'recomendador-peliculas:1.0:anonymous',
+      },
+      body: JSON.stringify({
+        prompt: prompt.trim(),
+        params: { width: 512, height: 512, steps: 20, n: 1, sampler_name: 'k_euler' },
+        models: ['Deliberate'],
+        r2: false,
+      }),
+      signal: AbortSignal.timeout(15000),
     });
 
-    if (!response.ok) {
-      logger.error('Pollinations API error', { status: response.status });
-      res.status(502).json({ success: false, error: { message: `Error al generar la imagen (${response.status}), intentá de nuevo` } });
+    if (!submitRes.ok) {
+      const body = await submitRes.text().catch(() => '');
+      logger.error('Stable Horde submit error', { status: submitRes.status, body });
+      res.status(502).json({ success: false, error: { message: `Error al iniciar la generación (${submitRes.status})` } });
       return;
     }
 
-    const contentType = response.headers.get('content-type') ?? 'image/jpeg';
-    if (!contentType.startsWith('image/')) {
-      const bodyText = await response.text().catch(() => '');
-      logger.error('Pollinations returned non-image', { contentType, body: bodyText.slice(0, 200) });
-      res.status(502).json({ success: false, error: { message: 'El servicio de imágenes no respondió correctamente' } });
-      return;
-    }
+    const { id } = await submitRes.json() as { id: string };
+    logger.info('Stable Horde job submitted', { jobId: id });
 
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const imgUrl = await pollStableHorde(id, Date.now() + 110000);
+
+    // Fetch and proxy the image
+    const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(15000) });
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
     const base64 = buffer.toString('base64');
+    const contentType = imgRes.headers.get('content-type') ?? 'image/webp';
 
     res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
-    const message = err instanceof Error && err.name === 'TimeoutError'
-      ? 'La generación tardó demasiado (>60s), intentá de nuevo'
-      : 'Error inesperado al generar la imagen';
+    const errMsg = err instanceof Error ? err.message : '';
+    const message =
+      errMsg === 'timeout' ? 'La generación tardó demasiado, intentá de nuevo' :
+      errMsg === 'faulted' ? 'El servidor de imágenes reportó un error, intentá de nuevo' :
+      errMsg === 'TimeoutError' ? 'Tiempo de espera agotado, intentá de nuevo' :
+      'Error inesperado al generar la imagen';
     res.status(500).json({ success: false, error: { message } });
   }
 }
