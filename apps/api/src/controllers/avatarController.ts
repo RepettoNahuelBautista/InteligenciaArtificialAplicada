@@ -12,6 +12,27 @@ const multerUpload = multer({
   },
 }).single('avatar');
 
+async function pollStableHorde(jobId: string, deadlineMs: number): Promise<string> {
+  while (Date.now() < deadlineMs) {
+    await new Promise(r => setTimeout(r, 4000));
+    const checkRes = await fetch(`https://stablehorde.net/api/v2/generate/check/${jobId}`, {
+      signal: AbortSignal.timeout(10000),
+    });
+    const check = await checkRes.json() as { done: boolean; faulted?: boolean };
+    if (check.faulted) throw new Error('faulted');
+    if (!check.done) continue;
+
+    const statusRes = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`, {
+      signal: AbortSignal.timeout(15000),
+    });
+    const status = await statusRes.json() as { generations: Array<{ img: string }> };
+    const imgUrl = status.generations?.[0]?.img;
+    if (!imgUrl) throw new Error('no_image');
+    return imgUrl;
+  }
+  throw new Error('timeout');
+}
+
 export async function generateAvatarController(req: Request, res: Response): Promise<void> {
   const { prompt } = req.body;
   if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
@@ -19,57 +40,54 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  const hfToken = process.env.HUGGINGFACE_API_TOKEN;
-  if (!hfToken) {
-    res.status(500).json({ success: false, error: { message: 'Servicio de generación no configurado (falta HUGGINGFACE_API_TOKEN)' } });
-    return;
-  }
+  // Registered key gets high priority (~15-30s); anonymous key is very slow (90s+)
+  const hordeKey = process.env.STABLE_HORDE_API_KEY ?? '0000000000';
 
   try {
-    logger.info('Generating avatar via HuggingFace SDXL', { userId: req.userId });
+    logger.info('Generating avatar via Stable Horde', { userId: req.userId, anonymous: hordeKey === '0000000000' });
 
-    const response = await fetch(
-      'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${hfToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ inputs: prompt.trim() }),
-        signal: AbortSignal.timeout(90000),
-      }
-    );
+    const submitRes = await fetch('https://stablehorde.net/api/v2/generate/async', {
+      method: 'POST',
+      headers: {
+        'apikey': hordeKey,
+        'Content-Type': 'application/json',
+        'Client-Agent': 'recomendador-peliculas:1.0:nahuel',
+      },
+      body: JSON.stringify({
+        prompt: prompt.trim(),
+        params: { width: 512, height: 512, steps: 25, n: 1, sampler_name: 'k_euler_a' },
+        models: ['Deliberate'],
+        r2: false,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
 
-    if (!response.ok) {
-      const bodyText = await response.text().catch(() => '');
-      logger.error('HuggingFace SDXL error', { status: response.status, body: bodyText });
-      // Surface the real error so we can diagnose
-      const hfError = (() => { try { return JSON.parse(bodyText); } catch { return null; } })();
-      const detail = hfError?.error ?? bodyText.slice(0, 200) ?? '';
-      const message = response.status === 503
-        ? `Modelo cargando, esperá unos segundos e intentá de nuevo${detail ? ` (${detail})` : ''}`
-        : `HuggingFace error ${response.status}${detail ? `: ${detail}` : ''}`;
-      res.status(502).json({ success: false, error: { message } });
+    if (!submitRes.ok) {
+      const body = await submitRes.text().catch(() => '');
+      logger.error('Stable Horde submit error', { status: submitRes.status, body });
+      res.status(502).json({ success: false, error: { message: `Error iniciando generación (${submitRes.status}): ${body.slice(0, 150)}` } });
       return;
     }
 
-    const contentType = response.headers.get('content-type') ?? 'image/jpeg';
-    if (!contentType.startsWith('image/')) {
-      const bodyText = await response.text().catch(() => '');
-      logger.error('HuggingFace returned non-image', { contentType, body: bodyText.slice(0, 300) });
-      res.status(502).json({ success: false, error: { message: `Respuesta inesperada del servicio: ${bodyText.slice(0, 150)}` } });
-      return;
-    }
+    const { id } = await submitRes.json() as { id: string };
+    logger.info('Stable Horde job submitted', { jobId: id });
 
-    const buffer = Buffer.from(await response.arrayBuffer());
+    const imgUrl = await pollStableHorde(id, Date.now() + 110000);
+
+    const imgRes = await fetch(imgUrl, { signal: AbortSignal.timeout(15000) });
+    const buffer = Buffer.from(await imgRes.arrayBuffer());
     const base64 = buffer.toString('base64');
+    const contentType = imgRes.headers.get('content-type') ?? 'image/webp';
+
     res.json({ success: true, data: { previewUrl: `data:${contentType};base64,${base64}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
-    const message = err instanceof Error
-      ? (err.name === 'TimeoutError' ? 'Timeout esperando imagen (90s), intentá de nuevo' : `Error: ${err.message}`)
-      : 'Error inesperado';
+    const msg = err instanceof Error ? err.message : '';
+    const message =
+      msg === 'timeout'   ? 'La generación tardó demasiado. Registrate en stablehorde.net para obtener una clave gratis y acelerar el proceso.' :
+      msg === 'faulted'   ? 'El servidor de imágenes reportó un error, intentá de nuevo' :
+      msg === 'no_image'  ? 'No se recibió imagen, intentá de nuevo' :
+                            `Error: ${msg || 'inesperado'}`;
     res.status(500).json({ success: false, error: { message } });
   }
 }
