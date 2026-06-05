@@ -12,18 +12,20 @@ const multerUpload = multer({
   },
 }).single('avatar');
 
+const HORDE_BASE = 'https://aihorde.net/api/v2';
+
 async function pollStableHorde(jobId: string, deadlineMs: number): Promise<string> {
   while (Date.now() < deadlineMs) {
-    await new Promise(r => setTimeout(r, 4000));
-    const checkRes = await fetch(`https://stablehorde.net/api/v2/generate/check/${jobId}`, {
-      signal: AbortSignal.timeout(10000),
+    await new Promise(r => setTimeout(r, 5000));
+    const checkRes = await fetch(`${HORDE_BASE}/generate/check/${jobId}`, {
+      signal: AbortSignal.timeout(30000),
     });
-    const check = await checkRes.json() as { done: boolean; faulted?: boolean };
+    const check = await checkRes.json() as { done: boolean; faulted?: boolean; wait_time?: number };
     if (check.faulted) throw new Error('faulted');
     if (!check.done) continue;
 
-    const statusRes = await fetch(`https://stablehorde.net/api/v2/generate/status/${jobId}`, {
-      signal: AbortSignal.timeout(15000),
+    const statusRes = await fetch(`${HORDE_BASE}/generate/status/${jobId}`, {
+      signal: AbortSignal.timeout(30000),
     });
     const status = await statusRes.json() as { generations: Array<{ img: string }> };
     const imgUrl = status.generations?.[0]?.img;
@@ -40,13 +42,12 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  // Registered key gets high priority (~15-30s); anonymous key is very slow (90s+)
   const hordeKey = process.env.STABLE_HORDE_API_KEY ?? '0000000000';
 
   try {
-    logger.info('Generating avatar via Stable Horde', { userId: req.userId, anonymous: hordeKey === '0000000000' });
+    logger.info('Generating avatar via AI Horde', { userId: req.userId, anonymous: hordeKey === '0000000000' });
 
-    const submitRes = await fetch('https://stablehorde.net/api/v2/generate/async', {
+    const submitRes = await fetch(`${HORDE_BASE}/generate/async`, {
       method: 'POST',
       headers: {
         'apikey': hordeKey,
@@ -55,11 +56,12 @@ export async function generateAvatarController(req: Request, res: Response): Pro
       },
       body: JSON.stringify({
         prompt: prompt.trim(),
-        params: { width: 512, height: 512, steps: 25, n: 1, sampler_name: 'k_euler_a' },
-        models: ['Deliberate'],
+        params: { width: 512, height: 512, steps: 20, n: 1, sampler_name: 'k_euler_a' },
+        // No model restriction: any available worker can pick it up (faster)
+        slow_workers: false,
         r2: false,
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!submitRes.ok) {
