@@ -12,7 +12,7 @@ export const MoodSelector = ({ selectedMoodId, onMoodSelected }: MoodSelectorPro
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-white mx-auto mb-4"></div>
-        <p className="text-indigo-600 dark:text-indigo-100">Cargando estados de ánimo...</p>
+        <p className="text-zinc-600 dark:text-indigo-100">Cargando estados de ánimo...</p>
       </div>
     );
   }
@@ -29,8 +29,8 @@ export const MoodSelector = ({ selectedMoodId, onMoodSelected }: MoodSelectorPro
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold text-indigo-900 dark:text-white mb-2">¿Cómo te sentís hoy?</h2>
-      <p className="text-indigo-600 dark:text-indigo-200 mb-6 text-sm">
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">¿Cómo te sentís hoy?</h2>
+      <p className="text-zinc-600 dark:text-indigo-200 mb-6 text-sm">
         Seleccioná tu estado de ánimo para recibir recomendaciones personalizadas
       </p>
 
@@ -42,12 +42,12 @@ export const MoodSelector = ({ selectedMoodId, onMoodSelected }: MoodSelectorPro
             className={`flex flex-col items-center justify-center p-4 rounded-lg transition-all duration-200 border-2 ${
               selectedMoodId === mood.id
                 ? 'border-purple-400 bg-purple-500/30 scale-105'
-                : 'border-indigo-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:border-white/40'
+                : 'border-zinc-200 bg-white hover:bg-zinc-50 hover:border-zinc-400 dark:border-white/20 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:border-white/40'
             }`}
           >
             <span className="text-4xl mb-2">{mood.emoji}</span>
-            <span className="text-sm font-semibold text-indigo-900 dark:text-white text-center">{mood.label}</span>
-            <span className="text-xs text-indigo-500 dark:text-indigo-200 mt-1 text-center hidden sm:block">
+            <span className="text-sm font-semibold text-zinc-900 dark:text-white text-center">{mood.label}</span>
+            <span className="text-xs text-zinc-500 dark:text-indigo-200 mt-1 text-center hidden sm:block">
               {mood.description}
             </span>
           </button>

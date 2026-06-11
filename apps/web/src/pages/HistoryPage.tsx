@@ -17,7 +17,7 @@ const MOOD_LABELS: Record<string, string> = {
 
 function HistoryCard({ item }: { item: HistoryItem }) {
   return (
-    <div className="bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 overflow-hidden flex gap-4 p-4 dark:bg-white/10 dark:border-white/20">
+    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden flex gap-4 p-4 dark:bg-white/10 dark:border-white/20">
       {item.posterPath ? (
         <img
           src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
@@ -25,24 +25,24 @@ function HistoryCard({ item }: { item: HistoryItem }) {
           className="w-16 h-24 object-cover rounded-lg flex-shrink-0"
         />
       ) : (
-        <div className="w-16 h-24 bg-indigo-100 dark:bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-16 h-24 bg-zinc-100 dark:bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
           <span className="text-2xl">{item.contentType === 'tv' ? '📺' : '🎬'}</span>
         </div>
       )}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="text-indigo-900 dark:text-white font-semibold leading-tight truncate">{item.title}</h3>
-          <span className="text-xs bg-indigo-100 text-indigo-600 dark:bg-white/10 dark:text-indigo-200 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+          <h3 className="text-zinc-900 dark:text-white font-semibold leading-tight truncate">{item.title}</h3>
+          <span className="text-xs bg-zinc-100 text-zinc-600 dark:bg-white/10 dark:text-indigo-200 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
             {item.contentType === 'tv' ? '📺 Serie' : '🎬 Película'}
           </span>
         </div>
-        <p className="text-indigo-500 dark:text-indigo-300 text-xs mb-2">
+        <p className="text-zinc-500 dark:text-indigo-300 text-xs mb-2">
           {item.year} · {item.genre}
           {item.contextMood && ` · ${MOOD_LABELS[item.contextMood] ?? item.contextMood}`}
         </p>
-        <p className="text-indigo-700 dark:text-indigo-100 text-sm leading-relaxed line-clamp-2">{item.explanation}</p>
-        <p className="text-indigo-400 text-xs mt-2">
+        <p className="text-zinc-700 dark:text-indigo-100 text-sm leading-relaxed line-clamp-2">{item.explanation}</p>
+        <p className="text-zinc-400 text-xs mt-2">
           {new Date(item.createdAt).toLocaleDateString('es-AR', {
             day: 'numeric',
             month: 'long',
@@ -80,19 +80,19 @@ export function HistoryPage() {
   const hasFilters = typeFilter !== 'all' || moodFilter !== 'all';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <button
             onClick={() => navigate('/home')}
-            className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm"
+            className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm"
           >
             ← Volver al inicio
           </button>
-          <h1 className="text-3xl font-bold text-indigo-900 dark:text-white">Historial de Recomendaciones</h1>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Historial de Recomendaciones</h1>
           {!loading && (
-            <p className="text-indigo-500 dark:text-indigo-300 mt-1">
+            <p className="text-zinc-500 dark:text-indigo-300 mt-1">
               {hasFilters
                 ? `${filtered.length} de ${allItems.length} recomendaciones`
                 : `${allItems.length} ${allItems.length === 1 ? 'recomendación' : 'recomendaciones'} en total`}
@@ -102,10 +102,10 @@ export function HistoryPage() {
 
         {/* Filtros */}
         {!loading && allItems.length > 0 && (
-          <div className="bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 p-4 mb-6 space-y-3 dark:bg-white/10 dark:border-white/20">
+          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-4 mb-6 space-y-3 dark:bg-white/10 dark:border-white/20">
             {/* Tipo */}
             <div>
-              <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-300 mb-2">Tipo</p>
+              <p className="text-xs font-semibold text-zinc-500 dark:text-indigo-300 mb-2">Tipo</p>
               <div className="flex gap-2">
                 {(['all', 'movie', 'tv'] as TypeFilter[]).map((t) => (
                   <button
@@ -114,7 +114,7 @@ export function HistoryPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                       typeFilter === t
                         ? 'bg-indigo-500 text-white'
-                        : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
+                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
                     }`}
                   >
                     {t === 'all' ? 'Todos' : t === 'movie' ? '🎬 Películas' : '📺 Series'}
@@ -126,14 +126,14 @@ export function HistoryPage() {
             {/* Estado de ánimo */}
             {moodsInHistory.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-indigo-500 dark:text-indigo-300 mb-2">Estado de ánimo</p>
+                <p className="text-xs font-semibold text-zinc-500 dark:text-indigo-300 mb-2">Estado de ánimo</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setMoodFilter('all')}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                       moodFilter === 'all'
                         ? 'bg-indigo-500 text-white'
-                        : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
+                        : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
                     }`}
                   >
                     Todos
@@ -145,7 +145,7 @@ export function HistoryPage() {
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
                         moodFilter === mood
                           ? 'bg-indigo-500 text-white'
-                          : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
+                          : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-white/10 dark:text-indigo-200 dark:hover:bg-white/20'
                       }`}
                     >
                       {MOOD_LABELS[mood] ?? mood}
@@ -159,7 +159,7 @@ export function HistoryPage() {
             {hasFilters && (
               <button
                 onClick={() => { setTypeFilter('all'); setMoodFilter('all'); }}
-                className="text-xs text-indigo-500 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 transition"
+                className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-indigo-400 dark:hover:text-indigo-200 transition"
               >
                 Limpiar filtros
               </button>
@@ -186,7 +186,7 @@ export function HistoryPage() {
           <div className="text-center py-16">
             <p className="text-5xl mb-4">📭</p>
             <p className="text-indigo-900 dark:text-white font-semibold text-lg mb-2">Todavía no tenés recomendaciones</p>
-            <p className="text-indigo-500 dark:text-indigo-300 mb-6">Pedí tu primera recomendación y aparecerá aquí</p>
+            <p className="text-zinc-500 dark:text-indigo-300 mb-6">Pedí tu primera recomendación y aparecerá aquí</p>
             <button
               onClick={() => navigate('/recommendation')}
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition"
@@ -200,10 +200,10 @@ export function HistoryPage() {
         {!loading && !error && allItems.length > 0 && filtered.length === 0 && (
           <div className="text-center py-12">
             <p className="text-3xl mb-3">🔍</p>
-            <p className="text-indigo-900 dark:text-white font-semibold mb-1">Sin resultados para estos filtros</p>
+            <p className="text-zinc-900 dark:text-white font-semibold mb-1">Sin resultados para estos filtros</p>
             <button
               onClick={() => { setTypeFilter('all'); setMoodFilter('all'); }}
-              className="text-indigo-500 hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-white text-sm transition mt-2"
+              className="text-zinc-500 hover:text-zinc-900 dark:text-indigo-300 dark:hover:text-white text-sm transition mt-2"
             >
               Limpiar filtros
             </button>

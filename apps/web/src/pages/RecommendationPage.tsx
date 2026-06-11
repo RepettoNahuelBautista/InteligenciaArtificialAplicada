@@ -69,28 +69,28 @@ export const RecommendationPage = () => {
 
   if (results.length > 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
           <div className="mb-6 flex items-center justify-between">
             <button
               onClick={() => navigate('/home')}
-              className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition text-sm flex items-center gap-2"
+              className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition text-sm flex items-center gap-2"
             >
               ← Volver al inicio
             </button>
             <button
               onClick={handleChangeFilters}
-              className="text-indigo-500 hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-white transition text-sm"
+              className="text-zinc-500 hover:text-zinc-900 dark:text-indigo-300 dark:hover:text-white transition text-sm"
             >
               Cambiar filtros
             </button>
           </div>
 
-          <h1 className="text-3xl font-bold text-indigo-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
             {results.length === 1 ? 'Tu recomendación ✨' : `Tus recomendaciones ✨`}
           </h1>
-          <p className="text-indigo-500 dark:text-indigo-300 text-sm mb-6">
+          <p className="text-zinc-500 dark:text-indigo-300 text-sm mb-6">
             {results.length === 1 ? '1 recomendación' : `${results.length} recomendaciones`} · Los filtros se mantienen activos
           </p>
 
@@ -100,8 +100,8 @@ export const RecommendationPage = () => {
             disabled={loading}
             className={`w-full mb-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${
               loading
-                ? 'bg-indigo-100 text-indigo-400 cursor-not-allowed border border-indigo-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
-                : 'bg-white/70 border border-indigo-300 text-indigo-800 hover:bg-white/90 dark:bg-white/15 dark:border-white/30 dark:text-white dark:hover:bg-white/25'
+                ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
+                : 'bg-white border border-zinc-300 text-zinc-800 hover:bg-zinc-50 hover:shadow-sm dark:bg-white/15 dark:border-white/30 dark:text-white dark:hover:bg-white/25'
             }`}
           >
             {loading ? (
@@ -137,27 +137,27 @@ export const RecommendationPage = () => {
 
   // --- Vista: formulario ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <button
             onClick={() => navigate('/home')}
-            className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm"
+            className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm"
           >
             ← Volver
           </button>
-          <h1 className="text-4xl font-bold text-indigo-900 dark:text-white mb-2">Obtener Recomendación</h1>
-          <p className="text-indigo-600 dark:text-indigo-200">Elegí tu estado de ánimo y ajustá los filtros opcionales</p>
+          <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">Obtener Recomendación</h1>
+          <p className="text-zinc-600 dark:text-indigo-200">Elegí tu estado de ánimo y ajustá los filtros opcionales</p>
         </div>
 
         {/* Paso 1: Estado de ánimo */}
-        <div className="bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 p-6 mb-4 dark:bg-white/10 dark:border-white/20">
+        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 mb-4 dark:bg-white/10 dark:border-white/20">
           <MoodSelector selectedMoodId={context.moodId} onMoodSelected={toggleMood} />
         </div>
 
         {/* Paso 2: Filtros */}
-        <div className="bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 p-6 mb-4 dark:bg-white/10 dark:border-white/20">
+        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 mb-4 dark:bg-white/10 dark:border-white/20">
           <FilterPanel
             contentType={context.contentType}
             duration={context.duration}
@@ -188,7 +188,7 @@ export const RecommendationPage = () => {
         <div className="flex gap-4">
           <button
             onClick={() => navigate('/home')}
-            className="bg-white/70 border border-indigo-200 text-indigo-800 px-6 py-3 rounded-lg hover:bg-white/90 transition font-medium dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20"
+            className="bg-white border border-zinc-200 text-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-50 transition font-medium dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20"
           >
             Cancelar
           </button>
@@ -198,7 +198,7 @@ export const RecommendationPage = () => {
             className={`flex-1 py-3 rounded-lg font-semibold transition ${
               isReady && !loading
                 ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
-                : 'bg-indigo-100 text-indigo-400 cursor-not-allowed border border-indigo-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
+                : 'bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
             }`}
           >
             {loading ? (

@@ -6,8 +6,8 @@ interface ContextSummaryProps {
 export const ContextSummary = ({ items, onClear }: ContextSummaryProps) => {
   if (items.length === 0) {
     return (
-      <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg text-center dark:bg-white/5 dark:border-white/10">
-        <p className="text-indigo-500 dark:text-indigo-300 text-sm">
+      <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-lg text-center dark:bg-white/5 dark:border-white/10">
+        <p className="text-zinc-500 dark:text-indigo-300 text-sm">
           Seleccioná un estado de ánimo para ver el resumen de tu búsqueda
         </p>
       </div>

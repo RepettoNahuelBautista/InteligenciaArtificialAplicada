@@ -147,12 +147,12 @@ export const OnboardingFlow: FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary p-4">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">🎬 RecomiendaFilms</h1>
-          <p className="text-indigo-100 dark:text-indigo-100">
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">🎬 RecomiendaFilms</h1>
+          <p className="text-zinc-600 dark:text-indigo-100">
             Cuéntanos tus gustos (Paso {step}/5)
           </p>
         </div>
@@ -163,7 +163,7 @@ export const OnboardingFlow: FC = () => {
             <div
               key={s}
               className={`flex-1 h-2 rounded-full transition ${
-                s <= step ? 'bg-white' : 'bg-indigo-300'
+                s <= step ? 'bg-indigo-500 dark:bg-white' : 'bg-zinc-300 dark:bg-indigo-300'
               }`}
             />
           ))}
@@ -239,7 +239,7 @@ export const OnboardingFlow: FC = () => {
           {isEditMode && step === 1 ? (
             <button
               onClick={() => navigate('/home')}
-              className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100"
+              className="flex-1 bg-white dark:bg-white/10 text-primary dark:text-white py-3 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-white/20"
             >
               Cancelar
             </button>
@@ -277,7 +277,7 @@ export const OnboardingFlow: FC = () => {
           <div className="text-center mt-4">
             <button
               onClick={() => navigate('/home')}
-              className="text-indigo-200 hover:text-white text-sm underline"
+              className="text-zinc-500 dark:text-indigo-200 hover:text-zinc-900 dark:hover:text-white text-sm underline"
             >
               Cancelar y volver al menú principal
             </button>
@@ -285,7 +285,7 @@ export const OnboardingFlow: FC = () => {
         )}
 
         {/* User info */}
-        <div className="text-center text-white mt-8 text-sm">
+        <div className="text-center text-zinc-600 dark:text-white mt-8 text-sm">
           <p>
             {user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario'}, contanos sobre vos
           </p>

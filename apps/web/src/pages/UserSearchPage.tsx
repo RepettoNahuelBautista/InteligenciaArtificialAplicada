@@ -39,14 +39,14 @@ export function UserSearchPage() {
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
-          <button onClick={() => navigate('/home')} className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
+          <button onClick={() => navigate('/home')} className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
             ← Volver al inicio
           </button>
-          <h1 className="text-3xl font-bold text-indigo-900 dark:text-white">Buscar usuarios</h1>
-          <p className="text-indigo-500 dark:text-indigo-300 mt-1">Encontrá usuarios por su nombre y seguílos</p>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Buscar usuarios</h1>
+          <p className="text-zinc-500 dark:text-indigo-300 mt-1">Encontrá usuarios por su nombre y seguílos</p>
         </div>
 
         <div className="relative mb-6">
@@ -56,7 +56,7 @@ export function UserSearchPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscá por nombre de usuario..."
             autoFocus
-            className="w-full px-4 py-3 rounded-xl bg-white/90 border border-indigo-300 text-indigo-900 placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder-indigo-300 dark:focus:ring-indigo-400"
+            className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder-indigo-300 dark:focus:ring-indigo-400"
           />
           {searching && (
             <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 dark:border-white" />
@@ -69,7 +69,7 @@ export function UserSearchPage() {
               <button
                 key={u.userId}
                 onClick={() => navigate(`/users/${u.userId}`, { state: { from: 'search' } })}
-                className="w-full bg-white/70 hover:bg-white/90 border border-indigo-200 dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 rounded-xl p-4 flex items-center gap-4 transition text-left"
+                className="w-full bg-white hover:bg-zinc-50 hover:shadow-sm border border-zinc-200 dark:bg-white/10 dark:hover:bg-white/20 dark:border-white/20 rounded-xl p-4 flex items-center gap-4 transition text-left"
               >
                 <div className="w-11 h-11 rounded-full overflow-hidden bg-indigo-500 flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
                   {u.avatarUrl ? (
@@ -79,21 +79,21 @@ export function UserSearchPage() {
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold text-indigo-900 dark:text-white truncate">{u.displayName}</p>
-                  <p className="text-indigo-500 dark:text-indigo-300 text-sm truncate">{u.email}</p>
+                  <p className="font-semibold text-zinc-900 dark:text-white truncate">{u.displayName}</p>
+                  <p className="text-zinc-500 dark:text-indigo-300 text-sm truncate">{u.email}</p>
                 </div>
-                <span className="ml-auto text-indigo-400 flex-shrink-0">→</span>
+                <span className="ml-auto text-zinc-400 dark:text-indigo-400 flex-shrink-0">→</span>
               </button>
             ))}
           </div>
         ) : searched && query.length >= 2 ? (
-          <div className="text-center py-16 text-indigo-500 dark:text-indigo-300">
+          <div className="text-center py-16 text-zinc-500 dark:text-indigo-300">
             <p className="text-5xl mb-4">🔍</p>
             <p className="font-medium">No se encontraron usuarios con ese nombre</p>
-            <p className="text-sm mt-1 text-indigo-400 dark:text-indigo-400">Solo se puede buscar a usuarios que configuraron su nombre de usuario</p>
+            <p className="text-sm mt-1 text-zinc-400 dark:text-indigo-400">Solo se puede buscar a usuarios que configuraron su nombre de usuario</p>
           </div>
         ) : (
-          <div className="text-center py-16 text-indigo-500 dark:text-indigo-300">
+          <div className="text-center py-16 text-zinc-500 dark:text-indigo-300">
             <p className="text-5xl mb-4">👥</p>
             <p className="font-medium">Escribí al menos 2 caracteres para buscar</p>
           </div>

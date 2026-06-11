@@ -177,7 +177,7 @@ export function MovieListDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-white" />
       </div>
     );
@@ -185,7 +185,7 @@ export function MovieListDetailPage() {
 
   if (error || !list) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
           <p className="text-4xl mb-4">📋</p>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Lista no encontrada</h2>
@@ -199,11 +199,11 @@ export function MovieListDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={() => navigate(-1)} className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
+          <button onClick={() => navigate(-1)} className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
             ← Volver
           </button>
 
@@ -246,19 +246,19 @@ export function MovieListDetailPage() {
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-indigo-900 dark:text-white truncate">{list.name}</h1>
+                  <h1 className="text-3xl font-bold text-zinc-900 dark:text-white truncate">{list.name}</h1>
                   <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${list.isPublic ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/30 dark:text-gray-300'}`}>
                     {list.isPublic ? 'Pública' : 'Privada'}
                   </span>
                 </div>
-                {list.description && <p className="text-indigo-500 dark:text-indigo-300 text-sm">{list.description}</p>}
-                <p className="text-indigo-400 text-xs mt-1">
+                {list.description && <p className="text-zinc-500 dark:text-indigo-300 text-sm">{list.description}</p>}
+                <p className="text-zinc-400 dark:text-indigo-400 text-xs mt-1">
                   {list.items.length} {list.items.length === 1 ? 'título' : 'títulos'} · por {list.owner.displayName}
                 </p>
               </div>
               {isOwn && (
                 <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={openEdit} className="px-3 py-1.5 text-sm bg-white/70 border border-indigo-200 text-indigo-800 rounded-lg hover:bg-white/90 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20 transition">
+                  <button onClick={openEdit} className="px-3 py-1.5 text-sm bg-white border border-zinc-200 text-zinc-800 rounded-lg hover:bg-zinc-50 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20 transition">
                     Editar
                   </button>
                   <button onClick={() => setConfirmDelete(true)} className="px-3 py-1.5 text-sm bg-red-500/20 border border-red-400/30 text-red-300 rounded-lg hover:bg-red-500/30 transition">
@@ -290,7 +290,7 @@ export function MovieListDetailPage() {
             {!showSearch ? (
               <button
                 onClick={() => setShowSearch(true)}
-                className="w-full py-2.5 rounded-xl bg-white/70 border border-indigo-200 text-indigo-700 hover:bg-white/90 dark:bg-white/10 dark:border-white/20 dark:text-indigo-300 dark:hover:bg-white/20 transition text-sm font-medium"
+                className="w-full py-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:bg-white/10 dark:border-white/20 dark:text-indigo-300 dark:hover:bg-white/20 transition text-sm font-medium"
               >
                 + Agregar película o serie
               </button>
@@ -302,10 +302,10 @@ export function MovieListDetailPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Buscar para agregar..."
                   autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder-indigo-300 dark:focus:ring-indigo-400"
                 />
                 {searching && (
-                  <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                  <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 dark:border-white" />
                 )}
                 {searchResults.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
@@ -342,15 +342,15 @@ export function MovieListDetailPage() {
 
         {/* Items */}
         {list.items.length === 0 ? (
-          <div className="text-center py-16 text-indigo-300">
+          <div className="text-center py-16 text-zinc-400 dark:text-indigo-300">
             <p className="text-5xl mb-4">🎬</p>
-            <p className="font-medium text-white mb-1">La lista está vacía</p>
+            <p className="font-medium text-zinc-900 dark:text-white mb-1">La lista está vacía</p>
             {isOwn && <p className="text-sm">Buscá películas o series para agregarlas</p>}
           </div>
         ) : (
           <div className="space-y-2">
             {list.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-3">
+              <div key={item.id} className="flex items-center gap-3 bg-white border border-zinc-200 shadow-sm rounded-xl dark:bg-white/10 dark:border-white/20 p-3">
                 {item.posterPath ? (
                   <img
                     src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
@@ -358,13 +358,13 @@ export function MovieListDetailPage() {
                     className="w-10 h-14 object-cover rounded flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-10 h-14 bg-white/10 rounded flex items-center justify-center flex-shrink-0 text-xl">
+                  <div className="w-10 h-14 bg-zinc-100 dark:bg-white/10 rounded flex items-center justify-center flex-shrink-0 text-xl">
                     {item.contentType === 'tv' ? '📺' : '🎬'}
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium text-sm truncate">{item.title}</p>
-                  <p className="text-indigo-400 text-xs">{item.contentType === 'tv' ? 'Serie' : 'Película'}</p>
+                  <p className="text-zinc-900 dark:text-white font-medium text-sm truncate">{item.title}</p>
+                  <p className="text-zinc-500 dark:text-indigo-400 text-xs">{item.contentType === 'tv' ? 'Serie' : 'Película'}</p>
                 </div>
                 {isOwn && (
                   <button

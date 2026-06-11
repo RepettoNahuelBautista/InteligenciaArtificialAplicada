@@ -63,17 +63,17 @@ export function MovieListsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-50 via-zinc-100 to-stone-50 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={() => navigate('/home')} className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
+          <button onClick={() => navigate('/home')} className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
             ← Volver al inicio
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-indigo-900 dark:text-white">Mis Listas</h1>
-              <p className="text-indigo-500 dark:text-indigo-300 mt-1">Organizá tus películas y series en listas personalizadas</p>
+              <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">Mis Listas</h1>
+              <p className="text-zinc-500 dark:text-indigo-300 mt-1">Organizá tus películas y series en listas personalizadas</p>
             </div>
             <button
               onClick={() => setShowForm(true)}
@@ -145,9 +145,9 @@ export function MovieListsPage() {
         ) : error ? (
           <div className="bg-red-500/20 border border-red-400/50 rounded-lg p-4 text-red-200 text-sm">{error}</div>
         ) : lists.length === 0 ? (
-          <div className="text-center py-16 text-indigo-500 dark:text-indigo-300">
+          <div className="text-center py-16 text-zinc-500 dark:text-indigo-300">
             <p className="text-5xl mb-4">📋</p>
-            <p className="font-medium text-indigo-900 dark:text-white mb-1">Aún no tenés listas</p>
+            <p className="font-medium text-zinc-900 dark:text-white mb-1">Aún no tenés listas</p>
             <p className="text-sm">Creá tu primera lista para organizar tus películas y series favoritas</p>
           </div>
         ) : (
@@ -156,23 +156,23 @@ export function MovieListsPage() {
               <button
                 key={list.id}
                 onClick={() => navigate(`/lists/${list.id}`)}
-                className="w-full text-left bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 p-5 hover:bg-white/90 dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition"
+                className="w-full text-left bg-white rounded-xl border border-zinc-200 shadow-sm p-5 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-indigo-900 dark:text-white font-semibold truncate">{list.name}</h3>
+                      <h3 className="text-zinc-900 dark:text-white font-semibold truncate">{list.name}</h3>
                       <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${list.isPublic ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/30 dark:text-gray-300'}`}>
                         {list.isPublic ? 'Pública' : 'Privada'}
                       </span>
                     </div>
                     {list.description && (
-                      <p className="text-indigo-500 dark:text-indigo-300 text-sm truncate">{list.description}</p>
+                      <p className="text-zinc-500 dark:text-indigo-300 text-sm truncate">{list.description}</p>
                     )}
                   </div>
                   <div className="flex-shrink-0 text-right">
-                    <p className="text-indigo-900 dark:text-white font-bold">{list.itemCount}</p>
-                    <p className="text-indigo-400 text-xs">{list.itemCount === 1 ? 'título' : 'títulos'}</p>
+                    <p className="text-zinc-900 dark:text-white font-bold">{list.itemCount}</p>
+                    <p className="text-zinc-400 dark:text-indigo-400 text-xs">{list.itemCount === 1 ? 'título' : 'títulos'}</p>
                   </div>
                 </div>
               </button>
