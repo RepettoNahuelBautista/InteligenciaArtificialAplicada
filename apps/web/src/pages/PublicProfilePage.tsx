@@ -165,9 +165,9 @@ export function PublicProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center">
         <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-white mx-auto mb-4" />
           <p>Cargando perfil...</p>
         </div>
       </div>
@@ -176,7 +176,7 @@ export function PublicProfilePage() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
           <p className="text-4xl mb-4">👤</p>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Usuario no encontrado</h2>
@@ -192,11 +192,11 @@ export function PublicProfilePage() {
   const { stats } = profile;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={handleBack} className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm">
+          <button onClick={handleBack} className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm">
             ← Volver
           </button>
           <div className="flex items-center gap-4">
@@ -208,8 +208,8 @@ export function PublicProfilePage() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-bold text-white truncate">{profile.displayName ?? 'Usuario'}</h1>
-              <p className="text-indigo-300 text-sm">
+              <h1 className="text-3xl font-bold text-indigo-900 dark:text-white truncate">{profile.displayName ?? 'Usuario'}</h1>
+              <p className="text-indigo-500 dark:text-indigo-300 text-sm">
                 Miembro desde {new Date(profile.memberSince).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
               </p>
             </div>
@@ -218,7 +218,7 @@ export function PublicProfilePage() {
               disabled={followLoading}
               className={`flex-shrink-0 px-5 py-2 rounded-xl font-semibold text-sm transition ${
                 profile.isFollowing
-                  ? 'bg-white/10 border border-white/30 text-white hover:bg-red-500/20 hover:border-red-400/50 hover:text-red-300'
+                  ? 'bg-white/70 border border-indigo-200 text-indigo-800 hover:bg-red-50 hover:border-red-300 hover:text-red-600 dark:bg-white/10 dark:border-white/30 dark:text-white dark:hover:bg-red-500/20 dark:hover:border-red-400/50 dark:hover:text-red-300'
                   : 'bg-indigo-500 hover:bg-indigo-400 text-white'
               } disabled:opacity-50`}
             >
@@ -229,12 +229,12 @@ export function PublicProfilePage() {
           {/* Follow counts */}
           <div className="flex gap-6 mt-4 ml-20">
             <div className="text-center">
-              <p className="text-white font-bold text-lg">{profile.followerCount}</p>
-              <p className="text-indigo-300 text-xs">seguidores</p>
+              <p className="text-indigo-900 dark:text-white font-bold text-lg">{profile.followerCount}</p>
+              <p className="text-indigo-500 dark:text-indigo-300 text-xs">seguidores</p>
             </div>
             <div className="text-center">
-              <p className="text-white font-bold text-lg">{profile.followingCount}</p>
-              <p className="text-indigo-300 text-xs">seguidos</p>
+              <p className="text-indigo-900 dark:text-white font-bold text-lg">{profile.followingCount}</p>
+              <p className="text-indigo-500 dark:text-indigo-300 text-xs">seguidos</p>
             </div>
           </div>
         </div>

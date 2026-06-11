@@ -241,15 +241,15 @@ export function ReviewsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <button onClick={() => navigate('/home')} className="text-white hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
+          <button onClick={() => navigate('/home')} className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
             ← Volver al inicio
           </button>
-          <h1 className="text-3xl font-bold text-white">Reseñas</h1>
-          <p className="text-indigo-300 mt-1">Buscá una película o serie y leé o escribí reseñas</p>
+          <h1 className="text-3xl font-bold text-indigo-900 dark:text-white">Reseñas</h1>
+          <p className="text-indigo-500 dark:text-indigo-300 mt-1">Buscá una película o serie y leé o escribí reseñas</p>
         </div>
 
         {/* Search */}
@@ -260,10 +260,10 @@ export function ReviewsPage() {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
             placeholder="Buscar película o serie..."
-            className="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-3 rounded-xl bg-white/90 border border-indigo-300 text-indigo-900 placeholder-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder-indigo-300 dark:focus:ring-indigo-400"
           />
           {searching && (
-            <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+            <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 dark:border-white" />
           )}
           {showDropdown && searchResults.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
@@ -293,21 +293,21 @@ export function ReviewsPage() {
         {/* Selected title */}
         {selected && (
           <div className="mb-6">
-            <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-4 flex items-center gap-4 mb-4">
+            <div className="bg-white/70 backdrop-blur-md rounded-xl border border-indigo-200 p-4 flex items-center gap-4 mb-4 dark:bg-white/10 dark:border-white/20">
               {selected.posterPath ? (
                 <img src={`${TMDB_IMAGE_BASE}${selected.posterPath}`} alt={selected.title} className="w-12 h-16 object-cover rounded-lg flex-shrink-0" />
               ) : (
-                <div className="w-12 h-16 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 text-2xl">
+                <div className="w-12 h-16 bg-indigo-100 dark:bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0 text-2xl">
                   {selected.contentType === 'tv' ? '📺' : '🎬'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <h2 className="text-white font-bold text-lg truncate">{selected.title}</h2>
-                <p className="text-indigo-300 text-sm">{selected.year} · {selected.contentType === 'tv' ? 'Serie' : 'Película'}</p>
+                <h2 className="text-indigo-900 dark:text-white font-bold text-lg truncate">{selected.title}</h2>
+                <p className="text-indigo-500 dark:text-indigo-300 text-sm">{selected.year} · {selected.contentType === 'tv' ? 'Serie' : 'Película'}</p>
               </div>
               <button
                 onClick={() => { setSelected(null); setShowForm(false); }}
-                className="text-indigo-400 hover:text-white transition text-sm flex-shrink-0"
+                className="text-indigo-500 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-white transition text-sm flex-shrink-0"
               >
                 ✕ Cambiar
               </button>
@@ -390,7 +390,7 @@ export function ReviewsPage() {
             {/* Reviews list */}
             {loadingReviews ? (
               <div className="flex justify-center py-8">
-                <span className="animate-spin rounded-full h-7 w-7 border-b-2 border-white" />
+                <span className="animate-spin rounded-full h-7 w-7 border-b-2 border-indigo-600 dark:border-white" />
               </div>
             ) : reviewsError ? (
               <div className="bg-red-500/20 border border-red-400/50 rounded-lg p-4 text-red-200 text-sm">{reviewsError}</div>

@@ -218,9 +218,9 @@ export const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center">
+        <div className="text-indigo-800 dark:text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 dark:border-white mx-auto mb-4"></div>
           <p>Cargando perfil...</p>
         </div>
       </div>
@@ -229,7 +229,7 @@ export const ProfilePage = () => {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-700 mb-6">{error || 'No se pudo cargar tu perfil'}</p>
@@ -244,7 +244,7 @@ export const ProfilePage = () => {
   const pi = profile.personalInfo;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-100 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -252,11 +252,11 @@ export const ProfilePage = () => {
             onClick={() => fromReviews
               ? navigate('/reviews', { state: { from: 'reviews-back', selected: navState?.selected } })
               : navigate('/home')}
-            className="text-white hover:text-indigo-200 transition mb-6 flex items-center gap-2"
+            className="text-indigo-700 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-200 transition mb-6 flex items-center gap-2"
           >
             ← Volver
           </button>
-          <h1 className="text-4xl font-bold text-white">Tu Perfil</h1>
+          <h1 className="text-4xl font-bold text-indigo-900 dark:text-white">Tu Perfil</h1>
         </div>
 
         {/* Información Personal */}

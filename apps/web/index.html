@@ -2,6 +2,10 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      const t = localStorage.getItem('rf-theme');
+      if (t !== 'light') document.documentElement.classList.add('dark');
+    </script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RecomiendaFilms - Recomendaciones de Cine con IA</title>

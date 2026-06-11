@@ -34,7 +34,7 @@ const pillClass = (active: boolean) =>
   `px-4 py-2 rounded-lg border-2 transition font-medium text-sm ${
     active
       ? 'border-purple-400 bg-purple-500/30 text-white'
-      : 'border-white/20 bg-white/5 text-indigo-200 hover:bg-white/10 hover:border-white/40'
+      : 'border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:border-indigo-400 dark:border-white/20 dark:bg-white/5 dark:text-indigo-200 dark:hover:bg-white/10 dark:hover:border-white/40'
   }`;
 
 export const FilterPanel = ({
@@ -49,11 +49,11 @@ export const FilterPanel = ({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-white">Filtros</h2>
+        <h2 className="text-2xl font-bold text-indigo-900 dark:text-white">Filtros</h2>
         {hasFilters(contentType, duration, year) && (
           <button
             onClick={onClearFilters}
-            className="text-indigo-300 hover:text-white text-sm transition underline"
+            className="text-indigo-500 hover:text-indigo-900 dark:text-indigo-300 dark:hover:text-white text-sm transition underline"
           >
             Limpiar filtros
           </button>
@@ -62,7 +62,7 @@ export const FilterPanel = ({
 
       {/* Tipo de contenido */}
       <div className="mb-5">
-        <p className="text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
+        <p className="text-indigo-500 dark:text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
           Tipo de contenido
         </p>
         <div className="flex gap-3 flex-wrap">
@@ -80,7 +80,7 @@ export const FilterPanel = ({
 
       {/* Duración */}
       <div className="mb-5">
-        <p className="text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
+        <p className="text-indigo-500 dark:text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
           Duración
         </p>
         <div className="flex gap-3 flex-wrap">
@@ -98,7 +98,7 @@ export const FilterPanel = ({
 
       {/* Época */}
       <div>
-        <p className="text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
+        <p className="text-indigo-500 dark:text-indigo-300 text-xs font-semibold uppercase tracking-wide mb-3">
           Época
         </p>
         <div className="flex gap-3 flex-wrap">

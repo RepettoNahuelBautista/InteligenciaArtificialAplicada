@@ -152,7 +152,7 @@ export const OnboardingFlow: FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">🎬 RecomiendaFilms</h1>
-          <p className="text-indigo-100">
+          <p className="text-indigo-100 dark:text-indigo-100">
             Cuéntanos tus gustos (Paso {step}/5)
           </p>
         </div>

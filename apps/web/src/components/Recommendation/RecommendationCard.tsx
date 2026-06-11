@@ -59,10 +59,10 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
       {index > 1 && (
-        <div className="bg-indigo-50 px-4 py-2 border-b border-indigo-100">
-          <span className="text-xs font-semibold text-indigo-500">Recomendación #{index}</span>
+        <div className="bg-indigo-50 dark:bg-gray-700 px-4 py-2 border-b border-indigo-100 dark:border-gray-600">
+          <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-300">Recomendación #{index}</span>
         </div>
       )}
       <div className="flex flex-col sm:flex-row">
@@ -74,7 +74,7 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
             className="w-full sm:w-48 object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-full sm:w-48 h-48 bg-gray-200 flex items-center justify-center flex-shrink-0">
+          <div className="w-full sm:w-48 h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
             <span className="text-5xl">{result.contentType === 'tv' ? '📺' : '🎬'}</span>
           </div>
         )}
@@ -83,31 +83,31 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
         <div className="p-6 flex flex-col justify-between flex-1">
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h2 className="text-2xl font-bold text-gray-900 leading-tight">{result.title}</h2>
-              <span className="bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{result.title}</h2>
+              <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
                 {result.contentType === 'movie' ? '🎬 Película' : '📺 Serie'}
               </span>
             </div>
-            <p className="text-gray-500 text-sm mb-3">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
               {result.year} · {result.genre}
             </p>
 
             {result.overview && (
-              <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-3">
+              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4 line-clamp-3">
                 {result.overview}
               </p>
             )}
 
             {/* Explanation */}
-            <div className="bg-indigo-50 border-l-4 border-indigo-400 p-3 rounded-r-lg mb-4">
-              <p className="text-xs font-semibold text-indigo-600 mb-1">Por qué te la recomendamos</p>
-              <p className="text-sm text-indigo-900 leading-relaxed">{result.explanation}</p>
+            <div className="bg-indigo-50 dark:bg-indigo-900/40 border-l-4 border-indigo-400 p-3 rounded-r-lg mb-4">
+              <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 mb-1">Por qué te la recomendamos</p>
+              <p className="text-sm text-indigo-900 dark:text-indigo-100 leading-relaxed">{result.explanation}</p>
             </div>
 
             {/* Watch Providers */}
             {result.watchProviders && result.watchProviders.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-500 mb-2">Disponible en streaming</p>
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Disponible en streaming</p>
                 <div className="flex flex-wrap gap-2">
                   {result.watchProviders.map((p) => {
                     const url = getProviderUrl(p.providerName);
@@ -118,7 +118,7 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
                           alt={p.providerName}
                           className="w-5 h-5 rounded"
                         />
-                        <span className="text-xs text-gray-700 font-medium">{p.providerName}</span>
+                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">{p.providerName}</span>
                       </>
                     );
                     return url ? (
@@ -127,12 +127,12 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 bg-gray-100 hover:bg-indigo-100 rounded-lg px-2 py-1 transition"
+                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg px-2 py-1 transition"
                       >
                         {inner}
                       </a>
                     ) : (
-                      <div key={p.providerId} className="flex items-center gap-1.5 bg-gray-100 rounded-lg px-2 py-1">
+                      <div key={p.providerId} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1">
                         {inner}
                       </div>
                     );
