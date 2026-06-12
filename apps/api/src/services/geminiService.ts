@@ -120,6 +120,29 @@ class GeminiService {
     return parts.join('\n');
   }
 
+  private extractJson(raw: string): string {
+    // Strip code fences wherever they appear (not just start/end)
+    const cleaned = raw.replace(/```(?:json)?\s*([\s\S]*?)\s*```/gi, '$1').trim();
+
+    // Find the first '{' and walk forward counting balanced braces
+    const start = cleaned.indexOf('{');
+    if (start !== -1) {
+      let depth = 0;
+      for (let i = start; i < cleaned.length; i++) {
+        if (cleaned[i] === '{') depth++;
+        else if (cleaned[i] === '}') {
+          depth--;
+          if (depth === 0) return cleaned.slice(start, i + 1);
+        }
+      }
+      // Unbalanced — take from first '{' to last '}'
+      const last = cleaned.lastIndexOf('}');
+      if (last > start) return cleaned.slice(start, last + 1);
+    }
+
+    return cleaned;
+  }
+
   private isQuotaError(err: unknown): boolean {
     if (!(err instanceof Error)) return false;
     const msg = err.message.toLowerCase();
@@ -164,17 +187,14 @@ class GeminiService {
     const raw = result.response.text();
     logger.debug('Gemini raw response', { raw, model: modelName });
 
-    // Strip markdown fences, then try to find the JSON object anywhere in the text
-    const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
-    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
-    const text = jsonMatch ? jsonMatch[0] : stripped;
+    const text = this.extractJson(raw);
 
     let parsed: LLMRecommendation;
     try {
       const json = JSON.parse(text);
       parsed = (json.recommendation ?? json.result ?? json) as LLMRecommendation;
     } catch {
-      logger.error('Gemini non-JSON response', { model: modelName, raw });
+      logger.error('Gemini non-JSON response', { model: modelName, raw, extracted: text });
       throw new AppError('LLM_PARSE_ERROR', 502, 'Invalid JSON from Gemini', true);
     }
 
