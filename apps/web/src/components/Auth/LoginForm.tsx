@@ -22,7 +22,7 @@ export const LoginForm: FC<LoginFormProps> = ({ onSwitchToRegister }) => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-zinc-300 dark:border-white/20 rounded-lg bg-white dark:bg-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           placeholder="tu@email.com"
           required
         />
@@ -35,7 +35,7 @@ export const LoginForm: FC<LoginFormProps> = ({ onSwitchToRegister }) => {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 pr-10 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-full px-4 py-2 pr-10 border border-zinc-300 dark:border-white/20 rounded-lg bg-white dark:bg-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             placeholder="••••••••"
             required
           />

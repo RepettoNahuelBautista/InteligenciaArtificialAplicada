@@ -35,7 +35,7 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-zinc-300 dark:border-white/20 rounded-lg bg-white dark:bg-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           placeholder="tu@email.com"
           required
         />
@@ -50,7 +50,7 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
             onChange={(e) => setPassword(e.target.value)}
             className={`w-full px-4 py-2 pr-10 border rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:border-transparent ${
               password.length === 0
-                ? 'border-zinc-300 dark:border-zinc-600 focus:ring-indigo-500'
+                ? 'border-zinc-300 dark:border-white/20 focus:ring-indigo-500'
                 : isPasswordValid
                 ? 'border-green-400 focus:ring-green-400'
                 : 'border-red-400 focus:ring-red-400'
