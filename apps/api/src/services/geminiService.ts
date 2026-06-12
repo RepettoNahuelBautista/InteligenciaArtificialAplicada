@@ -121,23 +121,26 @@ class GeminiService {
   }
 
   private extractJson(raw: string): string {
-    // Strip code fences wherever they appear (not just start/end)
+    // Strip code fences wherever they appear
     const cleaned = raw.replace(/```(?:json)?\s*([\s\S]*?)\s*```/gi, '$1').trim();
 
-    // Find the first '{' and walk forward counting balanced braces
-    const start = cleaned.indexOf('{');
-    if (start !== -1) {
+    // Try the whole string first
+    try { JSON.parse(cleaned); return cleaned; } catch { /* continue */ }
+
+    // Walk every '{' and try each balanced candidate — returns first that parses
+    for (let i = 0; i < cleaned.length; i++) {
+      if (cleaned[i] !== '{') continue;
       let depth = 0;
-      for (let i = start; i < cleaned.length; i++) {
-        if (cleaned[i] === '{') depth++;
-        else if (cleaned[i] === '}') {
+      for (let j = i; j < cleaned.length; j++) {
+        if (cleaned[j] === '{') depth++;
+        else if (cleaned[j] === '}') {
           depth--;
-          if (depth === 0) return cleaned.slice(start, i + 1);
+          if (depth === 0) {
+            const candidate = cleaned.slice(i, j + 1);
+            try { JSON.parse(candidate); return candidate; } catch { break; }
+          }
         }
       }
-      // Unbalanced — take from first '{' to last '}'
-      const last = cleaned.lastIndexOf('}');
-      if (last > start) return cleaned.slice(start, last + 1);
     }
 
     return cleaned;
