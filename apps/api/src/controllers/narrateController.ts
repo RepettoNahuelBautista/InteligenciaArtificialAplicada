@@ -5,9 +5,28 @@ import { logger } from '../utils/logger';
 
 config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
-const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
-// Valentina — Spanish multilingual voice, good for Argentine Spanish
-const DEFAULT_VOICE_ID = 'XrExE9yKIg1WjnnlVkGX';
+const DEFAULT_VOICE = 'es-AR-ElenaNeural';
+
+async function getAzureToken(subscriptionKey: string, region: string): Promise<string> {
+  const tokenUrl = `https://${region}.api.cognitive.microsoft.com/sts/v1.0/issueToken`;
+  const res = await fetch(tokenUrl, {
+    method: 'POST',
+    headers: { 'Ocp-Apim-Subscription-Key': subscriptionKey },
+    signal: AbortSignal.timeout(10000),
+  });
+  if (!res.ok) {
+    throw new Error(`Azure TTS token error: ${res.status}`);
+  }
+  return res.text();
+}
+
+const XML_ESCAPES: Record<string, string> = {
+  '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;',
+};
+
+function escapeXml(text: string): string {
+  return text.replace(/[<>&'"]/g, (c) => XML_ESCAPES[c] ?? c);
+}
 
 export async function narrateController(req: Request, res: Response): Promise<void> {
   const { text } = req.body;
@@ -16,35 +35,38 @@ export async function narrateController(req: Request, res: Response): Promise<vo
     return;
   }
 
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  if (!apiKey) {
+  const subscriptionKey = process.env.AZURE_TTS_KEY;
+  const region = process.env.AZURE_TTS_REGION;
+  if (!subscriptionKey || !region) {
     res.status(503).json({ success: false, error: { message: 'Narración no disponible (TTS no configurado)' } });
     return;
   }
 
-  const voiceId = process.env.ELEVENLABS_VOICE_ID || DEFAULT_VOICE_ID;
+  const voice = process.env.AZURE_TTS_VOICE || DEFAULT_VOICE;
+  const lang = voice.split('-').slice(0, 2).join('-'); // "es-AR-ElenaNeural" → "es-AR"
 
   try {
-    logger.info('Generating narration via ElevenLabs', { userId: req.userId, voiceId, chars: text.length });
+    logger.info('Generating narration via Azure TTS', { userId: req.userId, voice, chars: text.length });
 
-    const response = await fetch(`${ELEVENLABS_BASE}/${voiceId}`, {
+    const token = await getAzureToken(subscriptionKey, region);
+
+    const ssml = `<speak version='1.0' xml:lang='${lang}'><voice name='${voice}'>${escapeXml(text.trim().slice(0, 500))}</voice></speak>`;
+
+    const ttsUrl = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+    const response = await fetch(ttsUrl, {
       method: 'POST',
       headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'audio/mpeg',
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/ssml+xml',
+        'X-Microsoft-OutputFormat': 'audio-24khz-96kbitrate-mono-mp3',
       },
-      body: JSON.stringify({
-        text: text.trim().slice(0, 500),
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-      }),
+      body: Buffer.from(ssml, 'utf-8'),
       signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
       const body = await response.text().catch(() => '');
-      logger.error('ElevenLabs TTS error', { status: response.status, body });
+      logger.error('Azure TTS error', { status: response.status, body });
       res.status(502).json({ success: false, error: { message: `Error generando narración (${response.status})` } });
       return;
     }
