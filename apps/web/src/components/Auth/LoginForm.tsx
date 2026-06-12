@@ -62,7 +62,7 @@ export const LoginForm: FC<LoginFormProps> = ({ onSwitchToRegister }) => {
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-primary text-white py-2 rounded-lg font-medium hover:bg-primary/90 disabled:opacity-50"
+        className="w-full bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
       >
         {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
       </button>
