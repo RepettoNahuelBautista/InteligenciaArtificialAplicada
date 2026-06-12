@@ -127,7 +127,8 @@ class GeminiService {
       msg.includes('resource_exhausted') ||
       msg.includes('quota') ||
       msg.includes('rate limit') ||
-      msg.includes('429')
+      msg.includes('429') ||
+      msg.includes('too many requests')
     );
   }
 
@@ -147,10 +148,18 @@ class GeminiService {
       setTimeout(() => reject(new AppError('LLM_TIMEOUT', 504, 'Gemini API timeout', true)), LLM_TIMEOUT_MS)
     );
 
-    const result = await Promise.race([
-      model.generateContent(prompt),
-      timeoutPromise,
-    ]);
+    let result;
+    try {
+      result = await Promise.race([
+        model.generateContent(prompt),
+        timeoutPromise,
+      ]);
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      const msg = err instanceof Error ? err.message : String(err);
+      logger.error('Gemini SDK error', { model: modelName, error: msg });
+      throw new AppError('LLM_API_ERROR', 502, `Error del modelo (${modelName}): ${msg.slice(0, 200)}`, true);
+    }
 
     const raw = result.response.text();
     logger.debug('Gemini raw response', { raw, model: modelName });
