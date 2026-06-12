@@ -155,14 +155,17 @@ class GeminiService {
     const raw = result.response.text();
     logger.debug('Gemini raw response', { raw, model: modelName });
 
-    const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+    // Strip markdown fences, then try to find the JSON object anywhere in the text
+    const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
+    const jsonMatch = stripped.match(/\{[\s\S]*\}/);
+    const text = jsonMatch ? jsonMatch[0] : stripped;
 
     let parsed: LLMRecommendation;
     try {
       const json = JSON.parse(text);
       parsed = (json.recommendation ?? json.result ?? json) as LLMRecommendation;
     } catch {
-      logger.warn('Gemini non-JSON response', { raw });
+      logger.error('Gemini non-JSON response', { model: modelName, raw });
       throw new AppError('LLM_PARSE_ERROR', 502, 'Invalid JSON from Gemini', true);
     }
 
