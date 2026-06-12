@@ -12,28 +12,8 @@ const multerUpload = multer({
   },
 }).single('avatar');
 
-const HORDE_BASE = 'https://aihorde.net/api/v2';
-
-async function pollStableHorde(jobId: string, deadlineMs: number): Promise<string> {
-  while (Date.now() < deadlineMs) {
-    await new Promise(r => setTimeout(r, 5000));
-    const checkRes = await fetch(`${HORDE_BASE}/generate/check/${jobId}`, {
-      signal: AbortSignal.timeout(30000),
-    });
-    const check = await checkRes.json() as { done: boolean; faulted?: boolean; wait_time?: number };
-    if (check.faulted) throw new Error('faulted');
-    if (!check.done) continue;
-
-    const statusRes = await fetch(`${HORDE_BASE}/generate/status/${jobId}`, {
-      signal: AbortSignal.timeout(30000),
-    });
-    const status = await statusRes.json() as { generations: Array<{ img: string }> };
-    const imgUrl = status.generations?.[0]?.img;
-    if (!imgUrl) throw new Error('no_image');
-    return imgUrl;
-  }
-  throw new Error('timeout');
-}
+const AZURE_FLUX_ENDPOINT =
+  'https://blacksharkfoundry-ia2026.services.ai.azure.com/providers/blackforestlabs/v1/flux-2-pro?api-version=preview';
 
 export async function generateAvatarController(req: Request, res: Response): Promise<void> {
   const { prompt } = req.body;
@@ -42,50 +22,53 @@ export async function generateAvatarController(req: Request, res: Response): Pro
     return;
   }
 
-  const hordeKey = process.env.STABLE_HORDE_API_KEY ?? '0000000000';
+  const apiKey = process.env.AZURE_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ success: false, error: { message: 'AZURE_API_KEY no configurada en el servidor' } });
+    return;
+  }
 
   try {
-    logger.info('Generating avatar via AI Horde', { userId: req.userId, anonymous: hordeKey === '0000000000' });
+    logger.info('Generating avatar via Azure AI Foundry FLUX.2-pro', { userId: req.userId });
 
-    const submitRes = await fetch(`${HORDE_BASE}/generate/async`, {
+    const response = await fetch(AZURE_FLUX_ENDPOINT, {
       method: 'POST',
       headers: {
-        'apikey': hordeKey,
         'Content-Type': 'application/json',
-        'Client-Agent': 'recomendador-peliculas:1.0:nahuel',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         prompt: prompt.trim(),
-        params: { width: 512, height: 512, steps: 20, n: 1, sampler_name: 'k_euler_a' },
-        // No model restriction: any available worker can pick it up (faster)
-        slow_workers: false,
-        r2: false,
+        model: 'FLUX.2-pro',
+        width: 1024,
+        height: 1024,
+        n: 1,
       }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(90000),
     });
 
-    if (!submitRes.ok) {
-      const body = await submitRes.text().catch(() => '');
-      logger.error('Stable Horde submit error', { status: submitRes.status, body });
-      res.status(502).json({ success: false, error: { message: `Error iniciando generación (${submitRes.status}): ${body.slice(0, 150)}` } });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      logger.error('Azure FLUX generate error', { status: response.status, body });
+      res.status(502).json({
+        success: false,
+        error: { message: `Error generando imagen (${response.status}): ${body.slice(0, 200)}` },
+      });
       return;
     }
 
-    const { id } = await submitRes.json() as { id: string };
-    logger.info('Stable Horde job submitted', { jobId: id });
+    const result = await response.json() as { data: Array<{ b64_json: string }> };
+    const b64 = result.data?.[0]?.b64_json;
+    if (!b64) throw new Error('no_image');
 
-    // r2:false → img is raw base64 data, not a URL
-    const imgBase64 = await pollStableHorde(id, Date.now() + 110000);
-
-    res.json({ success: true, data: { previewUrl: `data:image/webp;base64,${imgBase64}` } });
+    res.json({ success: true, data: { previewUrl: `data:image/png;base64,${b64}` } });
   } catch (err) {
     logger.error('generateAvatarController error', { err });
     const msg = err instanceof Error ? err.message : '';
     const message =
-      msg === 'timeout'   ? 'La generación tardó demasiado. Registrate en stablehorde.net para obtener una clave gratis y acelerar el proceso.' :
-      msg === 'faulted'   ? 'El servidor de imágenes reportó un error, intentá de nuevo' :
-      msg === 'no_image'  ? 'No se recibió imagen, intentá de nuevo' :
-                            `Error: ${msg || 'inesperado'}`;
+      msg === 'no_image'    ? 'No se recibió imagen del servidor, intentá de nuevo' :
+      msg === 'TimeoutError' ? 'La generación tardó demasiado (>90s), intentá de nuevo' :
+                               `Error inesperado: ${msg || 'desconocido'}`;
     res.status(500).json({ success: false, error: { message } });
   }
 }
