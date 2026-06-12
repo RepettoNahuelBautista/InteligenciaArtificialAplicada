@@ -120,12 +120,20 @@ class GeminiService {
     return parts.join('\n');
   }
 
-  async getRecommendation(
-    ctx: RecommendationPromptContext,
-    exclude: string[] = []
-  ): Promise<LLMRecommendation> {
+  private isQuotaError(err: unknown): boolean {
+    if (!(err instanceof Error)) return false;
+    const msg = err.message.toLowerCase();
+    return (
+      msg.includes('resource_exhausted') ||
+      msg.includes('quota') ||
+      msg.includes('rate limit') ||
+      msg.includes('429')
+    );
+  }
+
+  private async callModel(modelName: string, ctx: RecommendationPromptContext, exclude: string[]): Promise<LLMRecommendation> {
     const model = this.client.getGenerativeModel({
-      model: 'gemini-2.5-flash-lite',
+      model: modelName,
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.8,
@@ -145,14 +153,13 @@ class GeminiService {
     ]);
 
     const raw = result.response.text();
-    logger.debug('Gemini raw response', { raw });
+    logger.debug('Gemini raw response', { raw, model: modelName });
 
     const text = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '').trim();
 
     let parsed: LLMRecommendation;
     try {
       const json = JSON.parse(text);
-      // Handle model wrapping response in a nested object
       parsed = (json.recommendation ?? json.result ?? json) as LLMRecommendation;
     } catch {
       logger.warn('Gemini non-JSON response', { raw });
@@ -167,8 +174,23 @@ class GeminiService {
       parsed.genre = 'Drama';
     }
 
-    logger.info('Gemini recommendation generated', { title: parsed.title, year: parsed.year });
+    logger.info('Gemini recommendation generated', { title: parsed.title, year: parsed.year, model: modelName });
     return parsed;
+  }
+
+  async getRecommendation(
+    ctx: RecommendationPromptContext,
+    exclude: string[] = []
+  ): Promise<LLMRecommendation> {
+    try {
+      return await this.callModel('gemini-2.5-flash', ctx, exclude);
+    } catch (err) {
+      if (this.isQuotaError(err)) {
+        logger.warn('gemini-2.5-flash quota exceeded, falling back to gemini-2.5-flash-lite');
+        return await this.callModel('gemini-2.5-flash-lite', ctx, exclude);
+      }
+      throw err;
+    }
   }
 }
 
