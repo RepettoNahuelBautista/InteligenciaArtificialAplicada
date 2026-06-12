@@ -13,7 +13,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-300 via-amber-100 to-stone-300 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900">
       {/* Navigation */}
-      <nav className="bg-stone-200/80 backdrop-blur-md border-b border-stone-300 dark:bg-black/20 dark:border-white/10">
+      <nav className="bg-white/50 backdrop-blur-md border-b border-white/40 dark:bg-black/20 dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">🎬 RecomiendaFilms</h1>
           <div className="flex items-center gap-4">
@@ -44,7 +44,7 @@ export function HomePage() {
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
           {/* Onboarding Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding?mode=edit')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/onboarding?mode=edit')}>
             <div className="text-5xl mb-4">🎯</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Mis Preferencias</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -56,7 +56,7 @@ export function HomePage() {
           </div>
 
           {/* Profile Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/profile')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/profile')}>
             <div className="text-5xl mb-4">👤</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Ver Mi Perfil</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -68,7 +68,7 @@ export function HomePage() {
           </div>
 
           {/* Recommendations Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/recommendation')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/recommendation')}>
             <div className="text-5xl mb-4">✨</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Obtener Recomendación</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -80,7 +80,7 @@ export function HomePage() {
           </div>
 
           {/* History Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/history')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/history')}>
             <div className="text-5xl mb-4">📜</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Historial</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -92,7 +92,7 @@ export function HomePage() {
           </div>
 
           {/* Reviews Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/reviews')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/reviews')}>
             <div className="text-5xl mb-4">⭐</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Reseñas</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -104,7 +104,7 @@ export function HomePage() {
           </div>
 
           {/* Users Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/users/search')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/users/search')}>
             <div className="text-5xl mb-4">👥</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Buscar usuarios</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
@@ -116,7 +116,7 @@ export function HomePage() {
           </div>
 
           {/* Lists Card */}
-          <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-8 hover:bg-zinc-50 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/lists')}>
+          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm p-8 hover:bg-white/85 hover:shadow-md dark:bg-white/10 dark:border-white/20 dark:hover:bg-white/20 transition cursor-pointer" onClick={() => navigate('/lists')}>
             <div className="text-5xl mb-4">📋</div>
             <h3 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Mis Listas</h3>
             <p className="text-zinc-600 dark:text-indigo-100 mb-6">
