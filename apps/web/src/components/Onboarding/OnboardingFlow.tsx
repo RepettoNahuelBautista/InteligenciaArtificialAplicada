@@ -147,7 +147,7 @@ export const OnboardingFlow: FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-200 via-amber-50 to-stone-200 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-stone-300 via-amber-100 to-stone-300 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">

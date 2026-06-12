@@ -25,32 +25,32 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
 
   return (
     <form onSubmit={handleRegister} className="space-y-4">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-6">Crear Cuenta</h2>
+      <h2 className="text-2xl font-bold text-zinc-900 mb-6">Crear Cuenta</h2>
 
-      {error && <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 p-3 rounded">{error}</div>}
+      {error && <div className="bg-red-50 text-red-700 p-3 rounded">{error}</div>}
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Email</label>
+        <label className="block text-sm font-medium text-zinc-700 mb-1">Email</label>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 border border-zinc-300 dark:border-white/20 rounded-lg bg-white dark:bg-white/10 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-zinc-300 rounded-lg bg-white text-zinc-900 placeholder-zinc-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           placeholder="tu@email.com"
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Contraseña</label>
+        <label className="block text-sm font-medium text-zinc-700 mb-1">Contraseña</label>
         <div className="relative">
           <input
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className={`w-full px-4 py-2 pr-10 border rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:ring-2 focus:border-transparent ${
+            className={`w-full px-4 py-2 pr-10 border rounded-lg bg-white text-zinc-900 placeholder-zinc-400 focus:ring-2 focus:border-transparent ${
               password.length === 0
-                ? 'border-zinc-300 dark:border-white/20 focus:ring-indigo-500'
+                ? 'border-zinc-300 focus:ring-indigo-500'
                 : isPasswordValid
                 ? 'border-green-400 focus:ring-green-400'
                 : 'border-red-400 focus:ring-red-400'
@@ -61,7 +61,7 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition"
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400 hover:text-zinc-600 transition"
             tabIndex={-1}
           >
             {showPassword ? (
@@ -84,7 +84,7 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
           </p>
         )}
         {password.length === 0 && (
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+          <p className="text-xs text-zinc-400 mt-1">
             Mínimo 8 caracteres, con mayúscula y número
           </p>
         )}
@@ -98,12 +98,12 @@ export const RegisterForm: FC<RegisterFormProps> = ({ onSwitchToLogin }) => {
         {isLoading ? 'Registrando...' : 'Registrarse'}
       </button>
 
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="text-center text-sm text-zinc-600">
         ¿Ya tenés cuenta?{' '}
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+          className="text-indigo-600 font-medium hover:underline"
         >
           Iniciá sesión aquí
         </button>

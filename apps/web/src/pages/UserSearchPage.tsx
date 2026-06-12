@@ -39,7 +39,7 @@ export function UserSearchPage() {
   }, [query]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-200 via-amber-50 to-stone-200 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-stone-300 via-amber-100 to-stone-300 dark:from-indigo-900 dark:via-purple-900 dark:to-indigo-900 p-4 sm:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8">
           <button onClick={() => navigate('/home')} className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
