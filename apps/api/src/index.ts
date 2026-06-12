@@ -15,6 +15,7 @@ import { getReviewsController, upsertReviewController, getPublicProfileControlle
 import { likeReviewController, unlikeReviewController } from './controllers/reviewLikeController';
 import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController } from './controllers/followController';
 import { uploadAvatarController, generateAvatarController } from './controllers/avatarController';
+import { narrateController } from './controllers/narrateController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
 
 const app = express();
@@ -51,6 +52,7 @@ app.get('/api/v1/moods', getMoodsController);
 // Recommendation routes
 app.post('/api/v1/recommendations', authMiddleware, getRecommendationController);
 app.get('/api/v1/recommendations', authMiddleware, getRecommendationHistoryController);
+app.post('/api/v1/recommendations/narrate', authMiddleware, narrateController);
 
 // Profile route (complete profile with stats)
 app.get('/api/v1/profile', authMiddleware, getProfileController);

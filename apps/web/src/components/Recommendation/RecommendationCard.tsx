@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { apiClient } from '../../api/apiClient';
 import { RecommendationResult } from '../../hooks/useRecommendation';
 
@@ -32,6 +32,8 @@ function getProviderUrl(name: string): string | null {
   return PROVIDER_URLS[name.toLowerCase()] ?? null;
 }
 
+type NarrationState = 'idle' | 'loading' | 'playing' | 'paused';
+
 interface RecommendationCardProps {
   result: RecommendationResult;
   index: number;
@@ -40,6 +42,63 @@ interface RecommendationCardProps {
 export const RecommendationCard = ({ result, index }: RecommendationCardProps) => {
   const [rated, setRated] = useState<'liked' | 'disliked' | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
+
+  const [narration, setNarration] = useState<NarrationState>('idle');
+  const [narrationError, setNarrationError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
+  }, []);
+
+  const handleNarrate = async () => {
+    if (narration === 'loading') return;
+
+    // Already have audio — toggle play/pause
+    if (audioRef.current && (narration === 'playing' || narration === 'paused')) {
+      if (narration === 'playing') {
+        audioRef.current.pause();
+        setNarration('paused');
+      } else {
+        audioRef.current.play();
+        setNarration('playing');
+      }
+      return;
+    }
+
+    // First time — fetch audio from backend
+    setNarration('loading');
+    setNarrationError(null);
+    try {
+      const response = await apiClient.post(
+        '/recommendations/narrate',
+        { text: result.explanation },
+        { responseType: 'arraybuffer' }
+      );
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => setNarration('idle');
+      audio.onerror = () => { setNarration('idle'); setNarrationError('Error al reproducir el audio'); };
+      await audio.play();
+      setNarration('playing');
+    } catch {
+      setNarration('idle');
+      setNarrationError('No se pudo generar la narración');
+    }
+  };
 
   const rate = async (rating: '5' | '1') => {
     if (ratingLoading || rated) return;
@@ -98,10 +157,38 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
               </p>
             )}
 
-            {/* Explanation */}
+            {/* Explanation + narration player */}
             <div className="bg-indigo-50 dark:bg-indigo-900/40 border-l-4 border-indigo-400 p-3 rounded-r-lg mb-4">
-              <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 mb-1">Por qué te la recomendamos</p>
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Por qué te la recomendamos</p>
+                <button
+                  onClick={handleNarrate}
+                  disabled={narration === 'loading'}
+                  title={narration === 'playing' ? 'Pausar narración' : 'Escuchar narración'}
+                  className="flex items-center gap-1.5 text-xs text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-white transition disabled:opacity-50 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800/50"
+                >
+                  {narration === 'loading' ? (
+                    <span className="inline-block w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                  ) : narration === 'playing' ? (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  )}
+                  <span>
+                    {narration === 'loading' ? 'Generando...' :
+                     narration === 'playing' ? 'Pausar' :
+                     narration === 'paused' ? 'Continuar' : 'Escuchar'}
+                  </span>
+                </button>
+              </div>
               <p className="text-sm text-indigo-900 dark:text-indigo-100 leading-relaxed">{result.explanation}</p>
+              {narrationError && (
+                <p className="text-xs text-red-500 mt-1">{narrationError}</p>
+              )}
             </div>
 
             {/* Watch Providers */}
