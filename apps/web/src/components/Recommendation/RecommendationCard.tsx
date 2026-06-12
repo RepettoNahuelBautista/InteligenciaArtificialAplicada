@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { apiClient } from '../../api/apiClient';
 import { RecommendationResult } from '../../hooks/useRecommendation';
 
@@ -94,9 +95,17 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
       audio.onerror = () => { setNarration('idle'); setNarrationError('Error al reproducir el audio'); };
       await audio.play();
       setNarration('playing');
-    } catch {
+    } catch (err: unknown) {
       setNarration('idle');
-      setNarrationError('No se pudo generar la narración');
+      let msg = 'No se pudo generar la narración';
+      if (axios.isAxiosError(err) && err.response?.data) {
+        try {
+          const text = new TextDecoder().decode(err.response.data as ArrayBuffer);
+          const json = JSON.parse(text);
+          if (json?.error?.message) msg = json.error.message;
+        } catch { /* keep default */ }
+      }
+      setNarrationError(msg);
     }
   };
 

@@ -1,5 +1,9 @@
 import { Request, Response } from 'express';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { logger } from '../utils/logger';
+
+config({ path: resolve(process.cwd(), '.env.local'), override: true });
 
 const ELEVENLABS_BASE = 'https://api.elevenlabs.io/v1/text-to-speech';
 // Valentina — Spanish multilingual voice, good for Argentine Spanish
