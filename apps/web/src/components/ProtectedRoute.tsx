@@ -7,7 +7,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   // Wait for auth to initialize from localStorage
   if (isLoading) return null;
 
-  // After login, React state might not have updated yet but localStorage is already set
+  // After login React state might not have updated yet but localStorage is already set
   const hasSession =
     !!user ||
     (!!localStorage.getItem('authToken') && !!localStorage.getItem('user'));
