@@ -17,6 +17,7 @@ import { searchUsersController, followController, unfollowController, getFollowe
 import { uploadAvatarController, generateAvatarController } from './controllers/avatarController';
 import { narrateController } from './controllers/narrateController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
+import { getFeedController } from './controllers/feedController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +36,9 @@ app.use(cors({
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Feed route
+app.get('/api/v1/feed', authMiddleware, getFeedController);
 
 // Auth routes
 app.post('/api/v1/auth/register', registerController);

@@ -12,7 +12,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     !!user ||
     (!!localStorage.getItem('authToken') && !!localStorage.getItem('user'));
 
-  if (!hasSession) return <Navigate to="/" replace />;
+//  if (!hasSession) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 };

@@ -1,32 +1,33 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 import { apiClient } from '../../api/apiClient';
 import { RecommendationResult } from '../../hooks/useRecommendation';
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
-const TMDB_LOGO_BASE = 'https://image.tmdb.org/t/p/original';
+const TMDB_LOGO_BASE  = 'https://image.tmdb.org/t/p/original';
 
 const PROVIDER_URLS: Record<string, string> = {
-  'netflix': 'https://www.netflix.com',
-  'disney+': 'https://www.disneyplus.com',
-  'disney plus': 'https://www.disneyplus.com',
-  'amazon prime video': 'https://www.primevideo.com',
-  'prime video': 'https://www.primevideo.com',
-  'max': 'https://www.max.com',
-  'hbo max': 'https://www.max.com',
-  'apple tv+': 'https://tv.apple.com',
-  'apple tv plus': 'https://tv.apple.com',
-  'hulu': 'https://www.hulu.com',
-  'paramount+': 'https://www.paramountplus.com',
-  'paramount plus': 'https://www.paramountplus.com',
-  'star+': 'https://www.starplus.com',
-  'star plus': 'https://www.starplus.com',
-  'crunchyroll': 'https://www.crunchyroll.com',
-  'mubi': 'https://mubi.com',
-  'peacock': 'https://www.peacocktv.com',
-  'funimation': 'https://www.funimation.com',
-  'claro video': 'https://www.clarovideo.com',
-  'flow': 'https://www.flow.com.ar',
+  'netflix':              'https://www.netflix.com',
+  'disney+':              'https://www.disneyplus.com',
+  'disney plus':          'https://www.disneyplus.com',
+  'amazon prime video':   'https://www.primevideo.com',
+  'prime video':          'https://www.primevideo.com',
+  'max':                  'https://www.max.com',
+  'hbo max':              'https://www.max.com',
+  'apple tv+':            'https://tv.apple.com',
+  'apple tv plus':        'https://tv.apple.com',
+  'hulu':                 'https://www.hulu.com',
+  'paramount+':           'https://www.paramountplus.com',
+  'paramount plus':       'https://www.paramountplus.com',
+  'star+':                'https://www.starplus.com',
+  'star plus':            'https://www.starplus.com',
+  'crunchyroll':          'https://www.crunchyroll.com',
+  'mubi':                 'https://mubi.com',
+  'peacock':              'https://www.peacocktv.com',
+  'funimation':           'https://www.funimation.com',
+  'claro video':          'https://www.clarovideo.com',
+  'flow':                 'https://www.flow.com.ar',
 };
 
 function getProviderUrl(name: string): string | null {
@@ -41,30 +42,24 @@ interface RecommendationCardProps {
 }
 
 export const RecommendationCard = ({ result, index }: RecommendationCardProps) => {
-  const [rated, setRated] = useState<'liked' | 'disliked' | null>(null);
-  const [ratingLoading, setRatingLoading] = useState(false);
-
-  const [narration, setNarration] = useState<NarrationState>('idle');
+  const [rated, setRated]                   = useState<'liked' | 'disliked' | null>(null);
+  const [ratingLoading, setRatingLoading]   = useState(false);
+  const [narration, setNarration]           = useState<NarrationState>('idle');
   const [narrationError, setNarrationError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef   = useRef<HTMLAudioElement | null>(null);
   const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
-      }
-      if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-      }
+      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.src = '';
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
     };
   }, []);
 
   const handleNarrate = async () => {
     if (narration === 'loading') return;
 
-    // Already have audio — toggle play/pause
     if (audioRef.current && (narration === 'playing' || narration === 'paused')) {
       if (narration === 'playing') {
         audioRef.current.pause();
@@ -76,7 +71,6 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
       return;
     }
 
-    // First time — fetch audio from backend
     setNarration('loading');
     setNarrationError(null);
     try {
@@ -86,7 +80,7 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
         { responseType: 'arraybuffer' }
       );
       const blob = new Blob([response.data], { type: 'audio/mpeg' });
-      const url = URL.createObjectURL(blob);
+      const url  = URL.createObjectURL(blob);
       blobUrlRef.current = url;
 
       const audio = new Audio(url);
@@ -115,106 +109,130 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
     try {
       await apiClient.post('/profile/watched-movies', {
         tmdbId: result.tmdbId,
-        title: result.title,
+        title:  result.title,
         rating,
       });
       setRated(rating === '5' ? 'liked' : 'disliked');
     } catch {
-      // silently fail — rating is non-critical
+      // rating is non-critical, fail silently
     } finally {
       setRatingLoading(false);
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08, ease: 'easeOut' }}
+      className="group relative bg-zinc-800/60 border border-zinc-700/50 rounded-2xl overflow-hidden hover:border-zinc-600 transition-all duration-300 hover:shadow-2xl hover:shadow-black/40"
+    >
+      {/* Index badge */}
       {index > 1 && (
-        <div className="bg-indigo-50 dark:bg-gray-700 px-4 py-2 border-b border-indigo-100 dark:border-gray-600">
-          <span className="text-xs font-semibold text-indigo-500 dark:text-indigo-300">Recomendación #{index}</span>
+        <div className="absolute top-3 left-3 z-10 bg-black/60 backdrop-blur-sm text-indigo-300 text-xs font-semibold px-2.5 py-1 rounded-full border border-indigo-500/30">
+          #{index}
         </div>
       )}
-      <div className="flex flex-col sm:flex-row">
-        {/* Poster */}
-        {result.posterPath ? (
-          <img
-            src={`${TMDB_IMAGE_BASE}${result.posterPath}`}
-            alt={result.title}
-            className="w-full sm:w-48 object-cover flex-shrink-0"
-          />
-        ) : (
-          <div className="w-full sm:w-48 h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
-            <span className="text-5xl">{result.contentType === 'tv' ? '📺' : '🎬'}</span>
-          </div>
-        )}
 
-        {/* Info */}
-        <div className="p-6 flex flex-col justify-between flex-1">
+      <div className="flex flex-col sm:flex-row">
+
+        {/* ── Poster ─────────────────────────────────────── */}
+        <div className="relative w-full sm:w-44 shrink-0 bg-zinc-900 overflow-hidden">
+          {result.posterPath ? (
+            <>
+              <img
+                src={`${TMDB_IMAGE_BASE}${result.posterPath}`}
+                alt={result.title}
+                className="w-full h-full object-cover sm:min-h-[280px] transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* Gradient overlay on poster */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-zinc-800/60 sm:block hidden" />
+            </>
+          ) : (
+            <div className="w-full sm:min-h-[280px] h-36 flex items-center justify-center">
+              <span className="text-5xl">{result.contentType === 'tv' ? '📺' : '🎬'}</span>
+            </div>
+          )}
+        </div>
+
+        {/* ── Content ────────────────────────────────────── */}
+        <div className="flex flex-col justify-between p-6 flex-1 min-w-0">
+
+          {/* Header */}
           <div>
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{result.title}</h2>
-              <span className="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-2 py-1 rounded-full whitespace-nowrap">
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <h2 className="text-xl font-bold text-white leading-tight">{result.title}</h2>
+              <span className="shrink-0 bg-zinc-700/80 text-zinc-300 text-xs font-medium px-2.5 py-1 rounded-full border border-zinc-600/50">
                 {result.contentType === 'movie' ? '🎬 Película' : '📺 Serie'}
               </span>
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-3">
-              {result.year} · {result.genre}
+
+            <p className="text-zinc-500 text-sm mb-3">
+              {result.year}{result.genre ? ` · ${result.genre}` : ''}
             </p>
 
             {result.overview && (
-              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4 line-clamp-3">
+              <p className="text-zinc-400 text-sm leading-relaxed mb-4 line-clamp-3">
                 {result.overview}
               </p>
             )}
 
-            {/* Explanation + narration player */}
-            <div className="bg-indigo-50 dark:bg-indigo-900/40 border-l-4 border-indigo-400 p-3 rounded-r-lg mb-4">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Por qué te la recomendamos</p>
+            {/* Explanation box */}
+            <div className="bg-indigo-950/50 border border-indigo-800/50 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-indigo-300 text-xs font-semibold uppercase tracking-wide">
+                  ✦ Por qué te la recomendamos
+                </p>
+
+                {/* Narration button */}
                 <button
                   onClick={handleNarrate}
                   disabled={narration === 'loading'}
                   title={narration === 'playing' ? 'Pausar narración' : 'Escuchar narración'}
-                  className="flex items-center gap-1.5 text-xs text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-white transition disabled:opacity-50 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800/50"
+                  className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-200 disabled:opacity-50 px-2.5 py-1.5 rounded-lg hover:bg-indigo-800/40 transition-all"
                 >
                   {narration === 'loading' ? (
-                    <span className="inline-block w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+                    <span className="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin inline-block" />
                   ) : narration === 'playing' ? (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                     </svg>
                   ) : (
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z"/>
                     </svg>
                   )}
                   <span>
-                    {narration === 'loading' ? 'Generando...' :
-                     narration === 'playing' ? 'Pausar' :
-                     narration === 'paused' ? 'Continuar' : 'Escuchar'}
+                    {narration === 'loading'  ? 'Generando...' :
+                     narration === 'playing'  ? 'Pausar' :
+                     narration === 'paused'   ? 'Continuar' : 'Escuchar'}
                   </span>
                 </button>
               </div>
-              <p className="text-sm text-indigo-900 dark:text-indigo-100 leading-relaxed">{result.explanation}</p>
+
+              <p className="text-zinc-300 text-sm leading-relaxed">{result.explanation}</p>
               {narrationError && (
-                <p className="text-xs text-red-500 mt-1">{narrationError}</p>
+                <p className="text-red-400 text-xs mt-2">{narrationError}</p>
               )}
             </div>
 
-            {/* Watch Providers */}
+            {/* Streaming providers */}
             {result.watchProviders && result.watchProviders.length > 0 && (
               <div className="mb-4">
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Disponible en streaming</p>
+                <p className="text-zinc-500 text-xs font-semibold uppercase tracking-wide mb-2">
+                  Disponible en
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {result.watchProviders.map((p) => {
-                    const url = getProviderUrl(p.providerName);
+                    const url   = getProviderUrl(p.providerName);
                     const inner = (
                       <>
                         <img
                           src={`${TMDB_LOGO_BASE}${p.logoPath}`}
                           alt={p.providerName}
-                          className="w-5 h-5 rounded"
+                          className="w-5 h-5 rounded-md"
                         />
-                        <span className="text-xs text-gray-700 dark:text-gray-200 font-medium">{p.providerName}</span>
+                        <span className="text-xs text-zinc-300 font-medium">{p.providerName}</span>
                       </>
                     );
                     return url ? (
@@ -223,12 +241,12 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg px-2 py-1 transition"
+                        className="flex items-center gap-1.5 bg-zinc-700/60 hover:bg-indigo-800/60 border border-zinc-600/50 hover:border-indigo-600/50 rounded-lg px-2.5 py-1 transition-all"
                       >
                         {inner}
                       </a>
                     ) : (
-                      <div key={p.providerId} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg px-2 py-1">
+                      <div key={p.providerId} className="flex items-center gap-1.5 bg-zinc-700/60 border border-zinc-600/50 rounded-lg px-2.5 py-1">
                         {inner}
                       </div>
                     );
@@ -238,34 +256,39 @@ export const RecommendationCard = ({ result, index }: RecommendationCardProps) =
             )}
           </div>
 
-          {/* Rating */}
-          <div className="mt-2 flex items-center gap-3">
+          {/* ── Rating ─────────────────────────────────────── */}
+          <div className="flex items-center gap-3 pt-2 border-t border-zinc-700/50 mt-2">
             {rated ? (
-              <p className="text-sm text-green-600 font-medium">
+              <motion.p
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-sm text-emerald-400 font-medium"
+              >
                 {rated === 'liked' ? '👍 Guardada como "me gustó"' : '👎 Guardada como "no me gustó"'}
-              </p>
+              </motion.p>
             ) : (
               <>
-                <p className="text-xs text-gray-500">¿La viste?</p>
+                <p className="text-zinc-500 text-xs">¿La viste?</p>
                 <button
                   onClick={() => rate('5')}
                   disabled={ratingLoading}
-                  className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 transition disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-emerald-900/40 hover:bg-emerald-800/60 text-emerald-400 border border-emerald-800/50 hover:border-emerald-600/60 transition-all disabled:opacity-50"
                 >
                   👍 Me gustó
                 </button>
                 <button
                   onClick={() => rate('1')}
                   disabled={ratingLoading}
-                  className="flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-red-900/30 hover:bg-red-800/50 text-red-400 border border-red-800/50 hover:border-red-600/60 transition-all disabled:opacity-50"
                 >
                   👎 No me gustó
                 </button>
               </>
             )}
           </div>
+
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
