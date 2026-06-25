@@ -4,7 +4,7 @@
   "description": "Backend API for intelligent movie recommendation engine",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch --env-file=.env.local src/index.ts",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 tsx watch --env-file=.env.local src/index.ts",
     "build": "prisma generate && tsc",
     "start": "prisma migrate deploy && node dist/index.js",
     "test": "vitest",

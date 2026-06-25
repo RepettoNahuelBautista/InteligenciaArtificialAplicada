@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MoodSelector } from '../components/MoodSelector';
 import { FilterPanel } from '../components/Recommendation/FilterPanel';
 import { ContextSummary } from '../components/Recommendation/ContextSummary';
@@ -16,7 +17,7 @@ const LOADING_MESSAGES = [
   'Ajustando la recomendación...',
 ];
 
-function LoadingIndicator() {
+function LoadingOverlay() {
   const [msgIdx, setMsgIdx] = useState(0);
 
   useEffect(() => {
@@ -27,192 +28,310 @@ function LoadingIndicator() {
   }, []);
 
   return (
-    <div className="flex items-center justify-center gap-3 py-6">
-      <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 dark:border-white flex-shrink-0" />
-      <span className="text-indigo-600 dark:text-indigo-200 text-sm font-medium transition-all">{LOADING_MESSAGES[msgIdx]}</span>
-    </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex flex-col items-center justify-center py-24 gap-6"
+    >
+      {/* Pulsing rings */}
+      <div className="relative w-24 h-24 flex items-center justify-center">
+        <div className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping" />
+        <div className="absolute inset-2 rounded-full bg-indigo-500/20 animate-ping [animation-delay:300ms]" />
+        <div className="w-16 h-16 rounded-full bg-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-500/40">
+          <span className="text-2xl">✨</span>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={msgIdx}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.3 }}
+          className="text-indigo-600 dark:text-indigo-300 font-medium text-base"
+        >
+          {LOADING_MESSAGES[msgIdx]}
+        </motion.p>
+      </AnimatePresence>
+    </motion.div>
   );
 }
+
+const cardStagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+const cardItem = {
+  hidden: { opacity: 0, y: 24 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
+};
 
 export const RecommendationPage = () => {
   const navigate = useNavigate();
   const {
-    context,
-    toggleMood,
-    toggleContentType,
-    toggleDuration,
-    toggleYear,
-    clearFilters,
-    clearAll,
-    isReady,
-    getSummaryItems,
+    context, toggleMood, toggleContentType, toggleDuration,
+    toggleYear, clearFilters, clearAll, isReady, getSummaryItems,
   } = useRecommendationContext();
 
   const { results, loading, error, fetchRecommendation, fetchNext, clear } = useRecommendation();
 
-  const handleGetRecommendation = () => {
-    fetchRecommendation(context);
-  };
-
-  const handleGetAnother = () => {
-    fetchNext(context, results);
-  };
-
-  const handleChangeFilters = () => {
-    clear();
-  };
-
-  // --- Vista: resultados ---
-  if (results.length > 0 || (loading && results.length === 0 && !error)) {
-    // show results view once we have at least 1 result (or still loading first)
-  }
-
-  if (results.length > 0) {
+  // ── Results view ────────────────────────────────────────────────────────────
+  if (results.length > 0 || (loading && results.length === 0)) {
     return (
-      <div className="min-h-screen p-4 sm:p-8">
+      <div className="min-h-screen p-6 sm:p-10">
         <div className="max-w-2xl mx-auto">
+
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between mb-10"
+          >
             <button
-              onClick={() => navigate('/home')}
-              className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition text-sm flex items-center gap-2"
+              onClick={clear}
+              className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition text-sm font-medium"
             >
-              ← Volver al inicio
-            </button>
-            <button
-              onClick={handleChangeFilters}
-              className="text-zinc-500 hover:text-zinc-900 dark:text-indigo-300 dark:hover:text-white transition text-sm"
-            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
               Cambiar filtros
             </button>
-          </div>
+            <button
+              onClick={() => navigate('/home')}
+              className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition text-sm"
+            >
+              Volver al inicio
+            </button>
+          </motion.div>
 
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
-            {results.length === 1 ? 'Tu recomendación ✨' : `Tus recomendaciones ✨`}
-          </h1>
-          <p className="text-zinc-500 dark:text-indigo-300 text-sm mb-6">
-            {results.length === 1 ? '1 recomendación' : `${results.length} recomendaciones`} · Los filtros se mantienen activos
-          </p>
-
-          {/* Botón pedir otra */}
-          <button
-            onClick={handleGetAnother}
-            disabled={loading}
-            className={`w-full mb-4 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${
-              loading
-                ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
-                : 'bg-white border border-zinc-300 text-zinc-800 hover:bg-zinc-50 hover:shadow-sm dark:bg-white/15 dark:border-white/30 dark:text-white dark:hover:bg-white/25'
-            }`}
-          >
-            {loading ? (
-              <>
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-500 dark:border-white" />
-                Buscando otra...
-              </>
-            ) : (
-              '+ Pedir otra recomendación'
-            )}
-          </button>
-
-          {/* Loading message cuando carga "otra" */}
-          {loading && <LoadingIndicator />}
-
-          {/* Error */}
-          {error && (
-            <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg">
-              <p className="text-red-200 text-sm">{error}</p>
-            </div>
+          {/* Mood badge */}
+          {context.moodEmoji && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6"
+            >
+              <div className="inline-flex items-center gap-3 bg-white/60 dark:bg-white/5 border border-white/80 dark:border-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
+                <span className="text-2xl">{context.moodEmoji}</span>
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                  Modo <strong>{context.moodLabel}</strong>
+                </span>
+              </div>
+            </motion.div>
           )}
 
-          {/* Cards acumuladas (newest on top) */}
-          <div className="space-y-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="text-3xl font-bold text-zinc-900 dark:text-white mb-1"
+          >
+            {results.length === 1 ? 'Tu recomendación' : 'Tus recomendaciones'} ✨
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1 }}
+            className="text-zinc-500 dark:text-zinc-400 text-sm mb-8"
+          >
+            {results.length} {results.length === 1 ? 'resultado' : 'resultados'} · Los filtros se mantienen activos
+          </motion.p>
+
+          {/* Get another */}
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            whileHover={!loading ? { scale: 1.02 } : {}}
+            whileTap={!loading ? { scale: 0.98 } : {}}
+            onClick={() => fetchNext(context, results)}
+            disabled={loading}
+            className={`w-full mb-8 py-3.5 rounded-2xl font-semibold text-sm transition flex items-center justify-center gap-2 border
+              ${loading
+                ? 'bg-white/30 dark:bg-white/5 text-zinc-400 dark:text-zinc-500 border-white/40 dark:border-white/10 cursor-not-allowed'
+                : 'bg-white/60 dark:bg-white/8 hover:bg-white/90 dark:hover:bg-white/15 border-white/80 dark:border-white/20 text-zinc-800 dark:text-white backdrop-blur-sm shadow-sm'
+              }`}
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <span className="text-base">+</span>
+            )}
+            {loading ? 'Buscando otra...' : 'Pedir otra recomendación'}
+          </motion.button>
+
+          {/* Loading overlay for "another" */}
+          <AnimatePresence>
+            {loading && <LoadingOverlay />}
+          </AnimatePresence>
+
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-6 p-4 bg-red-500/15 border border-red-400/40 rounded-xl"
+              >
+                <p className="text-red-600 dark:text-red-300 text-sm">{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Cards */}
+          <motion.div
+            variants={cardStagger}
+            initial="hidden"
+            animate="show"
+            className="space-y-6"
+          >
             {results.map((r: RecommendationResult, i: number) => (
-              <RecommendationCard key={r.tmdbId + i} result={r} index={results.length - i} />
+              <motion.div key={r.tmdbId + i} variants={cardItem}>
+                <RecommendationCard result={r} index={results.length - i} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
+
         </div>
       </div>
     );
   }
 
-  // --- Vista: formulario ---
+  // ── Form view ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen p-4 sm:p-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen p-6 sm:p-10">
+      <div className="max-w-3xl mx-auto">
+
         {/* Header */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-10"
+        >
           <button
             onClick={() => navigate('/home')}
-            className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-6 flex items-center gap-2 text-sm"
+            className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition text-sm font-medium mb-6"
           >
-            ← Volver
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Volver
           </button>
-          <h1 className="text-4xl font-bold text-zinc-900 dark:text-white mb-2">Obtener Recomendación</h1>
-          <p className="text-zinc-600 dark:text-indigo-200">Elegí tu estado de ánimo y ajustá los filtros opcionales</p>
-        </div>
+          <h1 className="text-4xl font-extrabold text-zinc-900 dark:text-white mb-2">
+            ¿Qué querés ver hoy?
+          </h1>
+          <p className="text-zinc-500 dark:text-zinc-400">
+            Elegí cómo te sentís y te recomendamos algo perfecto para el momento
+          </p>
+        </motion.div>
 
-        {/* Paso 1: Estado de ánimo */}
-        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 mb-4 dark:bg-white/10 dark:border-white/20">
+        {/* Step 1 — Mood */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08 }}
+          className="mb-8"
+        >
+          <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-4">
+            01 · Estado de ánimo
+          </p>
           <MoodSelector selectedMoodId={context.moodId} onMoodSelected={toggleMood} />
-        </div>
+        </motion.section>
 
-        {/* Paso 2: Filtros */}
-        <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 mb-4 dark:bg-white/10 dark:border-white/20">
-          <FilterPanel
-            contentType={context.contentType}
-            duration={context.duration}
-            year={context.year}
-            onContentTypeChange={toggleContentType}
-            onDurationChange={toggleDuration}
-            onYearChange={toggleYear}
-            onClearFilters={clearFilters}
-          />
-        </div>
+        {/* Step 2 — Filters (collapsible) */}
+        <AnimatePresence>
+          {isReady && (
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.25 }}
+              className="mb-8 bg-white/50 dark:bg-white/5 border border-white/70 dark:border-white/10 backdrop-blur-sm rounded-2xl p-5"
+            >
+              <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-4">
+                02 · Ajustes
+              </p>
+              <FilterPanel
+                contentType={context.contentType}
+                duration={context.duration}
+                year={context.year}
+                onContentTypeChange={toggleContentType}
+                onDurationChange={toggleDuration}
+                onYearChange={toggleYear}
+                onClearFilters={clearFilters}
+              />
+            </motion.section>
+          )}
+        </AnimatePresence>
 
-        {/* Paso 3: Resumen */}
-        <div className="mb-6">
+        {/* Summary chips */}
+        <div className="mb-6 min-h-[28px]">
           <ContextSummary items={getSummaryItems()} onClear={clearAll} />
         </div>
 
         {/* Error */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-500/20 border border-red-400/50 rounded-lg">
-            <p className="text-red-300 dark:text-red-200 text-sm">{error}</p>
-          </div>
-        )}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-5 p-4 bg-red-500/15 border border-red-400/40 rounded-xl"
+            >
+              <p className="text-red-600 dark:text-red-300 text-sm">{error}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Loading */}
-        {loading && <LoadingIndicator />}
+        <AnimatePresence>
+          {loading && <LoadingOverlay />}
+        </AnimatePresence>
 
-        {/* Acciones */}
-        <div className="flex gap-4">
-          <button
-            onClick={() => navigate('/home')}
-            className="bg-white border border-zinc-200 text-zinc-800 px-6 py-3 rounded-lg hover:bg-zinc-50 transition font-medium dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20"
+        {/* CTA */}
+        {!loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex gap-3"
           >
-            Cancelar
-          </button>
-          <button
-            onClick={handleGetRecommendation}
-            disabled={!isReady || loading}
-            className={`flex-1 py-3 rounded-lg font-semibold transition ${
-              isReady && !loading
-                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
-                : 'bg-zinc-100 text-zinc-400 cursor-not-allowed border border-zinc-200 dark:bg-white/10 dark:text-indigo-300 dark:border-white/10'
-            }`}
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-500 dark:border-white" />
-                Buscando...
+            <button
+              onClick={() => navigate('/home')}
+              className="px-5 py-3.5 rounded-2xl text-sm font-medium border border-white/60 dark:border-white/10 bg-white/40 dark:bg-white/5 text-zinc-600 dark:text-zinc-400 hover:bg-white/70 dark:hover:bg-white/10 transition backdrop-blur-sm"
+            >
+              Cancelar
+            </button>
+
+            <motion.button
+              onClick={() => fetchRecommendation(context)}
+              disabled={!isReady}
+              whileHover={isReady ? { scale: 1.02 } : {}}
+              whileTap={isReady ? { scale: 0.98 } : {}}
+              className={`flex-1 py-3.5 rounded-2xl font-bold text-base transition-all duration-300 relative overflow-hidden
+                ${isReady
+                  ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50'
+                  : 'bg-white/30 dark:bg-white/5 text-zinc-400 dark:text-zinc-600 border border-white/40 dark:border-white/10 cursor-not-allowed'
+                }`}
+            >
+              {/* Shimmer when ready */}
+              {isReady && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
+                />
+              )}
+              <span className="relative">
+                {isReady ? '✨ Obtener Recomendación' : 'Primero elegí tu estado de ánimo'}
               </span>
-            ) : isReady ? (
-              'Obtener Recomendación ✨'
-            ) : (
-              'Primero elegí tu estado de ánimo'
-            )}
-          </button>
-        </div>
+            </motion.button>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );

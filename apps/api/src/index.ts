@@ -1,3 +1,8 @@
+// Allow self-signed/intercepted SSL certs in dev (proxy/VPN environments)
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
@@ -28,7 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3001';
 app.use(cors({
-  origin: corsOrigin,
+  origin: process.env.NODE_ENV === 'development'
+    ? (origin, cb) => cb(null, true)
+    : corsOrigin,
   credentials: true,
 }));
 

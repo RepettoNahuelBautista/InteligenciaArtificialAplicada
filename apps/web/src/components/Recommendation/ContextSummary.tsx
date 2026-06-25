@@ -1,44 +1,41 @@
+import { motion, AnimatePresence } from 'framer-motion';
+
 interface ContextSummaryProps {
   items: string[];
   onClear: () => void;
 }
 
 export const ContextSummary = ({ items, onClear }: ContextSummaryProps) => {
-  if (items.length === 0) {
-    return (
-      <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-lg text-center dark:bg-white/5 dark:border-white/10">
-        <p className="text-zinc-500 dark:text-indigo-300 text-sm">
-          Seleccioná un estado de ánimo para ver el resumen de tu búsqueda
-        </p>
-      </div>
-    );
-  }
+  if (items.length === 0) return null;
 
   return (
-    <div className="p-4 bg-green-50 border border-green-300 rounded-lg dark:bg-green-500/10 dark:border-green-400/40">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <p className="text-green-700 dark:text-green-300 text-xs font-semibold uppercase tracking-wide mb-2">
-            Buscando
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {items.map((item, i) => (
-              <span
-                key={i}
-                className="bg-green-100 border border-green-300 text-green-800 dark:bg-green-500/20 dark:border-green-400/40 dark:text-green-100 text-sm px-3 py-1 rounded-full"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-        <button
-          onClick={onClear}
-          className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-white text-sm transition whitespace-nowrap"
-        >
-          Limpiar todo
-        </button>
-      </div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex items-center gap-2 flex-wrap"
+    >
+      <span className="text-zinc-400 dark:text-zinc-500 text-xs font-medium shrink-0">Buscando:</span>
+      <AnimatePresence mode="popLayout">
+        {items.map((item) => (
+          <motion.span
+            key={item}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.15 }}
+            className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-medium px-3 py-1 rounded-full"
+          >
+            {item}
+          </motion.span>
+        ))}
+      </AnimatePresence>
+      <button
+        onClick={onClear}
+        className="text-xs text-zinc-400 hover:text-red-400 transition ml-1 shrink-0"
+        title="Limpiar todo"
+      >
+        × Limpiar
+      </button>
+    </motion.div>
   );
 };
