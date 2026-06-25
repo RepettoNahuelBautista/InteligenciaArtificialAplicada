@@ -3,6 +3,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './hooks/useAuth';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from './components/ThemeToggle';
 import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
@@ -29,6 +30,7 @@ function Protected({ children }: { children: React.ReactNode }) {
 function App() {
   return (
     <ThemeProvider>
+      <ThemeToggle />
       <Router>
         <AuthProvider>
           <AnimatePresence mode="wait">

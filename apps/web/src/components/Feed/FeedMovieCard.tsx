@@ -24,7 +24,7 @@ export function FeedMovieCard({ movie, index }: FeedMovieCardProps) {
       className="shrink-0 w-36 group cursor-default"
     >
       {/* Poster */}
-      <div className="relative w-36 h-52 rounded-xl overflow-hidden bg-zinc-800 mb-2">
+      <div className="relative w-36 h-52 rounded-xl overflow-hidden bg-zinc-200 dark:bg-zinc-800 mb-2">
         {movie.posterPath ? (
           <img
             src={`${TMDB_IMAGE_BASE}${movie.posterPath}`}
@@ -47,7 +47,7 @@ export function FeedMovieCard({ movie, index }: FeedMovieCardProps) {
       </div>
 
       {/* Info */}
-      <p className="text-white text-xs font-semibold leading-tight line-clamp-2 mb-0.5">
+      <p className="text-zinc-900 dark:text-white text-xs font-semibold leading-tight line-clamp-2 mb-0.5">
         {movie.title}
       </p>
       {subtitle && (
@@ -61,9 +61,9 @@ export function FeedMovieCard({ movie, index }: FeedMovieCardProps) {
 export function FeedMovieCardSkeleton() {
   return (
     <div className="shrink-0 w-36 animate-pulse">
-      <div className="w-36 h-52 rounded-xl bg-zinc-800 mb-2" />
-      <div className="h-3 bg-zinc-800 rounded w-4/5 mb-1" />
-      <div className="h-3 bg-zinc-800 rounded w-3/5" />
+      <div className="w-36 h-52 rounded-xl bg-zinc-200 dark:bg-zinc-800 mb-2" />
+      <div className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded w-4/5 mb-1" />
+      <div className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded w-3/5" />
     </div>
   );
 }
