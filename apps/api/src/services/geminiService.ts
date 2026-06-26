@@ -162,7 +162,7 @@ class GeminiService {
     const model = this.client.getGenerativeModel({
       model: modelName,
       generationConfig: {
-        responseMimeType: 'application/json',
+        // No responseMimeType: thinking models (2.5-flash) return malformed JSON when this is set
         temperature: 0.8,
         maxOutputTokens: 2048,
       },
@@ -187,8 +187,13 @@ class GeminiService {
       throw new AppError('LLM_API_ERROR', 502, `Error del modelo (${modelName}): ${msg.slice(0, 200)}`, true);
     }
 
-    const raw = result.response.text();
-    logger.debug('Gemini raw response', { raw, model: modelName });
+    const raw = result.response.text() ?? '';
+    logger.info('Gemini raw response', { model: modelName, length: raw.length, preview: raw.slice(0, 200) });
+
+    if (!raw.trim()) {
+      logger.error('Gemini returned empty response', { model: modelName });
+      throw new AppError('LLM_PARSE_ERROR', 502, 'Empty response from Gemini', true);
+    }
 
     const text = this.extractJson(raw);
 
