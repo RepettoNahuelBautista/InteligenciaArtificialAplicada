@@ -95,8 +95,11 @@ export function Sidebar() {
       {/* User + logout */}
       <div className="border-t border-zinc-200 dark:border-indigo-900/50 p-3">
         <div className={`flex items-center gap-3 px-2 py-2 rounded-lg ${collapsed ? 'justify-center' : ''}`}>
-          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-            {displayName[0].toUpperCase()}
+          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold shrink-0 overflow-hidden">
+            {user?.avatarUrl
+              ? <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              : displayName[0].toUpperCase()
+            }
           </div>
           <AnimatePresence>
             {!collapsed && (

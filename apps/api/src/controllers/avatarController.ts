@@ -86,7 +86,7 @@ export const uploadAvatarController = (req: Request, res: Response, next: NextFu
     }
     try {
       const userId = req.userId as string;
-      const avatarUrl = await uploadAvatar(userId, req.file.buffer);
+      const avatarUrl = await uploadAvatar(userId, req.file.buffer, req.file.mimetype);
       res.json({ success: true, data: { avatarUrl } });
     } catch (e) {
       next(e);
