@@ -45,13 +45,13 @@ class FeedService {
    */
   private async getTrending(userId: string, limit: number): Promise<FeedMovie[]> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const liked = await (prisma.watchedMovie.groupBy as (args: any) => Promise<GroupedMovie[]>)({
+    const liked = (await (prisma.watchedMovie.groupBy as unknown as (args: any) => Promise<unknown>)({
       by: ['tmdbId', 'title'],
       where: { rating: 5 },
       _count: { tmdbId: true },
       orderBy: { _count: { tmdbId: 'desc' } },
       take: limit * 2,
-    });
+    })) as GroupedMovie[];
 
     const seen = await prisma.watchedMovie.findMany({
       where: { userId },
