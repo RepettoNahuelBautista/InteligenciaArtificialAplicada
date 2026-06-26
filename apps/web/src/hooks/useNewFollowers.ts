@@ -31,8 +31,7 @@ export function useNewFollowers() {
   const markSeen = useCallback(async () => {
     try {
       await apiClient.post('/notifications/followers/seen');
-      setCount(0);
-      setFollowers([]);
+      setCount(0); // hide badge; keep followers visible while popup is open
     } catch {
       // silently ignore
     }
