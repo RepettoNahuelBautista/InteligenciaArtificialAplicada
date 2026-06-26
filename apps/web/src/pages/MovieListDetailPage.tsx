@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 
@@ -33,30 +34,40 @@ interface SearchResult {
   poster_path?: string | null;
 }
 
+function GlassCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-white/60 dark:bg-white/5 border border-white/80 dark:border-white/10 backdrop-blur-sm rounded-2xl shadow-sm ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+const fadeUp = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } } };
+
 export function MovieListDetailPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
   const { listId } = useParams<{ listId: string }>();
-  const { user } = useAuth();
+  const { user }  = useAuth();
 
-  const [list, setList] = useState<ListDetail | null>(null);
+  const [list,    setList]    = useState<ListDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
 
-  const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editDesc, setEditDesc] = useState('');
+  const [editing,    setEditing]    = useState(false);
+  const [editName,   setEditName]   = useState('');
+  const [editDesc,   setEditDesc]   = useState('');
   const [editPublic, setEditPublic] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [saving,     setSaving]     = useState(false);
 
-  const [showSearch, setShowSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch,    setShowSearch]    = useState(false);
+  const [searchQuery,   setSearchQuery]   = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [searching,     setSearching]     = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const searchRef   = useRef<HTMLDivElement>(null);
 
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting,      setDeleting]      = useState(false);
 
   useEffect(() => {
     if (!listId) return;
@@ -73,12 +84,8 @@ export function MovieListDetailPage() {
     load();
   }, [listId]);
 
-  // Debounced TMDB search
   useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+    if (searchQuery.length < 2) { setSearchResults([]); return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
@@ -93,7 +100,6 @@ export function MovieListDetailPage() {
     }, 350);
   }, [searchQuery]);
 
-  // Close search on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -110,18 +116,16 @@ export function MovieListDetailPage() {
     if (!list) return;
     try {
       const res = await apiClient.post(`/lists/${list.id}/items`, {
-        tmdbId: String(result.id),
-        title: result.title,
-        posterPath: result.poster_path ?? null,
+        tmdbId:      String(result.id),
+        title:       result.title,
+        posterPath:  result.poster_path ?? null,
         contentType: result.media_type,
       });
       setList((prev) => prev ? { ...prev, items: [res.data.data, ...prev.items] } : prev);
       setSearchQuery('');
       setSearchResults([]);
       setShowSearch(false);
-    } catch {
-      // item already in list — silently ignore
-    }
+    } catch { /* item already in list */ }
   };
 
   const handleRemoveItem = async (tmdbId: string) => {
@@ -129,9 +133,7 @@ export function MovieListDetailPage() {
     setList((prev) => prev ? { ...prev, items: prev.items.filter((i) => i.tmdbId !== tmdbId) } : prev);
     try {
       await apiClient.delete(`/lists/${list.id}/items/${tmdbId}`);
-    } catch {
-      // revert not critical here
-    }
+    } catch { /* ignore */ }
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -140,15 +142,13 @@ export function MovieListDetailPage() {
     setSaving(true);
     try {
       const res = await apiClient.put(`/lists/${list.id}`, {
-        name: editName.trim(),
+        name:        editName.trim(),
         description: editDesc.trim() || null,
-        isPublic: editPublic,
+        isPublic:    editPublic,
       });
       setList((prev) => prev ? { ...prev, name: res.data.data.name, description: res.data.data.description, isPublic: res.data.data.isPublic } : prev);
       setEditing(false);
-    } catch {
-      // ignore
-    } finally {
+    } catch { /* ignore */ } finally {
       setSaving(false);
     }
   };
@@ -175,210 +175,345 @@ export function MovieListDetailPage() {
 
   const isOwn = list?.isOwner ?? (list?.owner.userId === user?.id);
 
+  // ── Loading ────────────────────────────────────────────────────────────────
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-white" />
+        <span className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  // ── Error ──────────────────────────────────────────────────────────────────
 
   if (error || !list) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg p-8 max-w-md w-full text-center">
+        <GlassCard className="p-8 max-w-sm w-full text-center">
           <p className="text-4xl mb-4">📋</p>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Lista no encontrada</h2>
-          <p className="text-gray-500 mb-6">{error}</p>
-          <button onClick={() => navigate(-1)} className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Lista no encontrada</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">{error}</p>
+          <button onClick={() => navigate(-1)} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition">
             Volver
           </button>
-        </div>
+        </GlassCard>
       </div>
     );
   }
 
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen p-4 sm:p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <button onClick={() => navigate(-1)} className="text-zinc-600 dark:text-white hover:text-zinc-900 dark:hover:text-indigo-200 transition mb-4 flex items-center gap-2 text-sm">
-            ← Volver
-          </button>
+      <div className="max-w-2xl mx-auto space-y-4">
 
-          {editing ? (
-            <form onSubmit={handleSaveEdit} className="bg-white rounded-xl p-5 mb-4 shadow-lg">
-              <h3 className="font-bold text-gray-900 mb-4">Editar lista</h3>
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  maxLength={100}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                  required
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <input
-                  type="text"
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  maxLength={300}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                />
-              </div>
-              <div className="mb-4 flex items-center gap-2">
-                <input type="checkbox" id="editPublic" checked={editPublic} onChange={(e) => setEditPublic(e.target.checked)} className="w-4 h-4 text-indigo-600 rounded" />
-                <label htmlFor="editPublic" className="text-sm text-gray-700">Lista pública</label>
-              </div>
-              <div className="flex gap-3">
-                <button type="button" onClick={() => setEditing(false)} className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition">Cancelar</button>
-                <button type="submit" disabled={saving || !editName.trim()} className="flex-1 bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-40 transition">
-                  {saving ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
-            </form>
-          ) : (
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-3xl font-bold text-zinc-900 dark:text-white truncate">{list.name}</h1>
-                  <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${list.isPublic ? 'bg-green-100 text-green-700 dark:bg-green-500/30 dark:text-green-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-500/30 dark:text-gray-300'}`}>
-                    {list.isPublic ? 'Pública' : 'Privada'}
-                  </span>
-                </div>
-                {list.description && <p className="text-zinc-500 dark:text-indigo-300 text-sm">{list.description}</p>}
-                <p className="text-zinc-400 dark:text-indigo-400 text-xs mt-1">
-                  {list.items.length} {list.items.length === 1 ? 'título' : 'títulos'} · por {list.owner.displayName}
-                </p>
-              </div>
-              {isOwn && (
-                <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={openEdit} className="px-3 py-1.5 text-sm bg-white border border-zinc-200 text-zinc-800 rounded-lg hover:bg-zinc-50 dark:bg-white/10 dark:border-white/20 dark:text-white dark:hover:bg-white/20 transition">
-                    Editar
-                  </button>
-                  <button onClick={() => setConfirmDelete(true)} className="px-3 py-1.5 text-sm bg-red-500/20 border border-red-400/30 text-red-300 rounded-lg hover:bg-red-500/30 transition">
-                    Eliminar
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Back */}
+        <motion.button
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver
+        </motion.button>
 
-        {/* Delete confirm */}
-        {confirmDelete && (
-          <div className="bg-white rounded-xl p-5 mb-6 shadow-lg">
-            <h3 className="font-bold text-gray-900 mb-2">¿Eliminar esta lista?</h3>
-            <p className="text-gray-500 text-sm mb-4">Se eliminarán todos los títulos de la lista. Esta acción no se puede deshacer.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(false)} className="flex-1 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
-              <button onClick={handleDeleteList} disabled={deleting} className="flex-1 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 transition">
-                {deleting ? 'Eliminando...' : 'Eliminar'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Add item search */}
-        {isOwn && (
-          <div ref={searchRef} className="relative mb-6">
-            {!showSearch ? (
-              <button
-                onClick={() => setShowSearch(true)}
-                className="w-full py-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 hover:bg-zinc-50 dark:bg-white/10 dark:border-white/20 dark:text-indigo-300 dark:hover:bg-white/20 transition text-sm font-medium"
-              >
-                + Agregar película o serie
-              </button>
-            ) : (
-              <div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Buscar para agregar..."
-                  autoFocus
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-white/10 dark:border-white/20 dark:text-white dark:placeholder-indigo-300 dark:focus:ring-indigo-400"
-                />
-                {searching && (
-                  <span className="absolute right-4 top-3.5 animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600 dark:border-white" />
-                )}
-                {searchResults.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
-                    {searchResults.map((r) => {
-                      const alreadyAdded = list.items.some((i) => i.tmdbId === String(r.id));
-                      return (
-                        <button
-                          key={r.id}
-                          onClick={() => !alreadyAdded && handleAddItem(r)}
-                          disabled={alreadyAdded}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-left transition ${alreadyAdded ? 'opacity-40 cursor-not-allowed bg-gray-50' : 'hover:bg-indigo-50'}`}
-                        >
-                          {r.poster_path ? (
-                            <img src={`${TMDB_IMAGE_BASE}${r.poster_path}`} alt={r.title} className="w-8 h-12 object-cover rounded flex-shrink-0" />
-                          ) : (
-                            <div className="w-8 h-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0 text-lg">
-                              {r.media_type === 'tv' ? '📺' : '🎬'}
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-gray-900 truncate">{r.title}</p>
-                            <p className="text-xs text-gray-500">{r.year} · {r.media_type === 'tv' ? 'Serie' : 'Película'}</p>
-                          </div>
-                          {alreadyAdded && <span className="text-xs text-gray-400 flex-shrink-0">Ya agregada</span>}
-                        </button>
-                      );
-                    })}
+        {/* ── Header card ─────────────────────────────────────────────────── */}
+        <motion.div variants={fadeUp} initial="hidden" animate="show">
+          <GlassCard className="p-5">
+            <AnimatePresence mode="wait">
+              {editing ? (
+                <motion.form
+                  key="edit"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onSubmit={handleSaveEdit}
+                  className="space-y-4"
+                >
+                  <h3 className="font-bold text-zinc-900 dark:text-white text-sm">Editar lista</h3>
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Nombre *</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      maxLength={100}
+                      className="w-full px-3 py-2 border border-zinc-200 dark:border-white/10 rounded-xl bg-white/80 dark:bg-white/5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                      required
+                    />
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Items */}
-        {list.items.length === 0 ? (
-          <div className="text-center py-16 text-zinc-400 dark:text-indigo-300">
-            <p className="text-5xl mb-4">🎬</p>
-            <p className="font-medium text-zinc-900 dark:text-white mb-1">La lista está vacía</p>
-            {isOwn && <p className="text-sm">Buscá películas o series para agregarlas</p>}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {list.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 bg-white border border-zinc-200 shadow-sm rounded-xl dark:bg-white/10 dark:border-white/20 p-3">
-                {item.posterPath ? (
-                  <img
-                    src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
-                    alt={item.title}
-                    className="w-10 h-14 object-cover rounded flex-shrink-0"
-                  />
-                ) : (
-                  <div className="w-10 h-14 bg-zinc-100 dark:bg-white/10 rounded flex items-center justify-center flex-shrink-0 text-xl">
-                    {item.contentType === 'tv' ? '📺' : '🎬'}
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1">Descripción</label>
+                    <input
+                      type="text"
+                      value={editDesc}
+                      onChange={(e) => setEditDesc(e.target.value)}
+                      maxLength={300}
+                      className="w-full px-3 py-2 border border-zinc-200 dark:border-white/10 rounded-xl bg-white/80 dark:bg-white/5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                    />
                   </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-zinc-900 dark:text-white font-medium text-sm truncate">{item.title}</p>
-                  <p className="text-zinc-500 dark:text-indigo-400 text-xs">{item.contentType === 'tv' ? 'Serie' : 'Película'}</p>
-                </div>
-                {isOwn && (
                   <button
-                    onClick={() => handleRemoveItem(item.tmdbId)}
-                    className="flex-shrink-0 text-red-400 hover:text-red-300 transition text-sm px-2 py-1"
-                    title="Quitar de la lista"
+                    type="button"
+                    onClick={() => setEditPublic((v) => !v)}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-xl border transition text-sm font-medium ${
+                      editPublic
+                        ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/25 text-emerald-700 dark:text-emerald-400'
+                        : 'bg-zinc-50 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-zinc-400'
+                    }`}
                   >
-                    ✕
+                    <span>{editPublic ? '🌐' : '🔒'}</span>
+                    <span>{editPublic ? 'Lista pública' : 'Lista privada'}</span>
                   </button>
-                )}
-              </div>
-            ))}
-          </div>
+                  <div className="flex gap-3 pt-1">
+                    <button type="button" onClick={() => setEditing(false)}
+                      className="px-4 py-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition">
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={saving || !editName.trim()}
+                      className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl disabled:opacity-40 transition">
+                      {saving ? 'Guardando...' : 'Guardar cambios'}
+                    </button>
+                  </div>
+                </motion.form>
+              ) : (
+                <motion.div key="view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-2xl flex-shrink-0">
+                      📋
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <h1 className="text-lg font-extrabold text-zinc-900 dark:text-white truncate">{list.name}</h1>
+                        <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${
+                          list.isPublic
+                            ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/25'
+                            : 'bg-zinc-100 dark:bg-zinc-700/50 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-600/30'
+                        }`}>
+                          {list.isPublic ? '🌐 Pública' : '🔒 Privada'}
+                        </span>
+                      </div>
+                      {list.description && (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">{list.description}</p>
+                      )}
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                        {list.items.length} {list.items.length === 1 ? 'título' : 'títulos'} · por {list.owner.displayName}
+                      </p>
+                    </div>
+                    {isOwn && (
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={openEdit}
+                          className="px-3 py-1.5 text-xs font-medium bg-white/80 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 text-zinc-700 dark:text-zinc-300 rounded-xl transition"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(true)}
+                          className="px-3 py-1.5 text-xs font-medium bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/25 text-rose-600 dark:text-rose-400 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-500/20 transition"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </GlassCard>
+        </motion.div>
+
+        {/* ── Delete confirm ──────────────────────────────────────────────── */}
+        <AnimatePresence>
+          {confirmDelete && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.18 }}
+            >
+              <GlassCard className="p-5 border-rose-200 dark:border-rose-500/25">
+                <h3 className="font-bold text-zinc-900 dark:text-white mb-1 text-sm">¿Eliminar esta lista?</h3>
+                <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-4">
+                  Se eliminarán todos los títulos. Esta acción no se puede deshacer.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="flex-1 py-2 text-sm text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 rounded-xl hover:bg-zinc-50 dark:hover:bg-white/5 transition"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDeleteList}
+                    disabled={deleting}
+                    className="flex-1 py-2 text-sm bg-rose-600 hover:bg-rose-700 text-white font-semibold rounded-xl disabled:opacity-40 transition"
+                  >
+                    {deleting ? 'Eliminando...' : 'Eliminar lista'}
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ── Add item search ─────────────────────────────────────────────── */}
+        {isOwn && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            ref={searchRef}
+            className="relative"
+          >
+            <AnimatePresence mode="wait">
+              {!showSearch ? (
+                <motion.button
+                  key="add-btn"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={() => setShowSearch(true)}
+                  className="w-full py-3 rounded-xl bg-white/60 dark:bg-white/5 border border-dashed border-zinc-300 dark:border-white/15 text-zinc-500 dark:text-zinc-400 hover:border-indigo-300 dark:hover:border-indigo-500/40 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-500/5 transition text-sm font-medium"
+                >
+                  + Agregar película o serie
+                </motion.button>
+              ) : (
+                <motion.div
+                  key="search-box"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="relative"
+                >
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar para agregar..."
+                    autoFocus
+                    className="w-full px-4 py-3 border border-zinc-200 dark:border-white/10 rounded-xl bg-white/80 dark:bg-white/5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition placeholder-zinc-400 dark:placeholder-zinc-600 pr-10"
+                  />
+                  <div className="absolute right-3 top-3">
+                    {searching ? (
+                      <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin inline-block" />
+                    ) : (
+                      <button onClick={() => { setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
+                        className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition text-lg leading-none">✕</button>
+                    )}
+                  </div>
+
+                  <AnimatePresence>
+                    {searchResults.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        className="absolute z-20 w-full mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                      >
+                        {searchResults.map((r) => {
+                          const alreadyAdded = list.items.some((i) => i.tmdbId === String(r.id));
+                          return (
+                            <button
+                              key={r.id}
+                              onClick={() => !alreadyAdded && handleAddItem(r)}
+                              disabled={alreadyAdded}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-zinc-100 dark:border-white/5 last:border-b-0 transition ${
+                                alreadyAdded
+                                  ? 'opacity-40 cursor-not-allowed'
+                                  : 'hover:bg-indigo-50 dark:hover:bg-indigo-500/10'
+                              }`}
+                            >
+                              {r.poster_path ? (
+                                <img src={`${TMDB_IMAGE_BASE}${r.poster_path}`} alt={r.title} className="w-8 h-11 object-cover rounded-lg flex-shrink-0" />
+                              ) : (
+                                <div className="w-8 h-11 bg-zinc-100 dark:bg-zinc-700 rounded-lg flex-shrink-0 flex items-center justify-center text-sm">
+                                  {r.media_type === 'tv' ? '📺' : '🎬'}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-zinc-900 dark:text-white text-sm truncate">{r.title}</p>
+                                <p className="text-xs text-zinc-400 dark:text-zinc-500">{r.year} · {r.media_type === 'tv' ? 'Serie' : 'Película'}</p>
+                              </div>
+                              {alreadyAdded && <span className="text-xs text-zinc-400 flex-shrink-0">Ya agregada</span>}
+                            </button>
+                          );
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         )}
+
+        {/* ── Items ───────────────────────────────────────────────────────── */}
+        {list.items.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-center py-16"
+          >
+            <p className="text-5xl mb-4">🎬</p>
+            <p className="font-bold text-zinc-900 dark:text-white mb-1">La lista está vacía</p>
+            {isOwn && <p className="text-sm text-zinc-500 dark:text-zinc-400">Buscá películas o series para agregarlas</p>}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+            className="space-y-2"
+          >
+            <AnimatePresence>
+              {list.items.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 12, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.25, delay: i * 0.03 }}
+                >
+                  <GlassCard className="p-3 flex items-center gap-3">
+                    {item.posterPath ? (
+                      <img
+                        src={`${TMDB_IMAGE_BASE}${item.posterPath}`}
+                        alt={item.title}
+                        className="w-10 h-14 object-cover rounded-lg flex-shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-10 h-14 bg-zinc-100 dark:bg-white/10 rounded-lg flex-shrink-0 flex items-center justify-center text-lg">
+                        {item.contentType === 'tv' ? '📺' : '🎬'}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-zinc-900 dark:text-white text-sm truncate">{item.title}</p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500">{item.contentType === 'tv' ? 'Serie' : 'Película'}</p>
+                    </div>
+                    {isOwn && (
+                      <button
+                        onClick={() => handleRemoveItem(item.tmdbId)}
+                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center text-zinc-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition text-sm"
+                        title="Quitar de la lista"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </GlassCard>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+
       </div>
     </div>
   );
