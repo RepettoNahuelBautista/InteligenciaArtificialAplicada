@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { NotificationBell } from './NotificationBell';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -25,6 +26,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="pointer-events-none absolute top-1/2 right-0 w-72 h-72 rounded-full bg-yellow-100/25 dark:bg-indigo-500/10 blur-3xl" />
 
       <Sidebar />
+      <NotificationBell />
 
       <motion.main
         key={location.pathname}
