@@ -146,7 +146,7 @@ class GeminiService {
     return cleaned;
   }
 
-  private isQuotaError(err: unknown): boolean {
+  private shouldFallback(err: unknown): boolean {
     if (!(err instanceof Error)) return false;
     const msg = err.message.toLowerCase();
     return (
@@ -154,7 +154,12 @@ class GeminiService {
       msg.includes('quota') ||
       msg.includes('rate limit') ||
       msg.includes('429') ||
-      msg.includes('too many requests')
+      msg.includes('too many requests') ||
+      msg.includes('503') ||
+      msg.includes('high demand') ||
+      msg.includes('overloaded') ||
+      msg.includes('service unavailable') ||
+      msg.includes('spike')
     );
   }
 
@@ -225,8 +230,10 @@ class GeminiService {
     try {
       return await this.callModel('gemini-2.5-flash', ctx, exclude);
     } catch (err) {
-      if (this.isQuotaError(err)) {
-        logger.warn('gemini-2.5-flash quota exceeded, falling back to gemini-2.5-flash-lite');
+      if (this.shouldFallback(err)) {
+        logger.warn('gemini-2.5-flash unavailable, falling back to gemini-2.5-flash-lite', {
+          reason: err instanceof Error ? err.message.slice(0, 120) : String(err),
+        });
         return await this.callModel('gemini-2.5-flash-lite', ctx, exclude);
       }
       throw err;
