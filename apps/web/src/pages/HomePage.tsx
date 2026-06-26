@@ -63,7 +63,7 @@ export function HomePage() {
     <div className="min-h-screen text-zinc-900 dark:text-white">
 
       {/* ── Hero ───────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-100/60 via-violet-50 to-purple-100/50 dark:from-zinc-900 dark:via-indigo-950 dark:to-zinc-900 px-8 pt-16 pb-20">
+      <section className="relative overflow-hidden bg-gradient-to-br from-indigo-100/60 via-violet-50 to-purple-100/50 dark:from-transparent dark:via-transparent dark:to-transparent px-8 pt-16 pb-20">
         <div className="pointer-events-none absolute -top-24 -left-24 w-96 h-96 rounded-full bg-indigo-300/30 dark:bg-indigo-600/20 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-16 right-0 w-80 h-80 rounded-full bg-violet-300/25 dark:bg-purple-600/15 blur-3xl" />
 

@@ -18,12 +18,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
 
   return (
-    <div className="flex h-screen overflow-hidden relative bg-gradient-to-br from-[#f5f0e8] via-[#faf5ec] to-[#f0ebe0] dark:from-zinc-950 dark:via-indigo-950 dark:to-zinc-950">
+    <div className="flex h-screen overflow-hidden relative">
 
-      {/* Decorative blobs — shared across all pages */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-amber-200/20 dark:bg-indigo-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-orange-200/15 dark:bg-purple-600/15 blur-3xl" />
-      <div className="pointer-events-none absolute top-1/2 right-0 w-72 h-72 rounded-full bg-yellow-100/25 dark:bg-indigo-500/10 blur-3xl" />
+      {/* Fixed background — covers the full viewport regardless of scroll or content height */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-[#f5f0e8] via-[#faf5ec] to-[#f0ebe0] dark:from-zinc-950 dark:via-indigo-950 dark:to-zinc-950" />
+
+      {/* Decorative blobs — fixed so they don't cut at the fold */}
+      <div className="pointer-events-none fixed -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-amber-200/20 dark:bg-indigo-600/20 blur-3xl -z-10" />
+      <div className="pointer-events-none fixed bottom-0 right-1/4 w-96 h-96 rounded-full bg-orange-200/15 dark:bg-purple-600/15 blur-3xl -z-10" />
+      <div className="pointer-events-none fixed top-1/2 right-0 w-72 h-72 rounded-full bg-yellow-100/25 dark:bg-indigo-500/10 blur-3xl -z-10" />
 
       <Sidebar />
       <NotificationBell />
