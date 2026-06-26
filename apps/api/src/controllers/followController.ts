@@ -37,3 +37,15 @@ export const getFollowingController = async (req: Request, res: Response): Promi
   const list = await followService.getFollowingList(userId);
   res.json({ success: true, data: list });
 };
+
+export const getNewFollowersController = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.userId as string;
+  const result = await followService.getNewFollowers(userId);
+  res.json({ success: true, data: result });
+};
+
+export const markFollowersSeenController = async (req: Request, res: Response): Promise<void> => {
+  const userId = req.userId as string;
+  await followService.markFollowersSeen(userId);
+  res.json({ success: true });
+};

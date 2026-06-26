@@ -18,7 +18,7 @@ import { getMoodsController } from './controllers/moodController';
 import { getRecommendationController, getRecommendationHistoryController } from './controllers/recommendationController';
 import { getReviewsController, upsertReviewController, getPublicProfileController, getUserReviewsController } from './controllers/reviewController';
 import { likeReviewController, unlikeReviewController } from './controllers/reviewLikeController';
-import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController } from './controllers/followController';
+import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController, getNewFollowersController, markFollowersSeenController } from './controllers/followController';
 import { uploadAvatarController, generateAvatarController } from './controllers/avatarController';
 import { narrateController } from './controllers/narrateController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
@@ -92,6 +92,10 @@ app.delete('/api/v1/lists/:listId/items/:tmdbId', authMiddleware, removeItemCont
 // Follow list routes (own profile)
 app.get('/api/v1/profile/followers', authMiddleware, getFollowersController);
 app.get('/api/v1/profile/following', authMiddleware, getFollowingController);
+
+// Notifications
+app.get('/api/v1/notifications/followers', authMiddleware, getNewFollowersController);
+app.post('/api/v1/notifications/followers/seen', authMiddleware, markFollowersSeenController);
 app.post('/api/v1/profile/avatar', authMiddleware, uploadAvatarController);
 app.post('/api/v1/profile/avatar/generate', authMiddleware, generateAvatarController);
 

@@ -108,6 +108,42 @@ class FollowService {
       avatarUrl: f.following.profile?.avatarUrl ?? null,
     }));
   }
+
+  async getNewFollowers(userId: string): Promise<{ followers: FollowUserItem[]; count: number }> {
+    const profile = await prisma.userProfile.findUnique({
+      where: { userId },
+      select: { lastFollowerCheckAt: true },
+    });
+
+    const since = profile?.lastFollowerCheckAt ?? new Date(0);
+
+    const follows = await prisma.follow.findMany({
+      where: {
+        followingId: userId,
+        createdAt: { gt: since },
+      },
+      include: {
+        follower: { include: { profile: { select: { displayName: true, avatarUrl: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const followers = follows.map((f) => ({
+      userId: f.follower.id,
+      displayName: f.follower.profile?.displayName ?? f.follower.email.split('@')[0],
+      email: f.follower.email,
+      avatarUrl: f.follower.profile?.avatarUrl ?? null,
+    }));
+
+    return { followers, count: followers.length };
+  }
+
+  async markFollowersSeen(userId: string): Promise<void> {
+    await prisma.userProfile.update({
+      where: { userId },
+      data: { lastFollowerCheckAt: new Date() },
+    });
+  }
 }
 
 export const followService = new FollowService();
