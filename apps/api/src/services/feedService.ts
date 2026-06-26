@@ -44,13 +44,14 @@ class FeedService {
    * Poster paths are resolved from Recommendations or MovieListItems stored in the DB.
    */
   private async getTrending(userId: string, limit: number): Promise<FeedMovie[]> {
-    const liked = await prisma.watchedMovie.groupBy({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const liked = await (prisma.watchedMovie.groupBy as (args: any) => Promise<GroupedMovie[]>)({
       by: ['tmdbId', 'title'],
       where: { rating: 5 },
       _count: { tmdbId: true },
       orderBy: { _count: { tmdbId: 'desc' } },
       take: limit * 2,
-    }) as GroupedMovie[];
+    });
 
     const seen = await prisma.watchedMovie.findMany({
       where: { userId },
