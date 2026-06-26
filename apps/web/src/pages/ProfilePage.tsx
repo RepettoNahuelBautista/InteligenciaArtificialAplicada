@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
@@ -589,7 +589,7 @@ export const ProfilePage = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-white/10">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Cambiar foto de perfil</h2>
@@ -673,7 +673,7 @@ export const ProfilePage = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-white/10">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Cambiar contraseña</h2>
@@ -764,7 +764,7 @@ export const ProfilePage = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-white/10">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white">
