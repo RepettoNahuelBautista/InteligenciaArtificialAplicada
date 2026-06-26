@@ -75,9 +75,11 @@ InteligenciaArtificialAplicada/
 - **Base de datos:** PostgreSQL (Azure Database for PostgreSQL)
 - **Auth:** JWT (jsonwebtoken) + bcryptjs
 - **Validación:** Zod 3.23
-- **LLM:** Google Gemini 2.5 Flash (`@google/generative-ai`)
-- **Imágenes:** Cloudinary (avatares de usuario, multer memory storage)
-- **APIs externas:** TMDB (catálogo + watch providers)
+- **LLM:** Google Gemini 2.5 Flash (`@google/generative-ai`), con fallback a Flash-Lite en errores de quota
+- **TTS:** Azure Cognitive Services (voz `es-AR-ElenaNeural`)
+- **Generación de avatares:** Azure AI Foundry (FLUX.2-pro)
+- **Imágenes:** Cloudinary (fotos de perfil, multer memory storage)
+- **APIs externas:** TMDB (catálogo + watch providers, datos en español)
 
 ### Frontend
 - **Framework:** React 18
@@ -86,7 +88,9 @@ InteligenciaArtificialAplicada/
 - **Styling:** TailwindCSS 3.3
 - **HTTP Client:** Axios
 - **Routing:** React Router 6.20
+- **Animaciones:** Framer Motion
 - **Estado:** Context API + React Hooks (sin Redux)
+- **Tema:** Modo claro/oscuro con toggle (ThemeContext)
 
 ## Variables de Entorno
 
@@ -111,6 +115,14 @@ TMDB_API_KEY=...
 CLOUDINARY_CLOUD_NAME=...
 CLOUDINARY_API_KEY=...
 CLOUDINARY_API_SECRET=...
+
+# Azure AI Foundry (generación de avatares con FLUX.2-pro)
+AZURE_API_KEY=...
+
+# Azure Cognitive Services TTS (narración)
+AZURE_TTS_KEY=...
+AZURE_TTS_REGION=eastus
+AZURE_TTS_VOICE=es-AR-ElenaNeural
 
 # Timeouts
 LLM_TIMEOUT_MS=30000
@@ -175,6 +187,18 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 | US-030 | Reacciones a reseñas: like/dislike de otros usuarios |
 | US-031 | Listas de películas: públicas/privadas, CRUD completo |
 
+### Mejoras de interfaz y funcionalidad (post-sociales)
+
+| Feature | Descripción |
+|---------|------------|
+| Modo claro/oscuro | Toggle con botón sol/luna; estilos completos en todas las pantallas |
+| Nueva interfaz | Rediseño completo: homepage con slides de tendencias, frosted-glass cards, fondo beige en modo claro |
+| Pantallas actualizadas | Recomendaciones, Mi Perfil, Onboarding, Otros Usuarios, Mis Listas, Reseñas con nuevo modelo visual |
+| Narración TTS | Endpoint `/api/v1/narrate` convierte la explicación de la IA a audio con voz `es-AR-ElenaNeural` (Azure Cognitive Services) |
+| TMDB en español | Todos los metadatos (sinopsis, géneros, títulos) se obtienen en `es-AR` |
+| Avatares con Azure AI Foundry | Generación de avatares con FLUX.2-pro via Azure AI Foundry (reemplaza AI Horde) |
+| Parser JSON de Gemini mejorado | Extractor de llaves balanceadas + intento de múltiples candidatos + fallback a Flash-Lite en quota errors |
+
 ### Pendiente
 
 | ID | Descripción | SP | Prioridad |
@@ -192,5 +216,5 @@ VITE_API_BASE_URL=http://localhost:3000/api/v1
 
 ---
 
-**Última actualización:** 18 de mayo de 2026  
-**Estado:** MVP + Features Sociales en producción. Pendiente: tests E2E y validación con usuarios.
+**Última actualización:** 25 de junio de 2026  
+**Estado:** MVP + Features Sociales + Nueva Interfaz + TTS + Azure AI en producción. Pendiente: tests E2E y validación con usuarios.

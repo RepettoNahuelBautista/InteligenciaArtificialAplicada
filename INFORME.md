@@ -54,7 +54,11 @@ Respuesta enriquecida al frontend
 
 ### Generación de avatares con IA
 
-Adicionalmente, la aplicación usa **AI Horde** (aihorde.net) para generar avatares de perfil personalizados mediante IA generativa de imágenes. El proceso de llegar a este proveedor involucró descartar múltiples alternativas que dejaron de funcionar de forma gratuita (ver Problema 9).
+La aplicación usa **Azure AI Foundry con FLUX.2-pro** para generar avatares de perfil personalizados mediante IA generativa de imágenes. El proceso de llegar a este proveedor involucró descartar múltiples alternativas (ver Problemas 9 y 10).
+
+### Narración en voz alta
+
+La explicación personalizada que genera la IA para cada recomendación puede narrarse en voz alta usando **Azure Cognitive Services Speech** (voz `es-AR-ElenaNeural`). El endpoint `/api/v1/narrate` recibe el texto, lo convierte a SSML, llama a la API de Azure TTS y devuelve el audio como MP3 directamente al navegador.
 
 ---
 
@@ -62,9 +66,10 @@ Adicionalmente, la aplicación usa **AI Horde** (aihorde.net) para generar avata
 
 | Componente | Tecnología | Rol |
 |-----------|-----------|-----|
-| **LLM principal** | Google Gemini 2.5 Flash (`@google/generative-ai ^0.24.1`) | Generar recomendaciones justificadas |
-| **Catálogo y validación** | TMDB API (The Movie Database) | Búsqueda, metadatos, pósters, watch providers |
-| **Generación de imágenes** | AI Horde / aihorde.net (Stable Diffusion comunitario) | Avatares de usuario generados por IA |
+| **LLM principal** | Google Gemini 2.5 Flash (`@google/generative-ai ^0.24.1`), con fallback a Flash-Lite | Generar recomendaciones justificadas |
+| **Catálogo y validación** | TMDB API (The Movie Database) — datos en `es-AR` | Búsqueda, metadatos, pósters, watch providers |
+| **Generación de avatares** | Azure AI Foundry / FLUX.2-pro (`blacksharkfoundry-ia2026`) | Avatares de usuario generados por IA |
+| **Narración TTS** | Azure Cognitive Services Speech — voz `es-AR-ElenaNeural` | Leer en voz alta la explicación de la recomendación |
 | **Base de datos** | PostgreSQL en Azure | Persistencia de perfiles, reseñas, listas |
 | **Almacenamiento de imágenes** | Cloudinary | Subida y gestión de fotos de perfil |
 
@@ -72,7 +77,7 @@ Adicionalmente, la aplicación usa **AI Horde** (aihorde.net) para generar avata
 
 El AGENTS.md original fue diseñado con OpenAI GPT-4o-mini. Durante el desarrollo se cambió a **Google Gemini 2.5 Flash** por una razón pragmática: **costo**. Gemini ofrece un free tier más generoso para el volumen de requests del MVP, mientras que OpenAI implicaba costos desde el primer request.
 
-El cambio introdujo un desafío técnico: **Gemini 2.5 Flash es un modelo "thinking"** (con cadena de razonamiento interna), lo que aumenta la latencia. Se ajustó `LLM_TIMEOUT_MS=30000` y se implementó strip de code blocks en la respuesta para parsear el JSON correctamente.
+El cambio introdujo un desafío técnico: **Gemini 2.5 Flash es un modelo "thinking"** (con cadena de razonamiento interna), lo que aumenta la latencia. Se ajustó `LLM_TIMEOUT_MS=30000` y se implementó strip de code blocks en la respuesta para parsear el JSON correctamente. Además se agregó un **extractor de llaves balanceadas** para manejar respuestas con texto adicional alrededor del JSON, y un **fallback automático a `gemini-2.5-flash-lite`** cuando el modelo principal devuelve errores de quota.
 
 ---
 
@@ -279,6 +284,33 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 
 ---
 
+### Problema 10 — ElevenLabs TTS reemplazado por Azure Cognitive Services
+
+**Situación:** La funcionalidad de narración de recomendaciones se implementó inicialmente con **ElevenLabs**. Al momento de integrar, ElevenLabs presentaba problemas de acceso o requería plan pago para el volumen de requests necesario en producción.
+
+**Solución:** Se reemplazó por **Azure Cognitive Services Speech**. La voz `es-AR-ElenaNeural` (español argentino) resultó natural y de alta calidad. El flujo: el backend obtiene un token efímero de Azure, construye el SSML, llama a la API TTS y retorna el MP3 directamente al cliente. Sin cambios en la interfaz de usuario.
+
+---
+
+### Problema 11 — AI Horde reemplazado por Azure AI Foundry (FLUX.2-pro)
+
+**Situación:** AI Horde (solución final del Problema 9) funcionaba pero con limitaciones: ~30-60 segundos de espera mínima incluso con cuenta registrada, dependencia de disponibilidad de GPUs comunitarias y calidad variable.
+
+**Solución:** Se migró a **Azure AI Foundry** con el modelo **FLUX.2-pro** (Black Forest Labs). Deployment en la organización `blacksharkfoundry-ia2026`. Tiempo de respuesta: ~10-30 segundos. Calidad consistentemente superior. El endpoint devuelve la imagen como `b64_json` que el frontend muestra como preview antes de que el usuario confirme guardarla.
+
+---
+
+### Problema 12 — JSON incompleto o rodeado de texto en respuestas de Gemini
+
+**Situación:** A pesar del strip de code fences (Problema 4), Gemini a veces devolvía texto introductorio antes del JSON (`"Aquí está mi recomendación: {...}"`) o la respuesta se cortaba en medio del objeto. Ambos casos rompían el `JSON.parse()`.
+
+**Solución implementada en dos capas:**
+1. **Extractor de llaves balanceadas:** busca el primer `{` en la respuesta y recorre carácter por carácter manteniendo un contador de profundidad, extrayendo el substring que forma un objeto JSON completo.
+2. **Múltiples candidatos:** si hay más de un posible bloque JSON, intenta parsear cada uno hasta encontrar uno válido con los campos esperados.
+3. **Fallback de modelo:** si Gemini 2.5 Flash devuelve error de quota, reintenta automáticamente con `gemini-2.5-flash-lite`.
+
+---
+
 ## 6. Stack Técnico Final
 
 | Capa | Tecnología |
@@ -287,14 +319,17 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 | **Base de datos** | PostgreSQL en Azure |
 | **Auth** | JWT (jsonwebtoken) + bcryptjs |
 | **Validación** | Zod 3.23 |
-| **LLM** | Google Gemini 2.5 Flash |
-| **Imágenes** | Cloudinary (fotos de perfil) + AI Horde / aihorde.net (avatares IA) |
-| **Frontend** | React 18 + Vite 5 + TailwindCSS 3.3 + React Router 6.20 |
-| **APIs externas** | TMDB (catálogo + watch providers) |
-| **Hosting frontend** | Vercel |
-| **Hosting backend** | Render (free tier) |
+| **LLM** | Google Gemini 2.5 Flash (con fallback a Flash-Lite en quota errors) |
+| **TTS** | Azure Cognitive Services Speech — voz `es-AR-ElenaNeural` |
+| **Generación de avatares** | Azure AI Foundry / FLUX.2-pro (Black Forest Labs) |
+| **Fotos de perfil** | Cloudinary (subida manual) |
+| **Frontend** | React 18 + Vite 5 + TailwindCSS 3.3 + React Router 6.20 + Framer Motion |
+| **Tema** | Modo claro/oscuro con ThemeContext + toggle sol/luna |
+| **APIs externas** | TMDB (catálogo + watch providers, datos en `es-AR`) |
+| **Hosting frontend** | Vercel (CI/CD automático desde `main`) |
+| **Hosting backend** | Render (free tier, ~30s cold start) |
 | **DB cloud** | Azure Database for PostgreSQL |
-| **CI/CD** | Render (build automático en push a main) + Vercel |
+| **CI/CD** | Render + Vercel — build automático en push a `main` |
 | **Gestión de proyecto** | Azure DevOps (épicas + user stories) |
 
 ---
@@ -314,6 +349,11 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 | US-019 | Historial de recomendaciones |
 | US-024 | Deployment a producción |
 | US-025 a 031 | Features sociales (follows, búsqueda, reseñas, listas, foto de perfil) |
+| Nueva interfaz | Rediseño completo con modo claro/oscuro, slides de tendencias, frosted-glass, fondo beige |
+| TTS narración | Endpoint `/api/v1/narrate` con Azure Cognitive Services (`es-AR-ElenaNeural`) |
+| TMDB en español | Metadatos, sinopsis y géneros obtenidos en `es-AR` |
+| Azure AI Foundry | Generación de avatares con FLUX.2-pro, reemplaza AI Horde |
+| Parser Gemini mejorado | Balanced-brace extractor + múltiples candidatos + fallback a Flash-Lite |
 
 ### Pendiente
 
@@ -325,4 +365,4 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 
 ---
 
-*Última actualización: junio 2026*
+*Última actualización: 25 de junio de 2026*
