@@ -21,6 +21,7 @@ import { likeReviewController, unlikeReviewController } from './controllers/revi
 import { searchUsersController, followController, unfollowController, getFollowersController, getFollowingController, getNewFollowersController, markFollowersSeenController } from './controllers/followController';
 import { uploadAvatarController, generateAvatarController } from './controllers/avatarController';
 import { narrateController } from './controllers/narrateController';
+import { chatController } from './controllers/chatController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
 import { getFeedController } from './controllers/feedController';
 
@@ -64,6 +65,7 @@ app.get('/api/v1/moods', getMoodsController);
 app.post('/api/v1/recommendations', authMiddleware, getRecommendationController);
 app.get('/api/v1/recommendations', authMiddleware, getRecommendationHistoryController);
 app.post('/api/v1/recommendations/narrate', authMiddleware, narrateController);
+app.post('/api/v1/chat', authMiddleware, chatController);
 
 // Profile route (complete profile with stats)
 app.get('/api/v1/profile', authMiddleware, getProfileController);

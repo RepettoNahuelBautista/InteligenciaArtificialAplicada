@@ -15,6 +15,7 @@ import { PublicProfilePage } from './pages/PublicProfilePage';
 import { UserSearchPage } from './pages/UserSearchPage';
 import { MovieListsPage } from './pages/MovieListsPage';
 import { MovieListDetailPage } from './pages/MovieListDetailPage';
+import { ChatPage } from './pages/ChatPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppLayout } from './components/AppLayout';
 
@@ -40,6 +41,7 @@ function App() {
               <Route path="/onboarding"       element={<Protected><OnboardingFlow /></Protected>} />
               <Route path="/profile"          element={<Protected><ProfilePage /></Protected>} />
               <Route path="/recommendation"   element={<Protected><RecommendationPage /></Protected>} />
+              <Route path="/chat"             element={<Protected><ChatPage /></Protected>} />
               <Route path="/history"          element={<Protected><HistoryPage /></Protected>} />
               <Route path="/reviews"          element={<Protected><ReviewsPage /></Protected>} />
               <Route path="/users/search"     element={<Protected><UserSearchPage /></Protected>} />

@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 const NAV_ITEMS = [
   { to: '/home',           icon: '🏠', label: 'Inicio' },
   { to: '/recommendation', icon: '✨', label: 'Recomendar' },
+  { to: '/chat',           icon: '💬', label: 'Chat IA' },
   { to: '/history',        icon: '📜', label: 'Historial' },
   { to: '/reviews',        icon: '⭐', label: 'Reseñas' },
   { to: '/lists',          icon: '📋', label: 'Mis Listas' },
