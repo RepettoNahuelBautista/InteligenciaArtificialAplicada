@@ -26,7 +26,7 @@ export function NotificationBell() {
   };
 
   return (
-    <div ref={ref} className="fixed top-4 right-4 z-50">
+    <div ref={ref} className="fixed top-4 right-6 z-50">
       <button
         onClick={handleBellClick}
         title="Nuevos seguidores"
