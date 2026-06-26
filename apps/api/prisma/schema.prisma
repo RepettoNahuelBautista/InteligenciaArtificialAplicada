@@ -24,8 +24,11 @@ model User {
   reviews       Review[]
   reviewLikes   ReviewLike[]
   movieLists    MovieList[]
-  following     Follow[] @relation("UserFollowing")
-  followers     Follow[] @relation("UserFollowers")
+  following       Follow[]       @relation("UserFollowing")
+  followers       Follow[]       @relation("UserFollowers")
+  conversationsA  Conversation[] @relation("ConvA")
+  conversationsB  Conversation[] @relation("ConvB")
+  sentMessages    Message[]      @relation("MsgSender")
 
   @@map("users")
 }
@@ -164,4 +167,31 @@ model Follow {
 
   @@unique([followerId, followingId])
   @@map("follows")
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  participantA String
+  participantB String
+  userA        User      @relation("ConvA", fields: [participantA], references: [id], onDelete: Cascade)
+  userB        User      @relation("ConvB", fields: [participantB], references: [id], onDelete: Cascade)
+  messages     Message[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+
+  @@unique([participantA, participantB])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("MsgSender", fields: [senderId], references: [id], onDelete: Cascade)
+  text           String
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@map("messages")
 }

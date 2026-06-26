@@ -24,6 +24,7 @@ import { narrateController } from './controllers/narrateController';
 import { chatController } from './controllers/chatController';
 import { getListsController, getPublicListsController, getListDetailController, createListController, updateListController, deleteListController, addItemController, removeItemController } from './controllers/movieListController';
 import { getFeedController } from './controllers/feedController';
+import { getConversationsController, startConversationController, getConversationDetailController, sendMessageController, markReadController, getUnreadCountController } from './controllers/messageController';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -114,6 +115,14 @@ app.get('/api/v1/search/movies', searchMoviesController);
 app.post('/api/v1/profile/watched-movies', authMiddleware, rateMovieController);
 app.get('/api/v1/profile/watched-movies', authMiddleware, getWatchedMoviesController);
 app.delete('/api/v1/profile/watched-movies/:movieId', authMiddleware, removeWatchedMovieController);
+
+// Messaging routes — static paths must come before :conversationId param
+app.get('/api/v1/messages',                              authMiddleware, getConversationsController);
+app.post('/api/v1/messages/start',                       authMiddleware, startConversationController);
+app.get('/api/v1/messages/unread-count',                 authMiddleware, getUnreadCountController);
+app.get('/api/v1/messages/:conversationId',              authMiddleware, getConversationDetailController);
+app.post('/api/v1/messages/:conversationId',             authMiddleware, sendMessageController);
+app.patch('/api/v1/messages/:conversationId/read',       authMiddleware, markReadController);
 
 // 404 handler
 app.use(notFoundHandler);

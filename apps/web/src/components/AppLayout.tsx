@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
+import { ChatWidget } from './ChatWidget';
 import { useAuth } from '../hooks/useAuth';
 import apiClient from '../api/apiClient';
 
@@ -50,6 +51,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       <Sidebar />
       <NotificationBell />
+      <ChatWidget />
 
       <motion.main
         key={location.pathname}

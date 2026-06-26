@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { apiClient } from '../api/apiClient';
 
 const NAV_ITEMS = [
   { to: '/home',           icon: '🏠', label: 'Inicio' },
   { to: '/recommendation', icon: '✨', label: 'Recomendar' },
   { to: '/chat',           icon: '💬', label: 'Chat IA' },
+  { to: '/messages',       icon: '✉️', label: 'Mensajes' },
   { to: '/history',        icon: '📜', label: 'Historial' },
   { to: '/reviews',        icon: '⭐', label: 'Reseñas' },
   { to: '/lists',          icon: '📋', label: 'Mis Listas' },
@@ -16,8 +18,21 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const r = await apiClient.get('/messages/unread-count');
+        setUnreadMessages(r.data.data.unreadCount);
+      } catch {}
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
 
@@ -75,7 +90,14 @@ export function Sidebar() {
                 : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800'}`
             }
           >
-            <span className="text-xl shrink-0">{icon}</span>
+            <span className="text-xl shrink-0 relative">
+              {icon}
+              {to === '/messages' && unreadMessages > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 bg-rose-500 rounded-full text-white text-[9px] font-bold flex items-center justify-center px-0.5">
+                  {unreadMessages > 9 ? '9+' : unreadMessages}
+                </span>
+              )}
+            </span>
             <AnimatePresence>
               {!collapsed && (
                 <motion.span
@@ -83,12 +105,17 @@ export function Sidebar() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
                   transition={{ duration: 0.15 }}
-                  className="whitespace-nowrap overflow-hidden"
+                  className="whitespace-nowrap overflow-hidden flex-1"
                 >
                   {label}
                 </motion.span>
               )}
             </AnimatePresence>
+            {!collapsed && to === '/messages' && unreadMessages > 0 && (
+              <span className="ml-auto min-w-[20px] h-5 bg-rose-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center px-1">
+                {unreadMessages > 9 ? '9+' : unreadMessages}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

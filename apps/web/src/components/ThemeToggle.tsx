@@ -8,7 +8,7 @@ export function ThemeToggle() {
       onClick={toggleTheme}
       title={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
       aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-      className="fixed bottom-6 right-6 z-50 w-12 h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300
+      className="fixed bottom-[76px] right-10 z-50 w-12 h-12 flex items-center justify-center rounded-full shadow-lg transition-all duration-300
         bg-indigo-100 hover:bg-indigo-200 border border-indigo-300 text-indigo-600
         dark:bg-indigo-900/80 dark:hover:bg-indigo-800/80 dark:border-indigo-700 dark:text-yellow-300"
     >

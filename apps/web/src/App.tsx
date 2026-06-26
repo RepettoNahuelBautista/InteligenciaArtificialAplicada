@@ -16,6 +16,8 @@ import { UserSearchPage } from './pages/UserSearchPage';
 import { MovieListsPage } from './pages/MovieListsPage';
 import { MovieListDetailPage } from './pages/MovieListDetailPage';
 import { ChatPage } from './pages/ChatPage';
+import { MessagesPage } from './pages/MessagesPage';
+import { ConversationPage } from './pages/ConversationPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppLayout } from './components/AppLayout';
 
@@ -46,8 +48,10 @@ function App() {
               <Route path="/reviews"          element={<Protected><ReviewsPage /></Protected>} />
               <Route path="/users/search"     element={<Protected><UserSearchPage /></Protected>} />
               <Route path="/users/:userId"    element={<Protected><PublicProfilePage /></Protected>} />
-              <Route path="/lists"            element={<Protected><MovieListsPage /></Protected>} />
-              <Route path="/lists/:listId"    element={<Protected><MovieListDetailPage /></Protected>} />
+              <Route path="/lists"                       element={<Protected><MovieListsPage /></Protected>} />
+              <Route path="/lists/:listId"             element={<Protected><MovieListDetailPage /></Protected>} />
+              <Route path="/messages"                  element={<Protected><MessagesPage /></Protected>} />
+              <Route path="/messages/:conversationId"  element={<Protected><ConversationPage /></Protected>} />
               <Route path="*"                 element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
