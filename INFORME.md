@@ -3,7 +3,7 @@
 
 **Proyecto:** RecomiendaFilms  
 **Materia:** Inteligencia Artificial Aplicada  
-**Estado:** MVP + Features Sociales en producción  
+**Estado:** Versión Final  
 **Producción:** https://inteligencia-artificial-aplicada-we.vercel.app
 
 ---
@@ -59,6 +59,22 @@ La aplicación usa **Azure AI Foundry con FLUX.2-pro** para generar avatares de 
 ### Narración en voz alta
 
 La explicación personalizada que genera la IA para cada recomendación puede narrarse en voz alta usando **Azure Cognitive Services Speech** (voz `es-AR-ElenaNeural`). El endpoint `/api/v1/narrate` recibe el texto, lo convierte a SSML, llama a la API de Azure TTS y devuelve el audio como MP3 directamente al navegador.
+
+### Chat conversacional sobre cine (IA)
+
+La aplicación incluye un **asistente de chat especializado en cine y series** (`/api/v1/chat`), también impulsado por **Gemini 2.5 Flash**. A diferencia del motor de recomendación (que genera una recomendación puntual), este chat es conversacional: mantiene el historial de la sesión y responde preguntas libres sobre películas, actores, directores, géneros, premios y plataformas de streaming.
+
+El sistema tiene una restricción de dominio explícita mediante `systemInstruction`: si el usuario pregunta sobre cualquier tema ajeno al mundo audiovisual, la IA responde con un mensaje fijo negándose a contestar. Esto mantiene al asistente enfocado y evita respuestas off-topic.
+
+```
+Usuario pregunta sobre cine/series
+    ↓
+Gemini 2.5 Flash (con historial de sesión + systemInstruction restrictiva)
+    ↓
+Respuesta en español argentino con soporte de Markdown
+    ↓
+Renderizado con parser de Markdown propio en el frontend (ChatPage)
+```
 
 ---
 
@@ -338,8 +354,8 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 
 ### Completado
 
-| ID | Feature |
-|----|---------|
+| ID / Feature | Descripción |
+|---|---|
 | US-001 | Autenticación JWT (register/login) |
 | US-002 a 004 | Onboarding completo (géneros, personas, películas vistas) |
 | US-005 | Perfil con estadísticas y edición |
@@ -354,15 +370,13 @@ new Date(dateStr.slice(0, 10) + 'T12:00:00')
 | TMDB en español | Metadatos, sinopsis y géneros obtenidos en `es-AR` |
 | Azure AI Foundry | Generación de avatares con FLUX.2-pro, reemplaza AI Horde |
 | Parser Gemini mejorado | Balanced-brace extractor + múltiples candidatos + fallback a Flash-Lite |
-
-### Pendiente
-
-| ID | Feature | Prioridad |
-|----|---------|-----------|
-| US-016 | Caché de metadatos TMDB en DB | Media |
-| US-022 | Integration tests E2E (Vitest) | Alta |
-| US-023 | Validación de criterios de éxito con usuarios reales | Alta |
+| Chat IA sobre cine | Asistente conversacional con Gemini 2.5 Flash, historial de sesión y restricción de dominio a cine/series (`/api/v1/chat`) |
+| Sistema de mensajería privada | Conversaciones 1:1 entre usuarios: historial persistente, marcado de lectura, contador de no leídos |
+| ChatWidget | Widget de chat flotante accesible desde cualquier pantalla sin interrumpir la navegación; abre mini-ventanas de conversación |
+| ConversationPage | Vista de conversación individual con scroll automático al último mensaje |
+| MessagesPage | Bandeja de entrada con lista de conversaciones ordenadas por actividad reciente y preview del último mensaje |
+| Sistema de notificaciones | `NotificationBell` con badges en tiempo real para nuevos seguidores y mensajes no leídos; endpoint `/api/v1/notifications/followers` + `/api/v1/messages/unread-count` |
 
 ---
 
-*Última actualización: 25 de junio de 2026*
+*Última actualización: 26 de junio de 2026*
