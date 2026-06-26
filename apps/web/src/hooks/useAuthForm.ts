@@ -50,8 +50,9 @@ export function useAuthForm() {
         const profileResponse = await apiClient.get('/profile');
         const genres: number[] = profileResponse.data?.data?.preferences?.genres ?? [];
         const displayName: string | null = profileResponse.data?.data?.personalInfo?.displayName ?? null;
+        const avatarUrl: string | null = profileResponse.data?.data?.personalInfo?.avatarUrl ?? null;
 
-        const user = { ...userData, displayName };
+        const user = { ...userData, displayName, avatarUrl };
         localStorage.setItem('user', JSON.stringify(user));
         setUser(user);
         setToken(userToken);

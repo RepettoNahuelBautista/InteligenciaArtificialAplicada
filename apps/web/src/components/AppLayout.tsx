@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { NotificationBell } from './NotificationBell';
+import { useAuth } from '../hooks/useAuth';
+import apiClient from '../api/apiClient';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -16,6 +19,23 @@ interface AppLayoutProps {
 /** Wraps all authenticated pages with the sidebar + animated content area. */
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
+  const { user, updateUser } = useAuth();
+
+  // Sync avatarUrl / displayName from the server on first load for sessions
+  // that were stored before those fields were added to the login response.
+  useEffect(() => {
+    if (!user) return;
+    if (user.avatarUrl !== undefined && user.displayName !== undefined) return;
+    apiClient.get('/profile').then((res) => {
+      const info = res.data?.data?.personalInfo;
+      if (!info) return;
+      updateUser({
+        displayName: info.displayName ?? null,
+        avatarUrl: info.avatarUrl ?? null,
+      });
+    }).catch(() => { /* silent — non-critical */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden relative">
