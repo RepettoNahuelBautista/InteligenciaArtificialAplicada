@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePersonSelector } from '../../hooks/usePersonSelector';
 
 interface PersonSelectorProps {
@@ -6,10 +7,7 @@ interface PersonSelectorProps {
   onSelectionChange?: (selectedIds: number[]) => void;
 }
 
-export const PersonSelector: React.FC<PersonSelectorProps> = ({
-  type,
-  onSelectionChange,
-}) => {
+export const PersonSelector: React.FC<PersonSelectorProps> = ({ type, onSelectionChange }) => {
   const {
     selectedPersons,
     searchResults,
@@ -26,109 +24,139 @@ export const PersonSelector: React.FC<PersonSelectorProps> = ({
     onSelectionChange?.(selectedPersons.map((p) => p.id));
   }, [selectedPersons]);
 
-  const displayType = type === 'directors' ? 'Directores' : 'Actores';
-  const placeholder = `Buscar ${displayType.toLowerCase()}...`;
+  const isDirectors = type === 'directors';
+  const displayType = isDirectors ? 'Directores' : 'Actores';
+  const icon = isDirectors ? '🎬' : '⭐';
+
+  const chipClass = isDirectors
+    ? 'bg-violet-100 dark:bg-violet-500/15 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-500/25 hover:bg-violet-200 dark:hover:bg-violet-500/25'
+    : 'bg-pink-100 dark:bg-pink-500/15 text-pink-800 dark:text-pink-200 border border-pink-200 dark:border-pink-500/25 hover:bg-pink-200 dark:hover:bg-pink-500/25';
 
   return (
-    <div className="w-full space-y-4">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-800">
-          {displayType} Favoritos
-        </h3>
-        <span className="text-sm text-gray-600">
-          {selectedPersons.length}/15
-        </span>
+    <div className="space-y-5">
+      <div>
+        <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">
+          {icon} {displayType} Favoritos
+        </h2>
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          Opcional — podés saltear este paso
+        </p>
       </div>
 
-      {/* Search Input */}
+      {/* Search input */}
       <div className="relative">
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder={placeholder}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent pr-10"
+          placeholder={`Buscar ${displayType.toLowerCase()}...`}
+          className="w-full px-4 py-2.5 border border-zinc-200 dark:border-white/10 rounded-xl bg-white/80 dark:bg-white/5 text-zinc-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition pr-10 placeholder-zinc-400 dark:placeholder-zinc-600"
         />
         <div className="absolute right-3 top-2.5">
           {isSearching ? (
-            <span className="inline-block w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+            <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin inline-block" />
           ) : searchQuery ? (
-            <button onClick={clearSearch} className="text-gray-500 hover:text-gray-700">✕</button>
+            <button onClick={clearSearch} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition text-lg leading-none">✕</button>
           ) : null}
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {/* Error */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-3 bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl text-sm text-red-700 dark:text-red-400">
+              {error}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Search Results Dropdown */}
-      {searchQuery && searchResults.length > 0 && (
-        <div className="border border-gray-300 rounded-lg bg-white shadow-lg max-h-64 overflow-y-auto">
-          {searchResults.map((person) => {
-            const isSelected = selectedPersons.some((p) => p.id === person.id);
-            return (
-              <button
-                key={person.id}
-                onClick={() => togglePerson(person)}
-                className={`w-full text-left px-4 py-2 hover:bg-gray-100 border-b border-gray-200 last:border-b-0 transition-colors flex items-center justify-between ${
-                  isSelected ? 'bg-indigo-50' : ''
-                }`}
-              >
-                <div className="flex-1">
-                  <div className="font-medium text-gray-800">{person.name}</div>
-                  <div className="text-xs text-gray-500">{person.department}</div>
-                </div>
-                {isSelected && (
-                  <span className="text-indigo-600 font-bold text-lg">✓</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      {/* Search results */}
+      <AnimatePresence>
+        {searchQuery && searchResults.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="border border-zinc-200 dark:border-white/10 rounded-xl bg-white dark:bg-zinc-900 shadow-lg max-h-56 overflow-y-auto"
+          >
+            {searchResults.map((person) => {
+              const selected = selectedPersons.some((p) => p.id === person.id);
+              return (
+                <button
+                  key={person.id}
+                  onClick={() => togglePerson(person)}
+                  className={`w-full text-left px-4 py-2.5 border-b border-zinc-100 dark:border-white/5 last:border-b-0 transition flex items-center justify-between ${
+                    selected
+                      ? 'bg-indigo-50 dark:bg-indigo-500/10'
+                      : 'hover:bg-zinc-50 dark:hover:bg-white/5'
+                  }`}
+                >
+                  <div>
+                    <p className="font-medium text-zinc-800 dark:text-zinc-100 text-sm">{person.name}</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500">{person.department}</p>
+                  </div>
+                  {selected && <span className="text-indigo-600 dark:text-indigo-400 font-bold text-sm">✓</span>}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+        {searchQuery && !isSearching && searchResults.length === 0 && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center text-zinc-400 dark:text-zinc-600 text-sm py-1"
+          >
+            No se encontraron {displayType.toLowerCase()}
+          </motion.p>
+        )}
+      </AnimatePresence>
 
-      {/* No Results Message */}
-      {searchQuery && !isSearching && searchResults.length === 0 && (
-        <div className="p-4 text-center text-gray-500 text-sm">
-          No se encontraron {displayType.toLowerCase()}
-        </div>
-      )}
-
-      {/* Selected Persons Chips */}
+      {/* Selected chips */}
       {selectedPersons.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {selectedPersons.map((person) => (
-            <button
-              key={person.id}
-              onClick={() => togglePerson(person)}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm hover:bg-indigo-200 transition-colors"
-            >
-              {person.name}
-              <span className="hover:text-indigo-900">✕</span>
-            </button>
-          ))}
+          <AnimatePresence>
+            {selectedPersons.map((person) => (
+              <motion.button
+                key={person.id}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                whileTap={{ scale: 0.93 }}
+                onClick={() => togglePerson(person)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition ${chipClass}`}
+              >
+                {person.name}
+                <span className="opacity-50 hover:opacity-100 transition text-xs">✕</span>
+              </motion.button>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
-      {/* Validation Message */}
+      {/* Validation / count */}
       {!isValid && (
-        <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm text-orange-700">
-          Máximo 15 {displayType.toLowerCase()} permitidos
-        </div>
+        <p className="text-amber-600 dark:text-amber-400 text-sm flex items-center gap-1.5">
+          <span>⚠️</span> Máximo 15 {displayType.toLowerCase()} permitidos
+        </p>
       )}
-
-      {/* Optional: Show count message */}
       {selectedPersons.length > 0 && isValid && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          {selectedPersons.length}{' '}
           {selectedPersons.length === 1
-            ? `1 ${type === 'directors' ? 'director' : 'actor'} seleccionado`
-            : `${selectedPersons.length} ${displayType.toLowerCase()} seleccionados`}
-        </div>
+            ? isDirectors ? 'director' : 'actor'
+            : displayType.toLowerCase()}{' '}
+          seleccionado{selectedPersons.length > 1 ? 's' : ''}
+        </p>
       )}
     </div>
   );

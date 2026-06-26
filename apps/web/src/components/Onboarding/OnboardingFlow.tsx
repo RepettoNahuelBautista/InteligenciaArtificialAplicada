@@ -1,4 +1,5 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect, Fragment } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GenreSelector } from './GenreSelector';
 import { PersonSelector } from './PersonSelector';
 import { MovieRater } from './MovieRater';
@@ -6,6 +7,27 @@ import { useGenreSelector, useOnboarding } from '../../hooks/useOnboarding';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../../api/apiClient';
+
+const STEPS = [
+  { num: 1, label: 'Géneros' },
+  { num: 2, label: 'Directores' },
+  { num: 3, label: 'Actores' },
+  { num: 4, label: 'Películas' },
+  { num: 5, label: 'Listo' },
+];
+
+const SUMMARY_ITEMS = [
+  { key: 'genres'    as const, icon: '🎭', label: 'géneros favoritos',    color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20' },
+  { key: 'directors' as const, icon: '🎬', label: 'directores favoritos', color: 'text-violet-600 dark:text-violet-400', bg: 'bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20' },
+  { key: 'actors'    as const, icon: '⭐', label: 'actores favoritos',    color: 'text-pink-600 dark:text-pink-400',     bg: 'bg-pink-50 dark:bg-pink-500/10 border border-pink-100 dark:border-pink-500/20'         },
+  { key: 'movies'    as const, icon: '🎥', label: 'películas valoradas',  color: 'text-amber-600 dark:text-amber-400',   bg: 'bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20'     },
+];
+
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? 52 : -52, opacity: 0 }),
+  center: { x: 0, opacity: 1, transition: { duration: 0.28, ease: 'easeOut' as const } },
+  exit: (dir: number) => ({ x: dir > 0 ? -52 : 52, opacity: 0, transition: { duration: 0.2 } }),
+};
 
 export const OnboardingFlow: FC = () => {
   const navigate = useNavigate();
@@ -16,7 +38,6 @@ export const OnboardingFlow: FC = () => {
     step,
     nextStep,
     prevStep,
-    selectedGenres,
     setSelectedGenres,
     isLoading,
     setIsLoading,
@@ -24,33 +45,25 @@ export const OnboardingFlow: FC = () => {
     setError,
   } = useOnboarding();
 
-  // Person preferences
+  const [direction, setDirection] = useState(1);
   const [selectedDirectorIds, setSelectedDirectorIds] = useState<number[]>([]);
   const [selectedActorIds, setSelectedActorIds] = useState<number[]>([]);
-
-  // Summary counts (fetched from API when reaching step 5)
   const [summaryCounts, setSummaryCounts] = useState({ genres: 0, directors: 0, actors: 0, movies: 0 });
 
-  const { selectedGenres: tempGenres, setSelectedGenres: setTempGenres, genres, contentType, setContentType, toggleGenre, isValid } =
+  const { selectedGenres: tempGenres, setSelectedGenres: setTempGenres, contentType, setContentType, toggleGenre, isValid } =
     useGenreSelector();
 
-  // Pre-cargar géneros existentes del perfil
   useEffect(() => {
     const loadExistingGenres = async () => {
       try {
         const response = await apiClient.get('/profile');
         const existingGenres: number[] = response.data?.data?.preferences?.genres ?? [];
-        if (existingGenres.length > 0) {
-          setTempGenres(existingGenres);
-        }
-      } catch {
-        // Perfil no encontrado, comenzar desde cero
-      }
+        if (existingGenres.length > 0) setTempGenres(existingGenres);
+      } catch { /* ignore */ }
     };
     loadExistingGenres();
   }, []);
 
-  // Cuando llega al resumen, carga los conteos reales desde la API
   useEffect(() => {
     if (step !== 5) return;
     const fetchCounts = async () => {
@@ -67,229 +80,265 @@ export const OnboardingFlow: FC = () => {
           actors: prefs?.actors?.length ?? 0,
           movies: movieStats?.total ?? 0,
         });
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     };
     fetchCounts();
   }, [step]);
 
+  const goNext = () => { setDirection(1); nextStep(); };
+  const goPrev = () => { setDirection(-1); prevStep(); };
+
   const handleNext = async () => {
     if (step === 1) {
-      // Step 1: Genres - validate and save
-      if (!isValid) {
-        setError('Debes seleccionar al menos 3 géneros');
-        return;
-      }
-
+      if (!isValid) { setError('Debes seleccionar al menos 3 géneros'); return; }
       setSelectedGenres(tempGenres);
       setIsLoading(true);
-
       try {
-        await apiClient.post('/profile/genres', {
-          genreIds: tempGenres,
-        });
-
+        await apiClient.post('/profile/genres', { genreIds: tempGenres });
         setError('');
-        nextStep();
+        goNext();
       } catch (err: unknown) {
-        const error = err as { response?: { data?: { error?: { message?: string } } } };
-        setError(error.response?.data?.error?.message || 'Error guardando géneros');
+        const e = err as { response?: { data?: { error?: { message?: string } } } };
+        setError(e.response?.data?.error?.message || 'Error guardando géneros');
       } finally {
         setIsLoading(false);
       }
     } else if (step === 2) {
-      // Step 2: Directors - save if any selected
       if (selectedDirectorIds.length > 0) {
         setIsLoading(true);
         try {
-          await apiClient.post('/profile/people', {
-            personIds: selectedDirectorIds,
-            type: 'directors',
-          });
+          await apiClient.post('/profile/people', { personIds: selectedDirectorIds, type: 'directors' });
           setError('');
         } catch (err: unknown) {
-          const error = err as { response?: { data?: { error?: { message?: string } } } };
-          setError(error.response?.data?.error?.message || 'Error guardando directores');
+          const e = err as { response?: { data?: { error?: { message?: string } } } };
+          setError(e.response?.data?.error?.message || 'Error guardando directores');
           setIsLoading(false);
           return;
         } finally {
           setIsLoading(false);
         }
       }
-      nextStep();
+      goNext();
     } else if (step === 3) {
-      // Step 3: Actors - save if any selected
       if (selectedActorIds.length > 0) {
         setIsLoading(true);
         try {
-          await apiClient.post('/profile/people', {
-            personIds: selectedActorIds,
-            type: 'actors',
-          });
+          await apiClient.post('/profile/people', { personIds: selectedActorIds, type: 'actors' });
           setError('');
         } catch (err: unknown) {
-          const error = err as { response?: { data?: { error?: { message?: string } } } };
-          setError(error.response?.data?.error?.message || 'Error guardando actores');
+          const e = err as { response?: { data?: { error?: { message?: string } } } };
+          setError(e.response?.data?.error?.message || 'Error guardando actores');
           setIsLoading(false);
           return;
         } finally {
           setIsLoading(false);
         }
       }
-      nextStep();
-    } else if (step === 4) {
-      // Step 4: Movies - no validation needed (optional)
-      nextStep();
+      goNext();
     } else {
-      nextStep();
+      goNext();
     }
   };
 
-  return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">🎬 RecomiendaFilms</h1>
-          <p className="text-zinc-600 dark:text-indigo-100">
-            Cuéntanos tus gustos (Paso {step}/5)
-          </p>
-        </div>
+  const displayName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario';
 
-        {/* Progress Bar */}
-        <div className="mb-8 flex gap-2">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <div
-              key={s}
-              className={`flex-1 h-2 rounded-full transition ${
-                s <= step ? 'bg-indigo-500 dark:bg-white' : 'bg-zinc-300 dark:bg-indigo-300'
-              }`}
-            />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50/40 to-violet-50/30 dark:from-zinc-950 dark:via-indigo-950/20 dark:to-zinc-950 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight mb-1">
+            🎬 RecomiendaFilms
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Hola{' '}
+            <span className="font-semibold text-indigo-600 dark:text-indigo-400">{displayName}</span>
+            , contanos sobre tus gustos
+          </p>
+        </motion.div>
+
+        {/* Step indicator */}
+        <div className="flex items-center mb-8 px-1">
+          {STEPS.map((s, i) => (
+            <Fragment key={s.num}>
+              <div className="flex flex-col items-center gap-1.5">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-all duration-300 ${
+                  step > s.num
+                    ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
+                    : step === s.num
+                    ? 'bg-indigo-600 text-white ring-4 ring-indigo-200 dark:ring-indigo-800 shadow-sm shadow-indigo-500/30'
+                    : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600'
+                }`}>
+                  {step > s.num ? '✓' : s.num}
+                </div>
+                <span className={`text-[10px] font-semibold hidden sm:block whitespace-nowrap transition-colors duration-300 ${
+                  step === s.num  ? 'text-indigo-600 dark:text-indigo-400' :
+                  step > s.num    ? 'text-emerald-600 dark:text-emerald-500' :
+                                    'text-zinc-400 dark:text-zinc-600'
+                }`}>{s.label}</span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className={`flex-1 h-0.5 mx-1.5 mb-5 rounded-full transition-all duration-500 ${
+                  step > s.num ? 'bg-emerald-400 dark:bg-emerald-600' : 'bg-zinc-200 dark:bg-zinc-700'
+                }`} />
+              )}
+            </Fragment>
           ))}
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          {error && (
-            <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">{error}</div>
-          )}
+        {/* Main card */}
+        <div className="bg-white/70 dark:bg-white/5 border border-white/80 dark:border-white/10 backdrop-blur-sm rounded-2xl shadow-xl shadow-black/5 overflow-hidden mb-4">
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="bg-red-500/10 border-b border-red-200 dark:border-red-500/20 px-6 py-3 text-red-700 dark:text-red-400 text-sm">
+                  {error}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {step === 1 && (
-            <GenreSelector
-              selectedGenres={tempGenres}
-              onToggleGenre={toggleGenre}
-              contentType={contentType}
-              onContentTypeChange={setContentType}
-              isValid={isValid}
-            />
-          )}
-
-          {step === 2 && (
-            <PersonSelector
-              type="directors"
-              onSelectionChange={setSelectedDirectorIds}
-            />
-          )}
-
-          {step === 3 && (
-            <PersonSelector
-              type="actors"
-              onSelectionChange={setSelectedActorIds}
-            />
-          )}
-
-          {step === 4 && (
-            <MovieRater />
-          )}
-
-          {step === 5 && (
-            <div className="text-center py-12">
-              <p className="text-2xl font-bold text-gray-800 mb-4">
-                {isEditMode ? '¡Preferencias actualizadas! 🎉' : '¡Tu perfil está listo! 🎉'}
-              </p>
-              <p className="text-gray-600 mb-6">
-                {isEditMode ? 'Tus preferencias guardadas:' : 'Hemos guardado tus preferencias:'}
-              </p>
-              <div className="space-y-2 text-left bg-gray-50 p-4 rounded-lg">
-                <p className="text-gray-700">
-                  <span className="font-semibold">{summaryCounts.genres}</span> géneros favoritos
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-semibold">{summaryCounts.directors}</span> directores favoritos
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-semibold">{summaryCounts.actors}</span> actores favoritos
-                </p>
-                <p className="text-gray-700 border-t pt-2 mt-2">
-                  <span className="font-semibold">{summaryCounts.movies}</span> películas valoradas
-                </p>
-              </div>
-              <p className="text-gray-500 mt-6">
-                {isEditMode
-                  ? 'Tus preferencias han sido actualizadas exitosamente'
-                  : 'Ahora puedes empezar a recibir recomendaciones personalizadas basadas en tus gustos'}
-              </p>
-            </div>
-          )}
+          <div className="overflow-hidden">
+            <AnimatePresence custom={direction} mode="wait">
+              <motion.div
+                key={step}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="p-6 sm:p-8"
+              >
+                {step === 1 && (
+                  <GenreSelector
+                    selectedGenres={tempGenres}
+                    onToggleGenre={toggleGenre}
+                    contentType={contentType}
+                    onContentTypeChange={setContentType}
+                    isValid={isValid}
+                  />
+                )}
+                {step === 2 && (
+                  <PersonSelector type="directors" onSelectionChange={setSelectedDirectorIds} />
+                )}
+                {step === 3 && (
+                  <PersonSelector type="actors" onSelectionChange={setSelectedActorIds} />
+                )}
+                {step === 4 && <MovieRater />}
+                {step === 5 && (
+                  <div className="text-center py-4">
+                    <motion.div
+                      initial={{ scale: 0.4, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 280, damping: 18 }}
+                      className="text-6xl mb-4"
+                    >
+                      🎉
+                    </motion.div>
+                    <h2 className="text-2xl font-extrabold text-zinc-900 dark:text-white mb-2">
+                      {isEditMode ? '¡Preferencias actualizadas!' : '¡Tu perfil está listo!'}
+                    </h2>
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8">
+                      {isEditMode
+                        ? 'Tus preferencias han sido actualizadas exitosamente'
+                        : 'Ya podés recibir recomendaciones personalizadas basadas en tus gustos'}
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {SUMMARY_ITEMS.map((item, i) => (
+                        <motion.div
+                          key={item.key}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 + i * 0.07 }}
+                          className={`${item.bg} rounded-xl p-4 flex items-center gap-3`}
+                        >
+                          <span className="text-2xl">{item.icon}</span>
+                          <div className="text-left">
+                            <p className={`text-2xl font-extrabold leading-none ${item.color}`}>
+                              {summaryCounts[item.key]}
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{item.label}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex gap-4">
+        {/* Navigation */}
+        <div className="flex gap-3">
           {isEditMode && step === 1 ? (
             <button
               onClick={() => navigate('/home')}
-              className="flex-1 bg-white dark:bg-white/10 text-primary dark:text-white py-3 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-white/20"
+              className="flex-1 py-3 bg-white/70 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-xl text-sm font-medium transition backdrop-blur-sm"
             >
               Cancelar
             </button>
           ) : (
             <button
-              onClick={prevStep}
+              onClick={goPrev}
               disabled={step === 1 || isLoading}
-              className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100 disabled:opacity-50"
+              className="flex-1 py-3 bg-white/70 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 text-zinc-600 dark:text-zinc-300 rounded-xl text-sm font-medium transition backdrop-blur-sm disabled:opacity-40"
             >
               ← Atrás
             </button>
           )}
 
           {step < 5 && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleNext}
               disabled={isLoading || (step === 1 && !isValid)}
-              className="flex-1 bg-white text-primary py-3 rounded-lg font-medium hover:bg-gray-100 disabled:opacity-50"
+              className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition shadow-sm shadow-indigo-500/30 disabled:opacity-40"
             >
-              {isLoading ? 'Guardando...' : 'Siguiente →'}
-            </button>
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Guardando...
+                </span>
+              ) : 'Siguiente →'}
+            </motion.button>
           )}
 
           {step === 5 && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => navigate('/home')}
-              className="flex-1 bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600"
+              className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition shadow-sm shadow-emerald-500/30"
             >
-              {isEditMode ? 'Actualizar ✓' : 'Comenzar ✓'}
-            </button>
+              {isEditMode ? 'Volver al perfil ✓' : 'Comenzar a explorar ✓'}
+            </motion.button>
           )}
         </div>
 
-        {isEditMode && step > 1 && (
-          <div className="text-center mt-4">
+        {isEditMode && step > 1 && step < 5 && (
+          <div className="text-center mt-3">
             <button
               onClick={() => navigate('/home')}
-              className="text-zinc-500 dark:text-indigo-200 hover:text-zinc-900 dark:hover:text-white text-sm underline"
+              className="text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 text-sm transition"
             >
-              Cancelar y volver al menú principal
+              Cancelar y volver
             </button>
           </div>
         )}
-
-        {/* User info */}
-        <div className="text-center text-zinc-600 dark:text-white mt-8 text-sm">
-          <p>
-            {user?.displayName ?? user?.email?.split('@')[0] ?? 'Usuario'}, contanos sobre vos
-          </p>
-        </div>
       </div>
     </div>
   );
