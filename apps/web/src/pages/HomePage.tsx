@@ -144,7 +144,7 @@ export function HomePage() {
       </section>
 
       {/* ── Trending on platform ──────────────────────────── */}
-      {(feedLoading || (feed && feed.trending.length > 0)) && (
+      {(feedLoading || (feed && feed.trending.some((m) => m.posterPath))) && (
         <section className="px-8 pb-10">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-lg">🔥</span>
@@ -154,7 +154,7 @@ export function HomePage() {
           <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
             {feedLoading
               ? Array.from({ length: 8 }).map((_, i) => <FeedMovieCardSkeleton key={i} />)
-              : feed!.trending.map((movie, i) => (
+              : feed!.trending.filter((m) => m.posterPath).map((movie, i) => (
                   <FeedMovieCard key={movie.tmdbId} movie={movie} index={i} />
                 ))}
           </div>
@@ -162,7 +162,7 @@ export function HomePage() {
       )}
 
       {/* ── From people you follow ─────────────────────────── */}
-      {!feedLoading && feed && feed.fromFollowing.length > 0 && (
+      {!feedLoading && feed && feed.fromFollowing.some((m) => m.posterPath) && (
         <section className="px-8 pb-10">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-lg">👥</span>
@@ -170,7 +170,7 @@ export function HomePage() {
             <span className="text-zinc-400 dark:text-zinc-500 text-sm ml-1">· gustos de las personas que seguís</span>
           </div>
           <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide">
-            {feed.fromFollowing.map((movie, i) => (
+            {feed.fromFollowing.filter((m) => m.posterPath).map((movie, i) => (
               <FeedMovieCard key={movie.tmdbId} movie={movie} index={i} />
             ))}
           </div>
